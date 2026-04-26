@@ -13,6 +13,12 @@ type Buyer = {
   email: string;
 };
 
+const COUNTRY_CODE = "+57";
+
+function formatWhatsapp(localNumber: string) {
+  return `${COUNTRY_CODE}${localNumber.replace(/\D/g, "")}`;
+}
+
 export function PurchaseModal({
   selectedPackage,
   open,
@@ -24,11 +30,11 @@ export function PurchaseModal({
 }) {
   const [step, setStep] = useState(1);
   const [showMercadoPago, setShowMercadoPago] = useState(false);
-  const [buyer, setBuyer] = useState<Buyer>({ name: "", whatsapp: "+57 ", email: "" });
+  const [buyer, setBuyer] = useState<Buyer>({ name: "", whatsapp: "", email: "" });
   const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  const validBuyer = buyer.name.trim().length >= 3 && buyer.whatsapp.replace(/\D/g, "").length >= 10 && buyer.email.includes("@");
+  const validBuyer = buyer.name.trim().length >= 3 && formatWhatsapp(buyer.whatsapp).replace(/\D/g, "").length >= 12 && buyer.email.includes("@");
 
   function reset(openValue: boolean) {
     onOpenChange(openValue);
@@ -36,7 +42,7 @@ export function PurchaseModal({
       window.setTimeout(() => {
         setStep(1);
         setShowMercadoPago(false);
-        setBuyer({ name: "", whatsapp: "+57 ", email: "" });
+        setBuyer({ name: "", whatsapp: "", email: "" });
         setTicketNumbers([]);
         setError("");
       }, 200);
@@ -79,13 +85,20 @@ export function PurchaseModal({
             </label>
             <label className="block">
               <span className="text-sm font-bold text-white/80">Numero de WhatsApp</span>
-              <input
-                required
-                value={buyer.whatsapp}
-                onChange={(event) => setBuyer({ ...buyer, whatsapp: event.target.value })}
-                className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-lime-300"
-                placeholder="+57 300 123 4567"
-              />
+              <div className="mt-2 flex rounded-[8px] border border-white/12 bg-black/30 transition focus-within:border-lime-300">
+                <span className="grid place-items-center border-r border-white/12 px-4 py-3 font-bold text-white/70" aria-hidden="true">
+                  {COUNTRY_CODE}
+                </span>
+                <input
+                  required
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  value={buyer.whatsapp}
+                  onChange={(event) => setBuyer({ ...buyer, whatsapp: event.target.value.replace(/\D/g, "").slice(0, 10) })}
+                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-white outline-none placeholder:text-white/30"
+                  placeholder="3001234567"
+                />
+              </div>
             </label>
             <label className="block">
               <span className="text-sm font-bold text-white/80">Email para entrega</span>
@@ -124,7 +137,7 @@ export function PurchaseModal({
             </button>
             {showMercadoPago && (
               <MercadoPagoPaymentBrick
-                buyer={buyer}
+                buyer={{ ...buyer, whatsapp: formatWhatsapp(buyer.whatsapp) }}
                 selectedPackage={selectedPackage}
                 onApproved={(numbers) => {
                   setTicketNumbers(numbers);
