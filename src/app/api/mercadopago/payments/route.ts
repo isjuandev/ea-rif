@@ -9,7 +9,10 @@ import { normalizeWhatsApp } from "@/lib/tickets";
 export const dynamic = "force-dynamic";
 
 const MERCADO_PAGO_MIN_CARD_AMOUNT = 1000;
-const MERCADO_PAGO_TEST_TOKEN_ENABLED = process.env.MERCADO_PAGO_TEST_TOKEN === "true";
+
+function shouldSendMercadoPagoTestToken() {
+  return process.env.MERCADO_PAGO_TEST_TOKEN === "true" || process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith("TEST-") === true;
+}
 
 type MercadoPagoPaymentPayload = {
   packageId: string;
@@ -132,6 +135,10 @@ function formatMercadoPagoError(error: any) {
 
   if (lowerCombined.includes("address") || lowerCombined.includes("zip_code") || lowerCombined.includes("street")) {
     return "No pudimos iniciar el pago por PSE porque Mercado Pago no acepto la direccion. Usa codigo postal de 5 digitos, calle de maximo 18 caracteres, numero de maximo 5, barrio, ciudad y departamento.";
+  }
+
+  if (lowerCombined.includes("internal_error")) {
+    return "Mercado Pago devolvio internal_error al crear el pago PSE. Si estas usando credenciales TEST, verifica que el deploy tenga MERCADO_PAGO_TEST_TOKEN=true o un access token TEST- para enviar X-Test-Token:true; si ya esta activo, prueba con otro banco sandbox o genera el pago desde el checkout para que el Brick entregue todos los datos.";
   }
 
   return combined
@@ -379,7 +386,7 @@ export async function POST(request: Request) {
       },
       requestOptions: {
         idempotencyKey: randomUUID(),
-        testToken: MERCADO_PAGO_TEST_TOKEN_ENABLED,
+        testToken: shouldSendMercadoPagoTestToken(),
       },
     });
 
