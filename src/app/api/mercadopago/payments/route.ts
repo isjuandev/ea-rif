@@ -183,17 +183,19 @@ function sanitizeIpAddress(value?: string | null) {
   return trimmed.replace(/^\[|\]$/g, "");
 }
 
+function isLikelyIpv4(value?: string | null) {
+  if (!value) return false;
+  const parts = value.split(".");
+  return parts.length === 4 && parts.every((part) => /^\d{1,3}$/.test(part) && Number(part) >= 0 && Number(part) <= 255);
+}
+
+function firstIpv4(values: Array<string | null | undefined>) {
+  return values.find((value) => isLikelyIpv4(value)) || null;
+}
+
 function getBuyerIpAddress(request: Request, formData: MercadoPagoPaymentPayload["formData"]) {
-  const directIp =
-    sanitizeIpAddress(request.headers.get("cf-connecting-ip")) ||
-    sanitizeIpAddress(request.headers.get("x-real-ip")) ||
-    sanitizeIpAddress(request.headers.get("true-client-ip"));
-
-  if (directIp) return directIp;
-
   const forwardedFor = request.headers.get("x-forwarded-for");
-  const firstForwardedIp = forwardedFor?.split(",").map((part) => sanitizeIpAddress(part)).find(Boolean);
-  if (firstForwardedIp) return firstForwardedIp;
+  const forwardedForIps = forwardedFor?.split(",").map((part) => sanitizeIpAddress(part)) ?? [];
 
   const forwarded = request.headers.get("forwarded");
   const forwardedIp = forwarded
@@ -203,7 +205,18 @@ function getBuyerIpAddress(request: Request, formData: MercadoPagoPaymentPayload
     ?.slice(4)
     .replace(/^"|"$/g, "");
 
-  return sanitizeIpAddress(forwardedIp) || sanitizeIpAddress(formData.additional_info?.ip_address);
+  return (
+    firstIpv4([
+      sanitizeIpAddress(request.headers.get("cf-connecting-ip")),
+      sanitizeIpAddress(request.headers.get("x-real-ip")),
+      sanitizeIpAddress(request.headers.get("true-client-ip")),
+      ...forwardedForIps,
+      sanitizeIpAddress(forwardedIp),
+      sanitizeIpAddress(formData.additional_info?.ip_address),
+    ]) ||
+    sanitizeIpAddress(formData.additional_info?.ip_address) ||
+    "127.0.0.1"
+  );
 }
 
 function trimLength(value: string | undefined, maxLength: number) {
@@ -390,13 +403,36 @@ export async function POST(request: Request) {
         : {}),
     };
 
-    const payment = await paymentClient.create({
-      body: paymentBody,
-      requestOptions: {
-        idempotencyKey: randomUUID(),
-        testToken: shouldSendMercadoPagoTestToken(),
-      },
-    });
+    const testTokenEnabled = shouldSendMercadoPagoTestToken();
+    const payment = await paymentClient
+      .create({
+        body: paymentBody,
+        requestOptions: {
+          idempotencyKey: randomUUID(),
+          testToken: testTokenEnabled,
+        },
+      })
+      .catch(async (error: any) => {
+        await logMercadoPagoEvent({
+          mpPaymentId: null,
+          source: "payment_api",
+          topic: "payment",
+          action: "create_failed",
+          status: "error",
+          statusDetail: error?.cause?.message || error?.cause?.error || error?.message || null,
+          payload: {
+            packageId: selectedPackage.id,
+            paymentMethodId: payload.formData.payment_method_id,
+            pse,
+            buyerIpAddress,
+            financialInstitution,
+            testTokenEnabled,
+            accessTokenMode: process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith("TEST-") ? "test" : "production_or_missing",
+            error: error?.cause ?? error?.message ?? error,
+          },
+        });
+        throw error;
+      });
 
     await upsertMercadoPagoPaymentRecord({
       payment,
