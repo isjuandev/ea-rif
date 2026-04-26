@@ -18,20 +18,32 @@ function getPaymentId(requestUrl: string, body: MercadoPagoWebhook) {
   return body.data?.id || url.searchParams.get("data.id") || url.searchParams.get("id");
 }
 
+async function safeLogMercadoPagoEvent(input: Parameters<typeof logMercadoPagoEvent>[0]) {
+  await logMercadoPagoEvent(input).catch(() => undefined);
+}
+
 export async function POST(request: Request) {
-  const paymentClient = getMercadoPagoPayment();
-
-  if (!paymentClient) {
-    return NextResponse.json({ error: "Mercado Pago no esta configurado." }, { status: 503 });
-  }
-
   const body = (await request.json().catch(() => ({}))) as MercadoPagoWebhook;
   const url = new URL(request.url);
   const topic = body.type || url.searchParams.get("type") || url.searchParams.get("topic");
   const paymentId = getPaymentId(request.url, body);
 
+  const paymentClient = getMercadoPagoPayment();
+
+  if (!paymentClient) {
+    await safeLogMercadoPagoEvent({
+      mpPaymentId: paymentId || null,
+      source: "webhook",
+      topic: topic ?? null,
+      action: body.action ?? "configuration_error",
+      status: "error",
+      payload: body,
+    });
+    return NextResponse.json({ error: "Mercado Pago no esta configurado." }, { status: 503 });
+  }
+
   if (topic !== "payment" || !paymentId) {
-    await logMercadoPagoEvent({
+    await safeLogMercadoPagoEvent({
       mpPaymentId: paymentId || null,
       source: "webhook",
       topic: topic ?? null,
@@ -42,11 +54,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, ignored: true });
   }
 
-  const payment = await paymentClient.get({ id: paymentId });
+  const payment = await paymentClient.get({ id: paymentId }).catch(async (error: any) => {
+    await safeLogMercadoPagoEvent({
+      mpPaymentId: String(paymentId),
+      source: "webhook",
+      topic,
+      action: body.action ?? "payment_lookup_failed",
+      status: "lookup_failed",
+      payload: {
+        notification: body,
+        error: error?.cause ?? error?.message ?? error,
+      },
+    });
+    return null;
+  });
+
+  if (!payment) {
+    return NextResponse.json({
+      received: true,
+      ignored: true,
+      paymentId: String(paymentId),
+      reason: "payment_not_found_or_unavailable",
+    });
+  }
+
   const mpPaymentId = String(payment.id ?? paymentId);
 
-  await upsertMercadoPagoPaymentRecord({ payment });
-  await logMercadoPagoEvent({
+  await upsertMercadoPagoPaymentRecord({ payment }).catch(() => undefined);
+  await safeLogMercadoPagoEvent({
     mpPaymentId,
     source: "webhook",
     topic,
