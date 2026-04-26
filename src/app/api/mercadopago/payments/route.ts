@@ -340,50 +340,58 @@ export async function POST(request: Request) {
 
     const { firstName, lastName } = splitName(payload.buyerName);
     const payerEntityType = normalizeEntityType(entityTypeRaw);
+    const paymentBody = {
+      payment_method_id: payload.formData.payment_method_id,
+      transaction_amount: selectedPackage.price,
+      description: `${rifaConfig.eventName} - ${selectedPackage.name}`,
+      external_reference: `${selectedPackage.id}:${randomUUID()}`,
+      notification_url: `${publicBaseUrl}/api/mercadopago/webhook`,
+      callback_url: `${publicBaseUrl}/pago/estado`,
+      metadata: {
+        package_id: selectedPackage.id,
+        buyer_name: payload.buyerName,
+        buyer_whatsapp: normalizeWhatsApp(payload.buyerWhatsapp),
+        buyer_email: payload.buyerEmail,
+      },
+      payer: {
+        email: payload.formData.payer?.email || payload.buyerEmail,
+        entity_type: payerEntityType,
+        first_name: payload.formData.additional_info?.payer?.first_name || firstName,
+        last_name: payload.formData.additional_info?.payer?.last_name || lastName,
+        identification,
+        address: pseAddress ?? undefined,
+        phone: psePhone ?? undefined,
+      },
+      additional_info: {
+        ip_address: buyerIpAddress ?? undefined,
+      },
+      transaction_details: {
+        financial_institution: financialInstitution,
+      },
+      ...(!pse
+        ? {
+            token: payload.formData.token,
+            issuer_id: payload.formData.issuer_id ? Number(payload.formData.issuer_id) : undefined,
+            installments: payload.formData.installments ? Number(payload.formData.installments) : 1,
+            statement_descriptor: "RIFAS WALLPAPERS",
+            additional_info: {
+              ip_address: buyerIpAddress ?? undefined,
+              items: [
+                {
+                  id: selectedPackage.id,
+                  title: `${rifaConfig.eventName} - ${selectedPackage.name}`,
+                  description: `${selectedPackage.wallpapers} wallpapers + ${selectedPackage.rifas} numeros de rifa`,
+                  quantity: 1,
+                  unit_price: selectedPackage.price,
+                },
+              ],
+            },
+          }
+        : {}),
+    };
 
     const payment = await paymentClient.create({
-      body: {
-        token: payload.formData.token,
-        issuer_id: payload.formData.issuer_id ? Number(payload.formData.issuer_id) : undefined,
-        payment_method_id: payload.formData.payment_method_id,
-        transaction_amount: selectedPackage.price,
-        installments: payload.formData.installments ? Number(payload.formData.installments) : 1,
-        description: `${rifaConfig.eventName} - ${selectedPackage.name}`,
-        statement_descriptor: "RIFAS WALLPAPERS",
-        external_reference: `${selectedPackage.id}:${randomUUID()}`,
-        notification_url: `${publicBaseUrl}/api/mercadopago/webhook`,
-        callback_url: `${publicBaseUrl}/pago/estado`,
-        metadata: {
-          package_id: selectedPackage.id,
-          buyer_name: payload.buyerName,
-          buyer_whatsapp: normalizeWhatsApp(payload.buyerWhatsapp),
-          buyer_email: payload.buyerEmail,
-        },
-        payer: {
-          email: payload.formData.payer?.email || payload.buyerEmail,
-          entity_type: payerEntityType,
-          first_name: payload.formData.additional_info?.payer?.first_name || firstName,
-          last_name: payload.formData.additional_info?.payer?.last_name || lastName,
-          identification,
-          address: pseAddress ?? undefined,
-          phone: psePhone ?? undefined,
-        },
-        additional_info: {
-          ip_address: buyerIpAddress ?? undefined,
-          items: [
-            {
-              id: selectedPackage.id,
-              title: `${rifaConfig.eventName} - ${selectedPackage.name}`,
-              description: `${selectedPackage.wallpapers} wallpapers + ${selectedPackage.rifas} numeros de rifa`,
-              quantity: 1,
-              unit_price: selectedPackage.price,
-            },
-          ],
-        },
-        transaction_details: {
-          financial_institution: financialInstitution,
-        },
-      },
+      body: paymentBody,
       requestOptions: {
         idempotencyKey: randomUUID(),
         testToken: shouldSendMercadoPagoTestToken(),
