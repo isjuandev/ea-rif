@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { getMercadoPagoPayment } from "@/lib/mercadopago";
+import { getMercadoPagoPayment, getMercadoPagoPaymentMethod } from "@/lib/mercadopago";
 import { fulfillApprovedMercadoPagoPayment } from "@/lib/mercadopago-fulfillment";
 import { logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
@@ -91,6 +91,36 @@ function extractIdentification(formData: MercadoPagoPaymentPayload["formData"]) 
 
 function extractFinancialInstitution(formData: MercadoPagoPaymentPayload["formData"]) {
   return formData.transaction_details?.financial_institution || formData.financial_institution;
+}
+
+async function validatePseFinancialInstitution(financialInstitution?: string) {
+  if (!financialInstitution) {
+    return { valid: false, message: "Selecciona el banco desde el formulario de Mercado Pago." };
+  }
+
+  const paymentMethodClient = getMercadoPagoPaymentMethod();
+  if (!paymentMethodClient) return { valid: true };
+
+  const methods = await paymentMethodClient.get({ requestOptions: { testToken: shouldSendMercadoPagoTestToken() } });
+  const pseMethod = methods.find((method) => method.id === "pse");
+  const banks = pseMethod?.financial_institutions ?? [];
+
+  if (banks.length === 0) return { valid: true };
+
+  const selectedBank = banks.find((bank) => String(bank.id) === String(financialInstitution));
+  if (selectedBank) return { valid: true, bankName: selectedBank.description };
+
+  const sampleBanks = banks
+    .slice()
+    .sort((a, b) => String(a.description ?? "").localeCompare(String(b.description ?? "")))
+    .slice(0, 6)
+    .map((bank) => `${bank.description} (${bank.id})`)
+    .join(", ");
+
+  return {
+    valid: false,
+    message: `El banco PSE ${financialInstitution} no esta disponible para estas credenciales de Mercado Pago. Selecciona un banco desde el checkout. Bancos disponibles de ejemplo: ${sampleBanks}.`,
+  };
 }
 
 function countLetters(value: string) {
@@ -322,6 +352,10 @@ export async function POST(request: Request) {
       }
       if (!hasBank) {
         return validationError("Faltan datos para pagar por PSE.", "Selecciona el banco desde el formulario de Mercado Pago.");
+      }
+      const bankValidation = await validatePseFinancialInstitution(financialInstitution);
+      if (!bankValidation.valid) {
+        return validationError("No pudimos iniciar el pago por PSE.", bankValidation.message || "Selecciona otro banco e intenta de nuevo.");
       }
       if (!buyerIpAddress) {
         return validationError(

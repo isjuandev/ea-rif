@@ -35,6 +35,15 @@ function getPaymentMethods(amount: number) {
   return paymentMethods;
 }
 
+function splitName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) {
+    return { firstName: parts[0] || "Cliente", lastName: "Rifa" };
+  }
+
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
 export function MercadoPagoPaymentBrick({
   buyer,
   selectedPackage,
@@ -67,6 +76,7 @@ export function MercadoPagoPaymentBrick({
   }
 
   const paymentMethods = getPaymentMethods(selectedPackage.price);
+  const { firstName, lastName } = splitName(buyer.name);
 
   if (!paymentMethods) {
     return (
@@ -84,6 +94,16 @@ export function MercadoPagoPaymentBrick({
           payer: {
             email: buyer.email,
             entityType: "individual",
+            firstName,
+            lastName,
+            address: {
+              zipCode: buyer.zipCode,
+              federalUnit: buyer.federalUnit,
+              city: buyer.city,
+              neighborhood: buyer.neighborhood,
+              streetName: buyer.streetName,
+              streetNumber: buyer.streetNumber,
+            },
           },
           items: {
             totalItemsAmount: selectedPackage.price,
