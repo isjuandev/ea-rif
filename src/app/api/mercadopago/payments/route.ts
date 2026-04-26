@@ -91,7 +91,6 @@ export async function POST(request: Request) {
               description: `${selectedPackage.wallpapers} wallpapers + ${selectedPackage.rifas} numeros de rifa`,
               quantity: 1,
               unit_price: selectedPackage.price,
-              currency_id: "COP",
             },
           ],
         },

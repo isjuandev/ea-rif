@@ -71,7 +71,6 @@ export function MercadoPagoPaymentBrick({
             creditCard: "all",
             debitCard: "all",
             bankTransfer: "all",
-            mercadoPago: "all",
           },
         }}
         locale="es-CO"
