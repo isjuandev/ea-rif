@@ -35,7 +35,7 @@ export function Hero() {
             <span className="block text-lime-300">4 CIFRAS</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
-            Compra tu fondo de pantalla por {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(rifaConfig.ticketPrice)} y recibe un numero aleatorio del 0000 al 9999.
+            Compra paquetes desde 5 wallpapers digitales y recibe numeros aleatorios del 0000 al 9999 para participar.
           </p>
         </div>
 

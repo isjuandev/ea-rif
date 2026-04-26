@@ -8,6 +8,8 @@ import { normalizeWhatsApp } from "@/lib/tickets";
 
 export const dynamic = "force-dynamic";
 
+const MERCADO_PAGO_MIN_CARD_AMOUNT = 1000;
+
 type MercadoPagoPaymentPayload = {
   packageId: string;
   buyerName: string;
@@ -101,6 +103,15 @@ export async function POST(request: Request) {
 
     if (amount !== selectedPackage.price) {
       return NextResponse.json({ error: "El valor del pago no coincide con el paquete." }, { status: 400 });
+    }
+
+    if (selectedPackage.price < MERCADO_PAGO_MIN_CARD_AMOUNT) {
+      return NextResponse.json(
+        {
+          error: `Mercado Pago solo esta disponible desde ${MERCADO_PAGO_MIN_CARD_AMOUNT} COP.`,
+        },
+        { status: 400 },
+      );
     }
 
     if (!payload.formData.payment_method_id) {

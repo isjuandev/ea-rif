@@ -10,6 +10,25 @@ type Buyer = {
   email: string;
 };
 
+const MERCADO_PAGO_MIN_CARD_AMOUNT = 1000;
+const MERCADO_PAGO_MIN_BANK_TRANSFER_AMOUNT = 1600;
+
+function getPaymentMethods(amount: number) {
+  if (amount < MERCADO_PAGO_MIN_CARD_AMOUNT) return null;
+
+  const paymentMethods: Record<string, "all" | number> = {
+    creditCard: "all",
+    debitCard: "all",
+    maxInstallments: 1,
+  };
+
+  if (amount >= MERCADO_PAGO_MIN_BANK_TRANSFER_AMOUNT) {
+    paymentMethods.bankTransfer = "all";
+  }
+
+  return paymentMethods;
+}
+
 export function MercadoPagoPaymentBrick({
   buyer,
   selectedPackage,
@@ -41,6 +60,16 @@ export function MercadoPagoPaymentBrick({
     return <div className="rounded-[8px] border border-white/12 bg-white/[0.04] p-4 text-sm text-white/60">Cargando Mercado Pago...</div>;
   }
 
+  const paymentMethods = getPaymentMethods(selectedPackage.price);
+
+  if (!paymentMethods) {
+    return (
+      <div className="rounded-[8px] border border-yellow-300/25 bg-yellow-300/10 p-4 text-sm text-yellow-50">
+        Mercado Pago solo esta disponible desde {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(MERCADO_PAGO_MIN_CARD_AMOUNT)}. Elige un paquete de mayor valor o compra por WhatsApp.
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-[8px] border border-white/12 bg-white p-2 text-black">
       <Payment
@@ -48,6 +77,7 @@ export function MercadoPagoPaymentBrick({
           amount: selectedPackage.price,
           payer: {
             email: buyer.email,
+            entityType: "individual",
           },
           items: {
             totalItemsAmount: selectedPackage.price,
@@ -67,11 +97,7 @@ export function MercadoPagoPaymentBrick({
               theme: "default",
             },
           },
-          paymentMethods: {
-            creditCard: "all",
-            debitCard: "all",
-            bankTransfer: "all",
-          },
+          paymentMethods: paymentMethods as any,
         }}
         locale="es-CO"
         onSubmit={async ({ formData }) => {

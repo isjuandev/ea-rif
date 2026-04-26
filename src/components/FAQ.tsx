@@ -7,7 +7,7 @@ const questions = [
   },
   {
     q: "Que estoy comprando exactamente?",
-    a: "Cada numero cuesta $500 COP e incluye un wallpaper digital. Puedes comprar minimo 1 numero o paquetes de 5, 10 y 20 numeros.",
+    a: "Cada numero cuesta $500 COP e incluye un wallpaper digital. Puedes comprar paquetes de 5, 10, 20 o 50 numeros.",
   },
   {
     q: "Puedo elegir mis numeros?",
