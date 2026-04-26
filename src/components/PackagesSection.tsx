@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { CalendarDays } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { PackageCard } from "@/components/PackageCard";
-import { PurchaseModal } from "@/components/PurchaseModal";
 import { useRifaConfig } from "@/components/use-rifa-config";
 import { rifaConfig as fallbackRifaConfig } from "@/config/rifa";
 import { type RifaPackage } from "@/config/rifa";
@@ -18,8 +18,7 @@ type RifaStatus = {
 };
 
 export function PackagesSection() {
-  const [selectedPackage, setSelectedPackage] = useState<RifaPackage | null>(null);
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
   const [status, setStatus] = useState<RifaStatus>({
     totalTickets: fallbackRifaConfig.totalTickets,
     soldTickets: fallbackRifaConfig.fallbackSoldTickets,
@@ -36,8 +35,7 @@ export function PackagesSection() {
   }, []);
 
   function handleBuy(pack: RifaPackage) {
-    setSelectedPackage(pack);
-    setOpen(true);
+    router.push(`/pago/checkout?package=${encodeURIComponent(pack.id)}`);
   }
 
   const drawDateIso = status.drawDate ?? new Date(Date.now() + 1000).toISOString();
@@ -106,7 +104,6 @@ export function PackagesSection() {
           </div>
         </div>
       </div>
-      <PurchaseModal selectedPackage={selectedPackage} open={open} onOpenChange={setOpen} />
     </section>
   );
 }

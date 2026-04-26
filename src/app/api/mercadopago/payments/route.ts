@@ -162,10 +162,10 @@ function trimLength(value: string | undefined, maxLength: number) {
 
 function getPseAddress(address: MercadoPagoPaymentPayload["buyerAddress"]) {
   return {
-    zip_code: trimLength(address?.zipCode?.replace(/\D/g, ""), 5),
+    zip_code: trimLength(address?.zipCode?.replace(/\D/g, ""), 5) || "00000",
     street_name: trimLength(address?.streetName, 18),
-    street_number: trimLength(address?.streetNumber, 5),
-    neighborhood: trimLength(address?.neighborhood, 18),
+    street_number: trimLength(address?.streetNumber, 5) || "1",
+    neighborhood: trimLength(address?.neighborhood, 18) || "Centro",
     city: trimLength(address?.city, 18),
     federal_unit: trimLength(address?.federalUnit, 18),
   };
