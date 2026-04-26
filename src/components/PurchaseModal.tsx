@@ -19,6 +19,14 @@ function formatWhatsapp(localNumber: string) {
   return `${COUNTRY_CODE}${localNumber.replace(/\D/g, "")}`;
 }
 
+function countLetters(value: string) {
+  return (value.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) ?? []).length;
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
 export function PurchaseModal({
   selectedPackage,
   open,
@@ -34,7 +42,10 @@ export function PurchaseModal({
   const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  const validBuyer = buyer.name.trim().length >= 3 && formatWhatsapp(buyer.whatsapp).replace(/\D/g, "").length >= 12 && buyer.email.includes("@");
+  const validName = countLetters(buyer.name) >= 4;
+  const validWhatsapp = buyer.whatsapp.replace(/\D/g, "").length === 10;
+  const validEmail = isValidEmail(buyer.email);
+  const validBuyer = validName && validWhatsapp && validEmail;
 
   function reset(openValue: boolean) {
     onOpenChange(openValue);
@@ -70,18 +81,27 @@ export function PurchaseModal({
             className="space-y-3 sm:space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
-              if (validBuyer) setStep(2);
+              if (validBuyer) {
+                setError("");
+                setStep(2);
+                return;
+              }
+
+              setError("Revisa tus datos: nombre minimo 4 letras, WhatsApp de 10 digitos y correo valido.");
             }}
           >
+            {error && <p className="rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{error}</p>}
             <label className="block">
               <span className="text-sm font-bold text-white/80">Nombre completo</span>
               <input
                 required
+                minLength={4}
                 value={buyer.name}
                 onChange={(event) => setBuyer({ ...buyer, name: event.target.value })}
                 className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-lime-300"
                 placeholder="Tu nombre"
               />
+              {buyer.name && !validName && <span className="mt-1 block text-xs text-red-200">Escribe al menos 4 letras.</span>}
             </label>
             <label className="block">
               <span className="text-sm font-bold text-white/80">Numero de WhatsApp</span>
@@ -93,12 +113,16 @@ export function PurchaseModal({
                   required
                   inputMode="numeric"
                   autoComplete="tel-national"
+                  minLength={10}
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   value={buyer.whatsapp}
                   onChange={(event) => setBuyer({ ...buyer, whatsapp: event.target.value.replace(/\D/g, "").slice(0, 10) })}
                   className="min-w-0 flex-1 bg-transparent px-4 py-3 text-white outline-none placeholder:text-white/30"
                   placeholder="3001234567"
                 />
               </div>
+              {buyer.whatsapp && !validWhatsapp && <span className="mt-1 block text-xs text-red-200">Debe tener exactamente 10 numeros.</span>}
             </label>
             <label className="block">
               <span className="text-sm font-bold text-white/80">Email para entrega</span>
@@ -110,6 +134,7 @@ export function PurchaseModal({
                 className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-lime-300"
                 placeholder="correo@ejemplo.com"
               />
+              {buyer.email && !validEmail && <span className="mt-1 block text-xs text-red-200">Escribe un correo valido.</span>}
             </label>
             <button disabled={!validBuyer} className="w-full rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40">
               Continuar

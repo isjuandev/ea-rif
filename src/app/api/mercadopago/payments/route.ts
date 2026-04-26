@@ -80,6 +80,14 @@ function extractFinancialInstitution(formData: MercadoPagoPaymentPayload["formDa
   return formData.transaction_details?.financial_institution || formData.financial_institution;
 }
 
+function countLetters(value: string) {
+  return (value.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) ?? []).length;
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
 export async function POST(request: Request) {
   try {
     const paymentClient = getMercadoPagoPayment();
@@ -95,7 +103,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paquete invalido." }, { status: 400 });
     }
 
-    if (!payload.formData || !payload.buyerName || !payload.buyerEmail || normalizeWhatsApp(payload.buyerWhatsapp).length < 12) {
+    const normalizedBuyerWhatsapp = normalizeWhatsApp(payload.buyerWhatsapp);
+    const localBuyerWhatsapp = normalizedBuyerWhatsapp.startsWith("57") ? normalizedBuyerWhatsapp.slice(2) : normalizedBuyerWhatsapp;
+
+    if (
+      !payload.formData ||
+      countLetters(payload.buyerName || "") < 4 ||
+      localBuyerWhatsapp.length !== 10 ||
+      !isValidEmail(payload.buyerEmail || "")
+    ) {
       return NextResponse.json({ error: "Datos del comprador incompletos." }, { status: 400 });
     }
 
