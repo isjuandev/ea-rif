@@ -9,6 +9,7 @@ import { normalizeWhatsApp } from "@/lib/tickets";
 export const dynamic = "force-dynamic";
 
 const MERCADO_PAGO_MIN_CARD_AMOUNT = 1000;
+const MERCADO_PAGO_TEST_TOKEN_ENABLED = process.env.MERCADO_PAGO_TEST_TOKEN === "true";
 
 type MercadoPagoPaymentPayload = {
   packageId: string;
@@ -217,7 +218,7 @@ function getPsePhone(whatsapp: string) {
   const localNumber = normalizeWhatsApp(whatsapp).replace(/^57/, "").replace(/\D/g, "").slice(0, 10);
   return {
     area_code: localNumber.slice(0, 3),
-    number: localNumber.slice(-5),
+    number: localNumber.slice(3, 10),
   };
 }
 
@@ -291,7 +292,7 @@ export async function POST(request: Request) {
         Boolean(pseAddress.neighborhood) &&
         Boolean(pseAddress.city) &&
         Boolean(pseAddress.federal_unit);
-      const hasPhone = psePhone?.area_code.length === 3 && Boolean(psePhone.number);
+      const hasPhone = psePhone?.area_code.length === 3 && Boolean(psePhone.number) && psePhone.number.length <= 7;
 
       if (!hasEntityType) {
         return validationError("Faltan datos para pagar por PSE.", "Selecciona el tipo de persona: individual o association.");
@@ -378,6 +379,7 @@ export async function POST(request: Request) {
       },
       requestOptions: {
         idempotencyKey: randomUUID(),
+        testToken: MERCADO_PAGO_TEST_TOKEN_ENABLED,
       },
     });
 
