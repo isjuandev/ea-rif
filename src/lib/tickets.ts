@@ -2,7 +2,7 @@ import { rifaConfig } from "@/config/rifa";
 import { sendTicketEmail } from "@/lib/email";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-export type PaymentMethod = "whatsapp" | "nequi" | "daviplata" | "mercado_pago";
+export type PaymentMethod = "mercado_pago";
 
 export type FulfillTicketPurchaseInput = {
   packageId: string;

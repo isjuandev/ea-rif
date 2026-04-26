@@ -20,7 +20,7 @@ export function MercadoPagoPaymentBrick({
   buyer: Buyer;
   selectedPackage: RifaPackage;
   onApproved: (ticketNumbers: string[]) => void;
-  onPending: (message: string) => void;
+  onPending: (message: string, externalResourceUrl?: string) => void;
   onError: (message: string) => void;
 }) {
   const [ready, setReady] = useState(false);
@@ -100,7 +100,11 @@ export function MercadoPagoPaymentBrick({
             return data;
           }
 
-          onPending(data.message || "Tu pago esta pendiente de aprobacion. Te enviaremos los numeros cuando Mercado Pago lo apruebe.");
+          const redirectUrl = data.externalResourceUrl as string | undefined;
+          onPending(data.message || "Tu pago esta pendiente de aprobacion. Te enviaremos los numeros cuando Mercado Pago lo apruebe.", redirectUrl);
+          if (redirectUrl) {
+            window.location.assign(redirectUrl);
+          }
           return data;
         }}
         onError={(brickError) => {

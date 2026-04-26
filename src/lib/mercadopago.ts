@@ -1,10 +1,24 @@
-import { MercadoPagoConfig, Payment } from "mercadopago";
+import { IdentificationType, MercadoPagoConfig, Payment, PaymentMethod } from "mercadopago";
 
-export function getMercadoPagoPayment() {
+function getMercadoPagoClient() {
   const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
   if (!accessToken) return null;
 
-  const client = new MercadoPagoConfig({ accessToken });
-  return new Payment(client);
+  return new MercadoPagoConfig({ accessToken });
+}
+
+export function getMercadoPagoPayment() {
+  const client = getMercadoPagoClient();
+  return client ? new Payment(client) : null;
+}
+
+export function getMercadoPagoPaymentMethod() {
+  const client = getMercadoPagoClient();
+  return client ? new PaymentMethod(client) : null;
+}
+
+export function getMercadoPagoIdentificationType() {
+  const client = getMercadoPagoClient();
+  return client ? new IdentificationType(client) : null;
 }

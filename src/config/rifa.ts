@@ -10,9 +10,6 @@ export const rifaConfig = {
   drawWeekday: 4,
   drawHour: 22,
   drawMinute: 30,
-  whatsappNumber: "573001234567",
-  nequiNumber: "300 123 4567",
-  daviplataNumber: "300 123 4567",
   sellerName: "Rifas Wallpapers",
   packages: [
     { id: "unitario", name: "1 numero", wallpapers: 1, rifas: 1, price: 500 },

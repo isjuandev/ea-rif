@@ -16,10 +16,13 @@ type MercadoPagoPaymentPayload = {
     token?: string;
     issuer_id?: string | number;
     payment_method_id?: string;
+    entity_type?: string;
+    financial_institution?: string;
     transaction_amount?: number;
     installments?: number;
     payer?: {
       email?: string;
+      entity_type?: string;
       identification?: {
         type?: string;
         number?: string;
@@ -28,8 +31,51 @@ type MercadoPagoPaymentPayload = {
     transaction_details?: {
       financial_institution?: string;
     };
+    additional_info?: {
+      payer?: {
+        first_name?: string;
+        last_name?: string;
+      };
+    };
   };
 };
+
+function splitName(fullName: string) {
+  const trimmed = fullName.trim();
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) {
+    return { firstName: trimmed || "Cliente", lastName: "Rifa" };
+  }
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(" "),
+  };
+}
+
+function normalizeEntityType(value?: string) {
+  if (!value) return "individual";
+  const normalized = value.toLowerCase();
+  return normalized === "association" ? "association" : "individual";
+}
+
+function isPsePaymentMethod(paymentMethodId?: string) {
+  return (paymentMethodId || "").toLowerCase() === "pse";
+}
+
+function extractEntityType(formData: MercadoPagoPaymentPayload["formData"]) {
+  return formData.payer?.entity_type || formData.entity_type;
+}
+
+function extractIdentification(formData: MercadoPagoPaymentPayload["formData"]) {
+  return {
+    type: formData.payer?.identification?.type,
+    number: formData.payer?.identification?.number,
+  };
+}
+
+function extractFinancialInstitution(formData: MercadoPagoPaymentPayload["formData"]) {
+  return formData.transaction_details?.financial_institution || formData.financial_institution;
+}
 
 export async function POST(request: Request) {
   try {
@@ -60,7 +106,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Mercado Pago no retorno payment_method_id." }, { status: 400 });
     }
 
+    const pse = isPsePaymentMethod(payload.formData.payment_method_id);
+    const entityTypeRaw = extractEntityType(payload.formData);
+    const identification = extractIdentification(payload.formData);
+    const financialInstitution = extractFinancialInstitution(payload.formData);
+    if (pse) {
+      const hasEntityType = Boolean(entityTypeRaw);
+      const hasIdType = Boolean(identification.type);
+      const hasIdNumber = Boolean(identification.number);
+      const hasBank = Boolean(financialInstitution);
+
+      if (!hasEntityType) {
+        return NextResponse.json({ error: "Para PSE, payer.entity_type es obligatorio (individual o association)." }, { status: 400 });
+      }
+      if (!hasIdType || !hasIdNumber) {
+        return NextResponse.json({ error: "Para PSE, payer.identification.type y payer.identification.number son obligatorios." }, { status: 400 });
+      }
+      if (!hasBank) {
+        return NextResponse.json({ error: "Para PSE, transaction_details.financial_institution es obligatorio." }, { status: 400 });
+      }
+    }
+
     const origin = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get("origin") || new URL(request.url).origin;
+    const { firstName, lastName } = splitName(payload.buyerName);
+    const payerEntityType = normalizeEntityType(entityTypeRaw);
 
     const payment = await paymentClient.create({
       body: {
@@ -73,6 +142,7 @@ export async function POST(request: Request) {
         statement_descriptor: "RIFAS WALLPAPERS",
         external_reference: `${selectedPackage.id}:${randomUUID()}`,
         notification_url: `${origin}/api/mercadopago/webhook`,
+        callback_url: `${origin}/?payment_status=callback`,
         metadata: {
           package_id: selectedPackage.id,
           buyer_name: payload.buyerName,
@@ -81,7 +151,10 @@ export async function POST(request: Request) {
         },
         payer: {
           email: payload.formData.payer?.email || payload.buyerEmail,
-          identification: payload.formData.payer?.identification,
+          entity_type: payerEntityType,
+          first_name: payload.formData.additional_info?.payer?.first_name || firstName,
+          last_name: payload.formData.additional_info?.payer?.last_name || lastName,
+          identification,
         },
         additional_info: {
           items: [
@@ -94,7 +167,9 @@ export async function POST(request: Request) {
             },
           ],
         },
-        transaction_details: payload.formData.transaction_details,
+        transaction_details: {
+          financial_institution: financialInstitution,
+        },
       },
       requestOptions: {
         idempotencyKey: randomUUID(),
@@ -125,11 +200,13 @@ export async function POST(request: Request) {
     });
 
     if (payment.status !== "approved") {
+      const externalResourceUrl = payment.transaction_details?.external_resource_url ?? null;
       return NextResponse.json({
         approved: false,
         paymentId: payment.id,
         status: payment.status,
         statusDetail: payment.status_detail,
+        externalResourceUrl,
         message: "El pago fue creado pero aun no esta aprobado.",
       });
     }

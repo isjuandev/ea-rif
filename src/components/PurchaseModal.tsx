@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, CreditCard, MessageCircle, Smartphone } from "lucide-react";
+import { CheckCircle2, CreditCard } from "lucide-react";
 import { MercadoPagoPaymentBrick } from "@/components/MercadoPagoPaymentBrick";
-import { rifaConfig, type RifaPackage } from "@/config/rifa";
+import { type RifaPackage } from "@/config/rifa";
 import { formatCOP } from "@/components/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -23,80 +23,22 @@ export function PurchaseModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const [step, setStep] = useState(1);
-  const [showManualPayment, setShowManualPayment] = useState(false);
   const [showMercadoPago, setShowMercadoPago] = useState(false);
   const [buyer, setBuyer] = useState<Buyer>({ name: "", whatsapp: "+57 ", email: "" });
   const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const validBuyer = buyer.name.trim().length >= 3 && buyer.whatsapp.replace(/\D/g, "").length >= 10 && buyer.email.includes("@");
-
-  function buildWhatsappHref(numbers: string[]) {
-    if (!selectedPackage) return "#";
-    const message = [
-      `Hola, quiero comprar el paquete ${selectedPackage.name}.`,
-      `Nombre: ${buyer.name}`,
-      `WhatsApp: ${buyer.whatsapp}`,
-      buyer.email ? `Email: ${buyer.email}` : "",
-      `Wallpapers: ${selectedPackage.wallpapers}`,
-      `Rifas incluidas: ${selectedPackage.rifas}`,
-      numbers.length ? `Numeros asignados: ${numbers.join(", ")}` : "",
-      `Precio: ${formatCOP(selectedPackage.price)}`,
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    return `https://wa.me/${rifaConfig.whatsappNumber}?text=${encodeURIComponent(message)}`;
-  }
-
-  async function registerPurchase(paymentMethod: "whatsapp" | "nequi" | "daviplata") {
-    if (!selectedPackage || !validBuyer) return;
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/purchases", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          packageId: selectedPackage.id,
-          buyerName: buyer.name,
-          buyerWhatsapp: buyer.whatsapp,
-          buyerEmail: buyer.email,
-          paymentMethod,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "No se pudo registrar la compra.");
-
-      const numbers = data.ticketNumbers ?? [];
-      setTicketNumbers(numbers);
-
-      if (paymentMethod === "whatsapp") {
-        window.open(buildWhatsappHref(numbers), "_blank", "noopener,noreferrer");
-      }
-
-      setStep(3);
-    } catch (purchaseError) {
-      setError(purchaseError instanceof Error ? purchaseError.message : "No se pudo registrar la compra.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function reset(openValue: boolean) {
     onOpenChange(openValue);
     if (!openValue) {
       window.setTimeout(() => {
         setStep(1);
-        setShowManualPayment(false);
         setShowMercadoPago(false);
         setBuyer({ name: "", whatsapp: "+57 ", email: "" });
         setTicketNumbers([]);
         setError("");
-        setLoading(false);
       }, 200);
     }
   }
@@ -189,26 +131,11 @@ export function PurchaseModal({
                   setError("");
                   setStep(3);
                 }}
-                onPending={(message) => setError(message)}
+                onPending={(message, externalResourceUrl) => {
+                  setError(externalResourceUrl ? `${message} Redirigiendo al banco...` : message);
+                }}
                 onError={(message) => setError(message)}
               />
-            )}
-            <button disabled={loading} onClick={() => registerPurchase("whatsapp")} className="flex w-full items-center justify-center gap-3 rounded-[8px] border border-white/14 bg-white/[0.06] px-5 py-3 font-extrabold uppercase text-white transition hover:border-lime-300/60 disabled:cursor-not-allowed disabled:opacity-50">
-              <MessageCircle className="size-5" />
-              {loading ? "Asignando numeros..." : "Pagar por WhatsApp"}
-            </button>
-            <button onClick={() => setShowManualPayment(true)} className="flex w-full items-center justify-center gap-3 rounded-[8px] border border-white/14 bg-white/[0.06] px-5 py-3 font-extrabold uppercase text-white transition hover:border-lime-300/60">
-              <Smartphone className="size-5" />
-              Pagar por Nequi/Daviplata
-            </button>
-            {showManualPayment && (
-              <div className="rounded-[8px] border border-lime-300/35 bg-lime-300/8 p-4 text-sm text-white/76">
-                <p>Nequi: <strong className="text-white">{rifaConfig.nequiNumber}</strong></p>
-                <p>Daviplata: <strong className="text-white">{rifaConfig.daviplataNumber}</strong></p>
-                <button disabled={loading} onClick={() => registerPurchase("nequi")} className="mt-4 w-full rounded-[8px] bg-white px-5 py-3 font-extrabold uppercase text-black transition hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-50">
-                  {loading ? "Asignando numeros..." : "Ya pague"}
-                </button>
-              </div>
             )}
             <button onClick={() => setStep(1)} className="w-full py-2 text-sm font-bold text-white/55 transition hover:text-white">
               Volver a mis datos
