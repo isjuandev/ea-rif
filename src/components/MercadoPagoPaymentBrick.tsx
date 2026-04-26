@@ -8,6 +8,12 @@ type Buyer = {
   name: string;
   whatsapp: string;
   email: string;
+  zipCode: string;
+  streetName: string;
+  streetNumber: string;
+  neighborhood: string;
+  city: string;
+  federalUnit: string;
 };
 
 const MERCADO_PAGO_MIN_CARD_AMOUNT = 1000;
@@ -109,6 +115,14 @@ export function MercadoPagoPaymentBrick({
               buyerName: buyer.name,
               buyerWhatsapp: buyer.whatsapp,
               buyerEmail: buyer.email,
+              buyerAddress: {
+                zipCode: buyer.zipCode,
+                streetName: buyer.streetName,
+                streetNumber: buyer.streetNumber,
+                neighborhood: buyer.neighborhood,
+                city: buyer.city,
+                federalUnit: buyer.federalUnit,
+              },
               formData,
             }),
           });

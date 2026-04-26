@@ -11,6 +11,12 @@ type Buyer = {
   name: string;
   whatsapp: string;
   email: string;
+  zipCode: string;
+  streetName: string;
+  streetNumber: string;
+  neighborhood: string;
+  city: string;
+  federalUnit: string;
 };
 
 const COUNTRY_CODE = "+57";
@@ -38,14 +44,36 @@ export function PurchaseModal({
 }) {
   const [step, setStep] = useState(1);
   const [showMercadoPago, setShowMercadoPago] = useState(false);
-  const [buyer, setBuyer] = useState<Buyer>({ name: "", whatsapp: "", email: "" });
+  const [buyer, setBuyer] = useState<Buyer>({
+    name: "",
+    whatsapp: "",
+    email: "",
+    zipCode: "",
+    streetName: "",
+    streetNumber: "",
+    neighborhood: "",
+    city: "",
+    federalUnit: "",
+  });
   const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
   const [error, setError] = useState("");
 
   const validName = countLetters(buyer.name) >= 4;
   const validWhatsapp = buyer.whatsapp.replace(/\D/g, "").length === 10;
   const validEmail = isValidEmail(buyer.email);
-  const validBuyer = validName && validWhatsapp && validEmail;
+  const validAddress =
+    buyer.zipCode.replace(/\D/g, "").length === 5 &&
+    buyer.streetName.trim().length >= 1 &&
+    buyer.streetName.trim().length <= 18 &&
+    buyer.streetNumber.trim().length >= 1 &&
+    buyer.streetNumber.trim().length <= 5 &&
+    buyer.neighborhood.trim().length >= 1 &&
+    buyer.neighborhood.trim().length <= 18 &&
+    buyer.city.trim().length >= 1 &&
+    buyer.city.trim().length <= 18 &&
+    buyer.federalUnit.trim().length >= 1 &&
+    buyer.federalUnit.trim().length <= 18;
+  const validBuyer = validName && validWhatsapp && validEmail && validAddress;
 
   function reset(openValue: boolean) {
     onOpenChange(openValue);
@@ -53,7 +81,17 @@ export function PurchaseModal({
       window.setTimeout(() => {
         setStep(1);
         setShowMercadoPago(false);
-        setBuyer({ name: "", whatsapp: "", email: "" });
+        setBuyer({
+          name: "",
+          whatsapp: "",
+          email: "",
+          zipCode: "",
+          streetName: "",
+          streetNumber: "",
+          neighborhood: "",
+          city: "",
+          federalUnit: "",
+        });
         setTicketNumbers([]);
         setError("");
       }, 200);
@@ -87,7 +125,7 @@ export function PurchaseModal({
                 return;
               }
 
-              setError("Revisa tus datos: nombre minimo 4 letras, WhatsApp de 10 digitos y correo valido.");
+              setError("Revisa tus datos: nombre minimo 4 letras, WhatsApp de 10 digitos, correo valido y direccion completa para PSE.");
             }}
           >
             {error && <p className="rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{error}</p>}
@@ -136,6 +174,81 @@ export function PurchaseModal({
               />
               {buyer.email && !validEmail && <span className="mt-1 block text-xs text-red-200">Escribe un correo valido.</span>}
             </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-bold text-white/80">Codigo postal</span>
+                <input
+                  required
+                  inputMode="numeric"
+                  minLength={5}
+                  maxLength={5}
+                  pattern="[0-9]{5}"
+                  value={buyer.zipCode}
+                  onChange={(event) => setBuyer({ ...buyer, zipCode: event.target.value.replace(/\D/g, "").slice(0, 5) })}
+                  className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                  placeholder="11011"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-bold text-white/80">Ciudad</span>
+                <input
+                  required
+                  maxLength={18}
+                  value={buyer.city}
+                  onChange={(event) => setBuyer({ ...buyer, city: event.target.value.slice(0, 18) })}
+                  className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                  placeholder="Bogota"
+                />
+              </label>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-[1fr_110px]">
+              <label className="block">
+                <span className="text-sm font-bold text-white/80">Direccion</span>
+                <input
+                  required
+                  maxLength={18}
+                  value={buyer.streetName}
+                  onChange={(event) => setBuyer({ ...buyer, streetName: event.target.value.slice(0, 18) })}
+                  className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                  placeholder="Calle 10"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-bold text-white/80">Numero</span>
+                <input
+                  required
+                  maxLength={5}
+                  value={buyer.streetNumber}
+                  onChange={(event) => setBuyer({ ...buyer, streetNumber: event.target.value.slice(0, 5) })}
+                  className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                  placeholder="12"
+                />
+              </label>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-bold text-white/80">Barrio</span>
+                <input
+                  required
+                  maxLength={18}
+                  value={buyer.neighborhood}
+                  onChange={(event) => setBuyer({ ...buyer, neighborhood: event.target.value.slice(0, 18) })}
+                  className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                  placeholder="Centro"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-bold text-white/80">Departamento</span>
+                <input
+                  required
+                  maxLength={18}
+                  value={buyer.federalUnit}
+                  onChange={(event) => setBuyer({ ...buyer, federalUnit: event.target.value.slice(0, 18) })}
+                  className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                  placeholder="Cundinamarca"
+                />
+              </label>
+            </div>
             <button disabled={!validBuyer} className="w-full rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40">
               Continuar
             </button>

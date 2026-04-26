@@ -15,6 +15,14 @@ type MercadoPagoPaymentPayload = {
   buyerName: string;
   buyerWhatsapp: string;
   buyerEmail: string;
+  buyerAddress?: {
+    zipCode?: string;
+    streetName?: string;
+    streetNumber?: string;
+    neighborhood?: string;
+    city?: string;
+    federalUnit?: string;
+  };
   formData: {
     token?: string;
     issuer_id?: string | number;
@@ -118,6 +126,59 @@ function getPublicBaseUrl(request: Request) {
   return normalizePublicBaseUrl(request.headers.get("origin")) || normalizePublicBaseUrl(new URL(request.url).origin);
 }
 
+function sanitizeIpAddress(value?: string | null) {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.toLowerCase() === "unknown") return null;
+  return trimmed.replace(/^\[|\]$/g, "");
+}
+
+function getBuyerIpAddress(request: Request) {
+  const directIp =
+    sanitizeIpAddress(request.headers.get("cf-connecting-ip")) ||
+    sanitizeIpAddress(request.headers.get("x-real-ip")) ||
+    sanitizeIpAddress(request.headers.get("true-client-ip"));
+
+  if (directIp) return directIp;
+
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const firstForwardedIp = forwardedFor?.split(",").map((part) => sanitizeIpAddress(part)).find(Boolean);
+  if (firstForwardedIp) return firstForwardedIp;
+
+  const forwarded = request.headers.get("forwarded");
+  const forwardedIp = forwarded
+    ?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.toLowerCase().startsWith("for="))
+    ?.slice(4)
+    .replace(/^"|"$/g, "");
+
+  return sanitizeIpAddress(forwardedIp);
+}
+
+function trimLength(value: string | undefined, maxLength: number) {
+  return (value || "").trim().slice(0, maxLength);
+}
+
+function getPseAddress(address: MercadoPagoPaymentPayload["buyerAddress"]) {
+  return {
+    zip_code: trimLength(address?.zipCode?.replace(/\D/g, ""), 5),
+    street_name: trimLength(address?.streetName, 18),
+    street_number: trimLength(address?.streetNumber, 5),
+    neighborhood: trimLength(address?.neighborhood, 18),
+    city: trimLength(address?.city, 18),
+    federal_unit: trimLength(address?.federalUnit, 18),
+  };
+}
+
+function getPsePhone(whatsapp: string) {
+  const localNumber = normalizeWhatsApp(whatsapp).replace(/^57/, "").replace(/\D/g, "").slice(0, 10);
+  return {
+    area_code: localNumber.slice(0, 3),
+    number: localNumber.slice(-5),
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const paymentClient = getMercadoPagoPayment();
@@ -169,11 +230,23 @@ export async function POST(request: Request) {
     const entityTypeRaw = extractEntityType(payload.formData);
     const identification = extractIdentification(payload.formData);
     const financialInstitution = extractFinancialInstitution(payload.formData);
+    const buyerIpAddress = pse ? getBuyerIpAddress(request) : null;
+    const pseAddress = pse ? getPseAddress(payload.buyerAddress) : null;
+    const psePhone = pse ? getPsePhone(payload.buyerWhatsapp) : null;
+
     if (pse) {
       const hasEntityType = Boolean(entityTypeRaw);
       const hasIdType = Boolean(identification.type);
       const hasIdNumber = Boolean(identification.number);
       const hasBank = Boolean(financialInstitution);
+      const hasAddress =
+        pseAddress?.zip_code.length === 5 &&
+        Boolean(pseAddress.street_name) &&
+        Boolean(pseAddress.street_number) &&
+        Boolean(pseAddress.neighborhood) &&
+        Boolean(pseAddress.city) &&
+        Boolean(pseAddress.federal_unit);
+      const hasPhone = psePhone?.area_code.length === 3 && Boolean(psePhone.number);
 
       if (!hasEntityType) {
         return NextResponse.json({ error: "Para PSE, payer.entity_type es obligatorio (individual o association)." }, { status: 400 });
@@ -183,6 +256,15 @@ export async function POST(request: Request) {
       }
       if (!hasBank) {
         return NextResponse.json({ error: "Para PSE, transaction_details.financial_institution es obligatorio." }, { status: 400 });
+      }
+      if (!buyerIpAddress) {
+        return NextResponse.json({ error: "Para PSE, additional_info.ip_address es obligatorio." }, { status: 400 });
+      }
+      if (!hasAddress) {
+        return NextResponse.json({ error: "Para PSE, la direccion del comprador es obligatoria." }, { status: 400 });
+      }
+      if (!hasPhone) {
+        return NextResponse.json({ error: "Para PSE, payer.phone es obligatorio." }, { status: 400 });
       }
     }
 
@@ -224,8 +306,11 @@ export async function POST(request: Request) {
           first_name: payload.formData.additional_info?.payer?.first_name || firstName,
           last_name: payload.formData.additional_info?.payer?.last_name || lastName,
           identification,
+          address: pseAddress ?? undefined,
+          phone: psePhone ?? undefined,
         },
         additional_info: {
+          ip_address: buyerIpAddress ?? undefined,
           items: [
             {
               id: selectedPackage.id,
