@@ -15,7 +15,7 @@ export async function sendTicketEmail({
   price: number;
   numbers: string[];
 }) {
-  if (!process.env.RESEND_API_KEY || !to) return { sent: false };
+  if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacio." };
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = process.env.RESEND_FROM || "Rifas Wallpapers <onboarding@resend.dev>";
@@ -33,12 +33,16 @@ export async function sendTicketEmail({
     </div>
   `;
 
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from,
     to,
     subject: `Tus numeros de rifa - ${rifaConfig.eventName}`,
     html,
   });
 
-  return { sent: true };
+  if (result.error) {
+    return { sent: false, error: result.error.message || "Resend rechazo el envio." };
+  }
+
+  return { sent: true, messageId: result.data?.id || null };
 }

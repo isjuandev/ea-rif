@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMercadoPagoPayment } from "@/lib/mercadopago";
-import { linkRifaPurchaseToPayment, logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
-import { fulfillTicketPurchase } from "@/lib/tickets";
+import { fulfillApprovedMercadoPagoPayment } from "@/lib/mercadopago-fulfillment";
+import { logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
 
 export const dynamic = "force-dynamic";
 
@@ -60,51 +60,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, paymentId: mpPaymentId, status: payment.status });
   }
 
-  const metadata = payment.metadata ?? {};
-  const packageId = metadata.package_id || metadata.packageId;
-  const buyerName = metadata.buyer_name || metadata.buyerName;
-  const buyerWhatsapp = metadata.buyer_whatsapp || metadata.buyerWhatsapp;
-  const buyerEmail = metadata.buyer_email || metadata.buyerEmail || payment.payer?.email;
-
-  if (!packageId || !buyerName || !buyerWhatsapp || !buyerEmail) {
-    await logMercadoPagoEvent({
-      mpPaymentId,
-      source: "webhook",
-      topic,
-      action: "missing_metadata",
-      status: "approved",
-      statusDetail: "metadata_incomplete",
-      payload: { metadata, payer: payment.payer },
-    });
-    return NextResponse.json({ error: "El pago aprobado no trae metadata suficiente." }, { status: 400 });
-  }
-
-  const result = await fulfillTicketPurchase({
-    packageId,
-    buyerName,
-    buyerWhatsapp,
-    buyerEmail,
-    paymentMethod: "mercado_pago",
-    mercadoPagoPaymentId: mpPaymentId,
-  });
-
-  await linkRifaPurchaseToPayment({
-    mpPaymentId,
-    purchaseId: result.purchaseId,
-  });
-
-  await logMercadoPagoEvent({
-    mpPaymentId,
-    source: "webhook",
-    topic,
-    action: "fulfillment",
-    status: "sold",
-    statusDetail: "tickets_assigned",
-    payload: {
-      purchaseId: result.purchaseId,
-      ticketNumbers: result.ticketNumbers,
-    },
-  });
+  const result = await fulfillApprovedMercadoPagoPayment(payment, "webhook");
 
   return NextResponse.json({
     received: true,

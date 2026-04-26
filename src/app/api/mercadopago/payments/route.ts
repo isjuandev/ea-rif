@@ -2,8 +2,9 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { rifaConfig } from "@/config/rifa";
 import { getMercadoPagoPayment } from "@/lib/mercadopago";
-import { linkRifaPurchaseToPayment, logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
-import { fulfillTicketPurchase, normalizeWhatsApp } from "@/lib/tickets";
+import { fulfillApprovedMercadoPagoPayment } from "@/lib/mercadopago-fulfillment";
+import { logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
+import { normalizeWhatsApp } from "@/lib/tickets";
 
 export const dynamic = "force-dynamic";
 
@@ -142,7 +143,7 @@ export async function POST(request: Request) {
         statement_descriptor: "RIFAS WALLPAPERS",
         external_reference: `${selectedPackage.id}:${randomUUID()}`,
         notification_url: `${origin}/api/mercadopago/webhook`,
-        callback_url: `${origin}/?payment_status=callback`,
+        callback_url: `${origin}/pago/estado`,
         metadata: {
           package_id: selectedPackage.id,
           buyer_name: payload.buyerName,
@@ -207,36 +208,12 @@ export async function POST(request: Request) {
         status: payment.status,
         statusDetail: payment.status_detail,
         externalResourceUrl,
+        statusUrl: payment.id ? `/pago/estado?id=${encodeURIComponent(String(payment.id))}` : "/pago/estado",
         message: "El pago fue creado pero aun no esta aprobado.",
       });
     }
 
-    const result = await fulfillTicketPurchase({
-      packageId: selectedPackage.id,
-      buyerName: payload.buyerName,
-      buyerWhatsapp: payload.buyerWhatsapp,
-      buyerEmail: payload.buyerEmail,
-      paymentMethod: "mercado_pago",
-      mercadoPagoPaymentId: String(payment.id),
-    });
-
-    await linkRifaPurchaseToPayment({
-      mpPaymentId: String(payment.id),
-      purchaseId: result.purchaseId,
-    });
-
-    await logMercadoPagoEvent({
-      mpPaymentId: String(payment.id),
-      source: "payment_api",
-      topic: "payment",
-      action: "fulfillment",
-      status: "sold",
-      statusDetail: "tickets_assigned",
-      payload: {
-        purchaseId: result.purchaseId,
-        ticketNumbers: result.ticketNumbers,
-      },
-    });
+    const result = await fulfillApprovedMercadoPagoPayment(payment, "payment_api");
 
     return NextResponse.json({
       approved: true,

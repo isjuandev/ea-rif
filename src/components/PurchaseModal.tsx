@@ -131,8 +131,8 @@ export function PurchaseModal({
                   setError("");
                   setStep(3);
                 }}
-                onPending={(message, externalResourceUrl) => {
-                  setError(externalResourceUrl ? `${message} Redirigiendo al banco...` : message);
+                onPending={(message, _statusUrl, externalResourceUrl) => {
+                  setError(externalResourceUrl ? `${message} Redirigiendo al banco...` : `${message} Abriendo estado del pago...`);
                 }}
                 onError={(message) => setError(message)}
               />

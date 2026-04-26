@@ -59,16 +59,44 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   const purchaseId = purchase?.purchase_id;
 
   if (input.buyerEmail && ticketNumbers.length > 0 && purchaseId) {
-    const email = await sendTicketEmail({
-      to: input.buyerEmail,
-      name: input.buyerName,
-      packageName: selectedPackage.name,
-      price: selectedPackage.price,
-      numbers: ticketNumbers,
-    });
+    try {
+      const { data: purchaseRow } = await supabase
+        .from("rifa_purchases")
+        .select("email_sent_at")
+        .eq("id", purchaseId)
+        .maybeSingle();
 
-    if (email.sent) {
-      await supabase.from("rifa_purchases").update({ email_sent_at: new Date().toISOString() }).eq("id", purchaseId);
+      if (purchaseRow?.email_sent_at) {
+        return {
+          purchaseId,
+          ticketNumbers,
+          selectedPackage,
+        };
+      }
+
+      const email = await sendTicketEmail({
+        to: input.buyerEmail,
+        name: input.buyerName,
+        packageName: selectedPackage.name,
+        price: selectedPackage.price,
+        numbers: ticketNumbers,
+      });
+
+      if (email.sent) {
+        await supabase.from("rifa_purchases").update({ email_sent_at: new Date().toISOString() }).eq("id", purchaseId);
+      } else {
+        console.error("Email no enviado", {
+          purchaseId,
+          to: input.buyerEmail,
+          reason: email.error || "Motivo desconocido",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error enviando email de compra", {
+        purchaseId,
+        to: input.buyerEmail,
+        error: error?.message || error,
+      });
     }
   }
 
