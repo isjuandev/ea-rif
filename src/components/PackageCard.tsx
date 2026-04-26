@@ -8,7 +8,7 @@ export function PackageCard({ pack, onBuy }: { pack: RifaPackage; onBuy: (pack: 
   return (
     <article
       className={cn(
-        "group relative flex min-w-[260px] flex-col rounded-[8px] border border-white/12 bg-white/[0.045] p-5 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-lime-300/70 hover:shadow-[0_0_34px_rgba(170,255,0,0.22)]",
+        "group relative flex h-full min-w-0 flex-col rounded-[8px] border border-white/12 bg-white/[0.045] p-5 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-lime-300/70 hover:shadow-[0_0_34px_rgba(170,255,0,0.22)]",
         pack.featured && "border-lime-300/80 shadow-[0_0_28px_rgba(170,255,0,0.18)]",
       )}
     >

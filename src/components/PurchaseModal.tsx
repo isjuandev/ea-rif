@@ -53,7 +53,7 @@ export function PurchaseModal({
           <DialogDescription>Paso {step} de 3</DialogDescription>
         </DialogHeader>
 
-        <div className="mb-6 grid grid-cols-3 gap-2">
+        <div className="mb-5 grid grid-cols-3 gap-2 sm:mb-6">
           {[1, 2, 3].map((item) => (
             <div key={item} className={`h-1.5 rounded-full ${item <= step ? "bg-lime-300" : "bg-white/10"}`} />
           ))}
@@ -61,7 +61,7 @@ export function PurchaseModal({
 
         {step === 1 && (
           <form
-            className="space-y-4"
+            className="space-y-3 sm:space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
               if (validBuyer) setStep(2);
@@ -107,18 +107,18 @@ export function PurchaseModal({
         {step === 2 && (
           <div className="space-y-4">
             <div className="rounded-[8px] border border-white/12 bg-white/[0.04] p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0">
                   <p className="font-heading text-2xl font-bold">{selectedPackage.name}</p>
                   <p className="mt-1 text-sm text-white/60">
                     {selectedPackage.wallpapers} wallpapers + {selectedPackage.rifas} rifas
                   </p>
                 </div>
-                <p className="font-heading text-2xl font-bold text-lime-300">{formatCOP(selectedPackage.price)}</p>
+                <p className="font-heading text-2xl font-bold text-lime-300 sm:text-right">{formatCOP(selectedPackage.price)}</p>
               </div>
             </div>
             {error && <p className="rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{error}</p>}
-            <button onClick={() => setShowMercadoPago((value) => !value)} className="flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110">
+            <button onClick={() => setShowMercadoPago((value) => !value)} className="flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-black transition hover:brightness-110 sm:text-base">
               <CreditCard className="size-5" />
               Pagar con Mercado Pago
             </button>

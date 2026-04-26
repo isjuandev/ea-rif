@@ -21,9 +21,9 @@ export function PackagesSection() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Paquetes</p>
           <h2 className="mt-3 font-heading text-4xl font-bold text-white sm:text-5xl">Compra wallpapers, recibe rifas</h2>
         </div>
-        <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {rifaConfig.packages.map((pack) => (
-            <div key={pack.id} className="snap-center sm:min-w-0">
+            <div key={pack.id} className="min-w-0">
               <PackageCard pack={pack} onBuy={handleBuy} />
             </div>
           ))}

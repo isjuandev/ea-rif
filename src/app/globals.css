@@ -13,6 +13,7 @@
 html {
   scroll-behavior: smooth;
   background: #0a0a0a;
+  overflow-x: hidden;
 }
 
 body {
@@ -20,12 +21,26 @@ body {
   background: #0a0a0a;
   color: #ffffff;
   font-family: var(--font-dm-sans), system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
 button,
 a,
 input {
   -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input {
+  min-width: 0;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #aaff00;
+  outline-offset: 3px;
 }
 
 ::selection {

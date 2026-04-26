@@ -77,13 +77,13 @@ export function PaymentStatusClient({
   const pending = !approved && !declined;
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-5 py-8 text-white">
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-2xl flex-col justify-center">
+    <main className="min-h-screen bg-[#0a0a0a] px-4 py-6 text-white sm:px-5 sm:py-8">
+      <section className="mx-auto flex min-h-[calc(100svh-3rem)] w-full max-w-2xl flex-col justify-center">
         <Link href="/" className="mb-8 text-sm font-bold text-white/55 transition hover:text-white">
           Volver a la rifa
         </Link>
 
-        <div className="rounded-[8px] border border-white/12 bg-white/[0.04] p-6 sm:p-8">
+        <div className="rounded-[8px] border border-white/12 bg-white/[0.04] p-5 sm:p-8">
           {!paymentId ? (
             <>
               <AlertTriangle className="size-12 text-yellow-300" />
@@ -92,13 +92,13 @@ export function PaymentStatusClient({
             </>
           ) : (
             <>
-              <div className="flex items-center gap-3">
-                {approved && <CheckCircle2 className="size-12 text-lime-300" />}
-                {declined && <XCircle className="size-12 text-red-300" />}
-                {pending && <Loader2 className="size-12 animate-spin text-lime-300" />}
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/45">Mercado Pago</p>
-                  <h1 className="font-heading text-3xl font-bold">{statusCopy(status?.status)}</h1>
+              <div className="flex items-start gap-3 sm:items-center">
+                {approved && <CheckCircle2 className="size-10 shrink-0 text-lime-300 sm:size-12" />}
+                {declined && <XCircle className="size-10 shrink-0 text-red-300 sm:size-12" />}
+                {pending && <Loader2 className="size-10 shrink-0 animate-spin text-lime-300 sm:size-12" />}
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45 sm:text-sm sm:tracking-[0.18em]">Mercado Pago</p>
+                  <h1 className="break-words font-heading text-2xl font-bold sm:text-3xl">{statusCopy(status?.status)}</h1>
                 </div>
               </div>
 
@@ -111,20 +111,20 @@ export function PaymentStatusClient({
               </p>
 
               <dl className="mt-6 grid gap-3 rounded-[8px] border border-white/10 bg-black/25 p-4 text-sm">
-                <div className="flex items-center justify-between gap-4">
+                <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-4">
                   <dt className="text-white/45">ID de pago</dt>
-                  <dd className="font-mono text-white/80">{status?.paymentId || paymentId}</dd>
+                  <dd className="break-all font-mono text-white/80 sm:text-right">{status?.paymentId || paymentId}</dd>
                 </div>
                 {status?.status && (
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-4">
                     <dt className="text-white/45">Estado</dt>
-                    <dd className="font-bold text-white/80">{status.status}</dd>
+                    <dd className="break-words font-bold text-white/80 sm:text-right">{status.status}</dd>
                   </div>
                 )}
                 {status?.statusDetail && (
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-4">
                     <dt className="text-white/45">Detalle</dt>
-                    <dd className="text-right text-white/80">{status.statusDetail}</dd>
+                    <dd className="break-words text-white/80 sm:text-right">{status.statusDetail}</dd>
                   </div>
                 )}
               </dl>

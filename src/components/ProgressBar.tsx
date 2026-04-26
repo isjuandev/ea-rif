@@ -30,8 +30,8 @@ export function ProgressBar() {
   return (
     <section className="px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl rounded-[8px] border border-white/12 bg-white/[0.045] p-5 sm:p-7">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Avance de rifas</p>
             <h2 className="mt-2 font-heading text-2xl font-bold text-white sm:text-4xl">
               {status.soldTickets} de {status.totalTickets} numeros vendidos
