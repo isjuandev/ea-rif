@@ -98,14 +98,14 @@ export function PurchaseModal({
                 minLength={4}
                 value={buyer.name}
                 onChange={(event) => setBuyer({ ...buyer, name: event.target.value })}
-                className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-lime-300"
+                className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
                 placeholder="Tu nombre"
               />
               {buyer.name && !validName && <span className="mt-1 block text-xs text-red-200">Escribe al menos 4 letras.</span>}
             </label>
             <label className="block">
               <span className="text-sm font-bold text-white/80">Numero de WhatsApp</span>
-              <div className="mt-2 flex rounded-[8px] border border-white/12 bg-black/30 transition focus-within:border-lime-300">
+              <div className="mt-2 flex border border-white/12 rounded-[8px] bg-black/30 transition">
                 <span className="grid place-items-center border-r border-white/12 px-4 py-3 font-bold text-white/70" aria-hidden="true">
                   {COUNTRY_CODE}
                 </span>
@@ -131,7 +131,7 @@ export function PurchaseModal({
                 required
                 value={buyer.email}
                 onChange={(event) => setBuyer({ ...buyer, email: event.target.value })}
-                className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-lime-300"
+                className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
                 placeholder="correo@ejemplo.com"
               />
               {buyer.email && !validEmail && <span className="mt-1 block text-xs text-red-200">Escribe un correo valido.</span>}

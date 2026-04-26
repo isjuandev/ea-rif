@@ -39,7 +39,7 @@ export function CountdownTimer({ drawDate }: { drawDate: string }) {
   );
 
   return (
-    <div className="grid grid-cols-4 gap-1.5 sm:gap-3" aria-label="Cuenta regresiva del sorteo">
+    <div className="grid grid-cols-4 gap-1.5 sm:gap-3" aria-label="Cuenta regresiva">
       {units.map((unit) => (
         <div key={unit.label} className="relative min-w-0 overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.06] p-2 text-center shadow-xl shadow-black/30 sm:p-4">
           <div className="absolute inset-x-0 top-1/2 h-px bg-black/40" />

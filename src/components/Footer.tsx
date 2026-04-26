@@ -1,14 +1,18 @@
+"use client";
+
 import { Camera, MessageCircle } from "lucide-react";
-import { rifaConfig } from "@/config/rifa";
+import { useRifaConfig } from "@/components/use-rifa-config";
 
 export function Footer() {
+  const rifaConfig = useRifaConfig();
+
   return (
     <footer className="border-t border-white/10 px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-heading text-2xl font-bold text-white">{rifaConfig.sellerName}</p>
           <p className="mt-2 max-w-xl text-xs leading-5 text-white/45">
-            Compra de wallpapers digitales con numeros asignados para sorteo. Participan unicamente compras registradas antes del cierre.
+            Compra de wallpapers digitales. Entrega inmediata.
           </p>
         </div>
         <div className="flex gap-3">

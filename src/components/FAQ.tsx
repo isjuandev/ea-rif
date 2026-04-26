@@ -2,24 +2,24 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const questions = [
   {
-    q: "Como recibo mis numeros de rifa?",
-    a: "Al registrar la compra, el sistema asigna numeros aleatorios disponibles del 0000 al 9999 y los envia al correo registrado.",
+    q: "Como recibo mis wallpapers?",
+    a: "Al registrar la compra, el sistema asigna wallpapers aleatorios disponibles del 0000 al 9999 y los envía al correo registrado.",
   },
   {
     q: "Que estoy comprando exactamente?",
-    a: "Cada numero cuesta $500 COP e incluye un wallpaper digital. Puedes comprar paquetes de 5, 10, 20 o 50 numeros.",
+    a: "Cada wallpaper cuesta $500 COP e incluye un wallpaper digital. Puedes comprar paquetes de 5, 10, 20 o 50 wallpapers.",
   },
   {
-    q: "Puedo elegir mis numeros?",
-    a: "No. Para mantener el proceso transparente, los numeros se asignan aleatoriamente segun la cantidad de rifas incluidas en tu paquete.",
+    q: "Puedo elegir mis wallpapers?",
+    a: "No. Para mantener el proceso transparente, los wallpapers se asignan aleatoriamente según la cantidad de rifas incluidas en tu paquete.",
   },
   {
     q: "Como se anuncia el ganador?",
-    a: "El premio mayor juega con la Loteria del Quindio cada jueves habil. Si el jueves es festivo en Colombia, se usa el siguiente jueves habil.",
+    a: "En un directo en instagram se anuncia el ganador",
   },
   {
     q: "Hay mas premios ademas del mayor?",
-    a: "Si. En cada sorteo se registran 10 numeros premiados aleatorios con recompensas menores, ademas del premio mayor.",
+    a: "Si. En cada sorteo se registran 10 wallpapers premiados aleatorios con recompensas menores.",
   },
 ];
 

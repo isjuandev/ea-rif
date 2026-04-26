@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { rifaConfig } from "@/config/rifa";
+import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
   }
 
   const supabase = getSupabaseAdmin();
+  const { config: rifaConfig } = await getEditableRifaConfig();
   if (!supabase) {
     return NextResponse.json({ error: "Supabase no esta configurado." }, { status: 503 });
   }

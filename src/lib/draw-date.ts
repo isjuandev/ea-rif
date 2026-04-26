@@ -1,4 +1,4 @@
-import { rifaConfig } from "@/config/rifa";
+import { rifaConfig, type RifaConfig } from "@/config/rifa";
 
 const COLOMBIA_TZ = "America/Bogota";
 
@@ -62,14 +62,14 @@ export function colombiaHolidayDates(year: number) {
   return new Set([...fixed, ...moved, ...easterBased]);
 }
 
-export function getNextDrawDate(from = new Date()) {
+export function getNextDrawDate(from = new Date(), config: Pick<RifaConfig, "drawHour" | "drawMinute"> = rifaConfig) {
   const cursor = new Date(from);
-  cursor.setUTCHours(rifaConfig.drawHour + 5, rifaConfig.drawMinute, 0, 0);
+  cursor.setUTCHours(config.drawHour + 5, config.drawMinute, 0, 0);
 
   for (let i = 0; i < 60; i += 1) {
     const candidate = new Date(cursor);
     candidate.setUTCDate(cursor.getUTCDate() + i);
-    candidate.setUTCHours(rifaConfig.drawHour + 5, rifaConfig.drawMinute, 0, 0);
+    candidate.setUTCHours(config.drawHour + 5, config.drawMinute, 0, 0);
     const localDay = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: COLOMBIA_TZ }).format(candidate);
     const isThursday = localDay === "Thu";
     const isFuture = candidate.getTime() > from.getTime();

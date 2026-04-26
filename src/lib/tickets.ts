@@ -1,5 +1,5 @@
-import { rifaConfig } from "@/config/rifa";
 import { sendTicketEmail } from "@/lib/email";
+import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export type PaymentMethod = "mercado_pago";
@@ -26,6 +26,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
     throw new Error("Supabase no esta configurado en el servidor.");
   }
 
+  const { config: rifaConfig } = await getEditableRifaConfig();
   const selectedPackage = rifaConfig.packages.find((pack) => pack.id === input.packageId);
 
   if (!selectedPackage) {

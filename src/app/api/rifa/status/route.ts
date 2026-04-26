@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { rifaConfig } from "@/config/rifa";
 import { getNextDrawDate } from "@/lib/draw-date";
+import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const supabase = getSupabaseAdmin();
-  const drawDate = getNextDrawDate();
+  const { config: rifaConfig } = await getEditableRifaConfig();
+  const drawDate = getNextDrawDate(new Date(), rifaConfig);
 
   if (!supabase) {
     return NextResponse.json({

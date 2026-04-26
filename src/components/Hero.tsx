@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { ArrowDown, CalendarDays } from "lucide-react";
 import { CountdownTimer } from "@/components/CountdownTimer";
-import { rifaConfig } from "@/config/rifa";
+import { useRifaConfig } from "@/components/use-rifa-config";
 
 export function Hero() {
   const [drawDateIso, setDrawDateIso] = useState<string | null>(null);
+  const rifaConfig = useRifaConfig();
 
   useEffect(() => {
     fetch("/api/rifa/status")
@@ -16,10 +17,12 @@ export function Hero() {
   }, []);
 
   const countdownDate = drawDateIso ?? new Date(Date.now() + 1000).toISOString();
-  const drawDate = new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(new Date(countdownDate));
+  const drawDate = drawDateIso
+    ? new Intl.DateTimeFormat("es-CO", {
+        dateStyle: "full",
+        timeStyle: "short",
+      }).format(new Date(drawDateIso))
+    : "Cargando";
 
   return (
     <section className="relative isolate overflow-hidden px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8">
@@ -28,14 +31,14 @@ export function Hero() {
         <div className="max-w-5xl">
           <div className="mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-lime-300/40 bg-lime-300/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-lime-300 sm:text-xs sm:tracking-[0.2em]">
             <CalendarDays className="size-4" />
-            <span className="truncate">Sorteo: {drawDate}</span>
+            <span className="truncate">{drawDate}</span>
           </div>
           <h1 className="font-heading text-[clamp(2.35rem,12vw,4rem)] font-extrabold uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
             {rifaConfig.eventName}
-            <span className="block text-lime-300">4 CIFRAS</span>
+            <span className="block text-lime-300">7 De Mayo</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
-            Compra paquetes desde 5 wallpapers digitales y recibe numeros aleatorios del 0000 al 9999 para participar.
+          Cada compra que realices viene con los mejores wallpapers digitales.
           </p>
         </div>
 

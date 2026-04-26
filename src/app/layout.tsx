@@ -14,7 +14,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Wallpapers 10K | Rifa 4 Cifras",
+  title: "Wallpapers 2M | 7 de Mayo",
   description: "Compra wallpapers digitales, recibe numeros de 4 cifras y participa con la Loteria del Quindio.",
 };
 

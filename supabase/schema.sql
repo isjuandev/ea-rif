@@ -1,5 +1,12 @@
 create extension if not exists pgcrypto;
 
+create table if not exists public.rifa_settings (
+  id text primary key default 'active',
+  config jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.rifa_tickets (
   number text primary key check (number ~ '^[0-9]{4}$'),
   status text not null default 'available' check (status in ('available', 'reserved', 'sold')),

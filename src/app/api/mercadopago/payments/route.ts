@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { rifaConfig } from "@/config/rifa";
 import { getMercadoPagoPayment } from "@/lib/mercadopago";
 import { fulfillApprovedMercadoPagoPayment } from "@/lib/mercadopago-fulfillment";
 import { logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
+import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { normalizeWhatsApp } from "@/lib/tickets";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +88,36 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function normalizePublicBaseUrl(value?: string | null) {
+  if (!value) return null;
+
+  const trimmed = value.trim().replace(/\/+$/, "");
+  if (!trimmed) return null;
+
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const url = new URL(withProtocol);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    if (!url.hostname || url.hostname === "localhost" || url.hostname === "127.0.0.1") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function getPublicBaseUrl(request: Request) {
+  const configuredUrl = normalizePublicBaseUrl(process.env.NEXT_PUBLIC_SITE_URL);
+  if (configuredUrl) return configuredUrl;
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+  const forwardedUrl = forwardedHost ? normalizePublicBaseUrl(`${forwardedProto}://${forwardedHost}`) : null;
+  if (forwardedUrl) return forwardedUrl;
+
+  return normalizePublicBaseUrl(request.headers.get("origin")) || normalizePublicBaseUrl(new URL(request.url).origin);
+}
+
 export async function POST(request: Request) {
   try {
     const paymentClient = getMercadoPagoPayment();
@@ -97,6 +127,7 @@ export async function POST(request: Request) {
     }
 
     const payload = (await request.json()) as MercadoPagoPaymentPayload;
+    const { config: rifaConfig } = await getEditableRifaConfig();
     const selectedPackage = rifaConfig.packages.find((pack) => pack.id === payload.packageId);
 
     if (!selectedPackage) {
@@ -155,7 +186,17 @@ export async function POST(request: Request) {
       }
     }
 
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get("origin") || new URL(request.url).origin;
+    const publicBaseUrl = getPublicBaseUrl(request);
+
+    if (!publicBaseUrl) {
+      return NextResponse.json(
+        {
+          error: "Configura NEXT_PUBLIC_SITE_URL con la URL publica HTTPS del sitio para procesar pagos por PSE.",
+        },
+        { status: 500 },
+      );
+    }
+
     const { firstName, lastName } = splitName(payload.buyerName);
     const payerEntityType = normalizeEntityType(entityTypeRaw);
 
@@ -169,8 +210,8 @@ export async function POST(request: Request) {
         description: `${rifaConfig.eventName} - ${selectedPackage.name}`,
         statement_descriptor: "RIFAS WALLPAPERS",
         external_reference: `${selectedPackage.id}:${randomUUID()}`,
-        notification_url: `${origin}/api/mercadopago/webhook`,
-        callback_url: `${origin}/pago/estado`,
+        notification_url: `${publicBaseUrl}/api/mercadopago/webhook`,
+        callback_url: `${publicBaseUrl}/pago/estado`,
         metadata: {
           package_id: selectedPackage.id,
           buyer_name: payload.buyerName,

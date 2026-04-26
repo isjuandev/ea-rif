@@ -25,7 +25,10 @@ export function ProgressBar() {
       .catch(() => undefined);
   }, []);
 
-  const percentage = Math.min((status.soldTickets / status.totalTickets) * 100, 100);
+  const soldPercentage = Math.min((status.soldTickets / status.totalTickets) * 100, 100);
+  const availablePercentage = Math.max(100 - soldPercentage, 0);
+  const roundedSoldPercentage = Math.round(soldPercentage);
+  const roundedAvailablePercentage = Math.round(availablePercentage);
 
   return (
     <section className="px-4 py-12 sm:px-6 lg:px-8">
@@ -34,16 +37,16 @@ export function ProgressBar() {
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Avance de rifas</p>
             <h2 className="mt-2 font-heading text-2xl font-bold text-white sm:text-4xl">
-              {status.soldTickets} de {status.totalTickets} numeros vendidos
+              {roundedSoldPercentage}% de la rifa ya esta reservado
             </h2>
-            <p className="mt-2 text-sm text-white/55">{status.availableTickets} numeros disponibles en tiempo real</p>
+            <p className="mt-2 text-sm text-white/55">{roundedAvailablePercentage}% disponible para nuevas compras</p>
           </div>
-          <p className="font-heading text-3xl font-bold text-white">{Math.round(percentage)}%</p>
+          <p className="font-heading text-3xl font-bold text-white">{roundedSoldPercentage}%</p>
         </div>
         <div className="h-4 overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full bg-gradient-to-r from-lime-300 to-yellow-300 shadow-[0_0_24px_rgba(170,255,0,0.45)] transition-[width] duration-1000"
-            style={{ width: `${percentage}%` }}
+            style={{ width: `${soldPercentage}%` }}
           />
         </div>
       </div>
