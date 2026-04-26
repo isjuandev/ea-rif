@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, MessageCircle, Smartphone } from "lucide-react";
+import { CheckCircle2, CreditCard, MessageCircle, Smartphone } from "lucide-react";
+import { MercadoPagoPaymentBrick } from "@/components/MercadoPagoPaymentBrick";
 import { rifaConfig, type RifaPackage } from "@/config/rifa";
 import { formatCOP } from "@/components/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,6 +24,7 @@ export function PurchaseModal({
 }) {
   const [step, setStep] = useState(1);
   const [showManualPayment, setShowManualPayment] = useState(false);
+  const [showMercadoPago, setShowMercadoPago] = useState(false);
   const [buyer, setBuyer] = useState<Buyer>({ name: "", whatsapp: "+57 ", email: "" });
   const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,6 +92,7 @@ export function PurchaseModal({
       window.setTimeout(() => {
         setStep(1);
         setShowManualPayment(false);
+        setShowMercadoPago(false);
         setBuyer({ name: "", whatsapp: "+57 ", email: "" });
         setTicketNumbers([]);
         setError("");
@@ -173,7 +176,24 @@ export function PurchaseModal({
               </div>
             </div>
             {error && <p className="rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{error}</p>}
-            <button disabled={loading} onClick={() => registerPurchase("whatsapp")} className="flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
+            <button onClick={() => setShowMercadoPago((value) => !value)} className="flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110">
+              <CreditCard className="size-5" />
+              Pagar con Mercado Pago
+            </button>
+            {showMercadoPago && (
+              <MercadoPagoPaymentBrick
+                buyer={buyer}
+                selectedPackage={selectedPackage}
+                onApproved={(numbers) => {
+                  setTicketNumbers(numbers);
+                  setError("");
+                  setStep(3);
+                }}
+                onPending={(message) => setError(message)}
+                onError={(message) => setError(message)}
+              />
+            )}
+            <button disabled={loading} onClick={() => registerPurchase("whatsapp")} className="flex w-full items-center justify-center gap-3 rounded-[8px] border border-white/14 bg-white/[0.06] px-5 py-3 font-extrabold uppercase text-white transition hover:border-lime-300/60 disabled:cursor-not-allowed disabled:opacity-50">
               <MessageCircle className="size-5" />
               {loading ? "Asignando numeros..." : "Pagar por WhatsApp"}
             </button>
