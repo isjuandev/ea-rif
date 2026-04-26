@@ -48,6 +48,44 @@ create table if not exists public.rifa_winners (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.mercado_pago_payments (
+  id uuid primary key default gen_random_uuid(),
+  mp_payment_id text not null unique,
+  external_reference text,
+  package_id text,
+  buyer_name text,
+  buyer_email text,
+  buyer_whatsapp text,
+  amount_cop integer,
+  payment_method_id text,
+  status text,
+  status_detail text,
+  approved_at timestamptz,
+  last_seen_at timestamptz not null default now(),
+  rifa_purchase_id uuid references public.rifa_purchases(id),
+  raw_payment jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_mercado_pago_payments_status on public.mercado_pago_payments(status);
+create index if not exists idx_mercado_pago_payments_created_at on public.mercado_pago_payments(created_at desc);
+
+create table if not exists public.mercado_pago_payment_events (
+  id uuid primary key default gen_random_uuid(),
+  mp_payment_id text,
+  event_source text not null check (event_source in ('payment_api', 'webhook', 'sync', 'system')),
+  topic text,
+  action text,
+  status text,
+  status_detail text,
+  payload jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_mercado_pago_payment_events_payment on public.mercado_pago_payment_events(mp_payment_id, created_at desc);
+create index if not exists idx_mercado_pago_payment_events_source on public.mercado_pago_payment_events(event_source, created_at desc);
+
 insert into public.rifa_tickets (number)
 select lpad(generate_series(0, 9999)::text, 4, '0')
 on conflict (number) do nothing;
