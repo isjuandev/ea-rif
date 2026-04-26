@@ -110,13 +110,13 @@ declare
   v_numbers text[];
 begin
   if p_mercado_pago_payment_id is not null then
-    select id, ticket_numbers
+    select rp.id, rp.ticket_numbers
     into v_purchase_id, v_numbers
-    from public.rifa_purchases
-    where mercado_pago_payment_id = p_mercado_pago_payment_id;
+    from public.rifa_purchases rp
+    where rp.mercado_pago_payment_id = p_mercado_pago_payment_id;
 
     if v_purchase_id is not null then
-      return query select v_purchase_id, v_numbers;
+      return query select v_purchase_id as purchase_id, v_numbers as ticket_numbers;
       return;
     end if;
   end if;
@@ -125,12 +125,12 @@ begin
     raise exception 'ticket_count must be between 1 and 20';
   end if;
 
-  select array_agg(number)
+  select array_agg(selected.number)
   into v_numbers
   from (
-    select number
-    from public.rifa_tickets
-    where status = 'available'
+    select rt.number
+    from public.rifa_tickets rt
+    where rt.status = 'available'
     order by random()
     limit p_ticket_count
     for update skip locked
@@ -178,7 +178,7 @@ begin
     sold_at = now()
   where number = any(v_numbers);
 
-  return query select v_purchase_id, v_numbers;
+  return query select v_purchase_id as purchase_id, v_numbers as ticket_numbers;
 end;
 $$;
 
