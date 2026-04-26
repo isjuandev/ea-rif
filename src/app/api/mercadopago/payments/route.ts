@@ -43,6 +43,7 @@ type MercadoPagoPaymentPayload = {
       financial_institution?: string;
     };
     additional_info?: {
+      ip_address?: string;
       payer?: {
         first_name?: string;
         last_name?: string;
@@ -96,6 +97,47 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function validationError(message: string, detail: string, status = 400) {
+  return NextResponse.json({ error: `${message} ${detail}` }, { status });
+}
+
+function formatMercadoPagoError(error: any) {
+  const rawMessage = error?.cause?.message || error?.cause?.error || error?.message;
+  const rawDetails = Array.isArray(error?.cause) ? error.cause : error?.cause?.cause;
+  const detailMessages = Array.isArray(rawDetails)
+    ? rawDetails
+        .map((detail) => detail?.description || detail?.message || detail?.code)
+        .filter(Boolean)
+        .join(" ")
+    : "";
+  const combined = [rawMessage, detailMessages].filter(Boolean).join(" ");
+  const lowerCombined = combined.toLowerCase();
+
+  if (lowerCombined.includes("ip_address")) {
+    return "No pudimos iniciar el pago por PSE porque Mercado Pago no recibio la IP del comprador. Si estas probando manualmente, envia formData.additional_info.ip_address; en produccion revisa que el proxy envie x-forwarded-for, x-real-ip o cf-connecting-ip.";
+  }
+
+  if (lowerCombined.includes("financial_institution")) {
+    return "No pudimos iniciar el pago por PSE porque falta el banco o el codigo del banco no es valido. Vuelve a seleccionar la entidad financiera e intenta de nuevo.";
+  }
+
+  if (lowerCombined.includes("identification")) {
+    return "No pudimos iniciar el pago por PSE porque el tipo o numero de documento no fue aceptado por Mercado Pago. Revisa que el documento tenga entre 1 y 15 caracteres y corresponda al tipo seleccionado.";
+  }
+
+  if (lowerCombined.includes("callback_url") || lowerCombined.includes("notification_url")) {
+    return "No pudimos iniciar el pago por PSE porque la URL publica del sitio no esta configurada correctamente. Configura NEXT_PUBLIC_SITE_URL con una URL HTTPS publica.";
+  }
+
+  if (lowerCombined.includes("address") || lowerCombined.includes("zip_code") || lowerCombined.includes("street")) {
+    return "No pudimos iniciar el pago por PSE porque Mercado Pago no acepto la direccion. Usa codigo postal de 5 digitos, calle de maximo 18 caracteres, numero de maximo 5, barrio, ciudad y departamento.";
+  }
+
+  return combined
+    ? `Mercado Pago rechazo la solicitud de pago. Detalle: ${combined}`
+    : "Mercado Pago rechazo la solicitud de pago. Revisa los datos del comprador y vuelve a intentarlo.";
+}
+
 function normalizePublicBaseUrl(value?: string | null) {
   if (!value) return null;
 
@@ -133,7 +175,7 @@ function sanitizeIpAddress(value?: string | null) {
   return trimmed.replace(/^\[|\]$/g, "");
 }
 
-function getBuyerIpAddress(request: Request) {
+function getBuyerIpAddress(request: Request, formData: MercadoPagoPaymentPayload["formData"]) {
   const directIp =
     sanitizeIpAddress(request.headers.get("cf-connecting-ip")) ||
     sanitizeIpAddress(request.headers.get("x-real-ip")) ||
@@ -153,7 +195,7 @@ function getBuyerIpAddress(request: Request) {
     ?.slice(4)
     .replace(/^"|"$/g, "");
 
-  return sanitizeIpAddress(forwardedIp);
+  return sanitizeIpAddress(forwardedIp) || sanitizeIpAddress(formData.additional_info?.ip_address);
 }
 
 function trimLength(value: string | undefined, maxLength: number) {
@@ -204,7 +246,10 @@ export async function POST(request: Request) {
       localBuyerWhatsapp.length !== 10 ||
       !isValidEmail(payload.buyerEmail || "")
     ) {
-      return NextResponse.json({ error: "Datos del comprador incompletos." }, { status: 400 });
+      return validationError(
+        "Datos del comprador incompletos.",
+        "Verifica que el nombre tenga al menos 4 letras, el WhatsApp tenga 10 digitos colombianos y el correo sea valido.",
+      );
     }
 
     const amount = Number(payload.formData.transaction_amount ?? selectedPackage.price);
@@ -230,7 +275,7 @@ export async function POST(request: Request) {
     const entityTypeRaw = extractEntityType(payload.formData);
     const identification = extractIdentification(payload.formData);
     const financialInstitution = extractFinancialInstitution(payload.formData);
-    const buyerIpAddress = pse ? getBuyerIpAddress(request) : null;
+    const buyerIpAddress = pse ? getBuyerIpAddress(request, payload.formData) : null;
     const pseAddress = pse ? getPseAddress(payload.buyerAddress) : null;
     const psePhone = pse ? getPsePhone(payload.buyerWhatsapp) : null;
 
@@ -249,22 +294,28 @@ export async function POST(request: Request) {
       const hasPhone = psePhone?.area_code.length === 3 && Boolean(psePhone.number);
 
       if (!hasEntityType) {
-        return NextResponse.json({ error: "Para PSE, payer.entity_type es obligatorio (individual o association)." }, { status: 400 });
+        return validationError("Faltan datos para pagar por PSE.", "Selecciona el tipo de persona: individual o association.");
       }
       if (!hasIdType || !hasIdNumber) {
-        return NextResponse.json({ error: "Para PSE, payer.identification.type y payer.identification.number son obligatorios." }, { status: 400 });
+        return validationError("Faltan datos para pagar por PSE.", "Ingresa tipo y numero de documento del comprador.");
       }
       if (!hasBank) {
-        return NextResponse.json({ error: "Para PSE, transaction_details.financial_institution es obligatorio." }, { status: 400 });
+        return validationError("Faltan datos para pagar por PSE.", "Selecciona el banco desde el formulario de Mercado Pago.");
       }
       if (!buyerIpAddress) {
-        return NextResponse.json({ error: "Para PSE, additional_info.ip_address es obligatorio." }, { status: 400 });
+        return validationError(
+          "No pudimos iniciar el pago por PSE porque falta la IP del comprador.",
+          "Si estas probando manualmente, envia formData.additional_info.ip_address; en produccion revisa que el proxy envie x-forwarded-for, x-real-ip o cf-connecting-ip.",
+        );
       }
       if (!hasAddress) {
-        return NextResponse.json({ error: "Para PSE, la direccion del comprador es obligatoria." }, { status: 400 });
+        return validationError(
+          "Faltan datos para pagar por PSE.",
+          "Completa codigo postal de 5 digitos, direccion, barrio, ciudad y departamento.",
+        );
       }
       if (!hasPhone) {
-        return NextResponse.json({ error: "Para PSE, payer.phone es obligatorio." }, { status: 400 });
+        return validationError("Faltan datos para pagar por PSE.", "Ingresa un WhatsApp colombiano valido de 10 digitos.");
       }
     }
 
@@ -376,15 +427,9 @@ export async function POST(request: Request) {
       ticketNumbers: result.ticketNumbers,
     });
   } catch (error: any) {
-    const cause =
-      error?.cause?.message ||
-      error?.cause?.error ||
-      error?.message ||
-      "Error interno al procesar pago con Mercado Pago.";
-
     return NextResponse.json(
       {
-        error: cause,
+        error: formatMercadoPagoError(error),
         details: error?.cause ?? null,
       },
       { status: 500 },
