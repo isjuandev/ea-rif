@@ -1,24 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { isAdminSessionAuthorized } from "@/lib/admin-auth";
 
-function unauthorized() {
-  return new NextResponse("No autorizado.", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": 'Basic realm="Rifa settings"',
-      "Cache-Control": "no-store",
-    },
-  });
-}
-
-export function middleware(request: NextRequest) {
-  if (!isAdminAuthorized(request.headers.get("authorization"))) {
-    return unauthorized();
+export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname === "/admin/login") {
+    if (await isAdminSessionAuthorized(request.headers.get("cookie"))) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  if (await isAdminSessionAuthorized(request.headers.get("cookie"))) {
+    return NextResponse.next();
+  }
+
+  const loginUrl = new URL("/admin/login", request.url);
+  loginUrl.searchParams.set("next", request.nextUrl.pathname);
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
-  matcher: ["/settingsearif2026/:path*"],
+  matcher: ["/admin/:path*"],
 };
