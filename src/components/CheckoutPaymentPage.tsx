@@ -44,6 +44,7 @@ type PsePaymentForm = {
 };
 
 type PaymentMethodMode = "card" | "pse";
+type CardBrand = "visa" | "mastercard" | "amex" | "diners" | "discover" | "unknown";
 
 const COUNTRY_CODE = "+57";
 const COLOMBIA_API_BASE = "https://api-colombia.com/api/v1";
@@ -58,6 +59,15 @@ const NATURAL_DOC_TYPES = [
 ];
 const COMPANY_DOC_TYPES = [{ label: "NIT", value: "NIT" }];
 
+const CARD_BRAND_LABELS: Record<CardBrand, string> = {
+  visa: "Visa",
+  mastercard: "Mastercard",
+  amex: "Amex",
+  diners: "Diners",
+  discover: "Discover",
+  unknown: "Tarjeta",
+};
+
 function formatWhatsapp(localNumber: string) {
   return `${COUNTRY_CODE}${localNumber.replace(/\D/g, "")}`;
 }
@@ -68,6 +78,45 @@ function countLetters(value: string) {
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function normalizeCardBrand(paymentMethodId?: string): CardBrand {
+  const normalized = (paymentMethodId || "").toLowerCase();
+  if (normalized.includes("visa")) return "visa";
+  if (normalized.includes("master")) return "mastercard";
+  if (normalized.includes("amex") || normalized.includes("american")) return "amex";
+  if (normalized.includes("diners")) return "diners";
+  if (normalized.includes("discover")) return "discover";
+  return "unknown";
+}
+
+function CardBrandBadge({ brand }: { brand: CardBrand }) {
+  if (brand === "visa") {
+    return <span className="text-[18px] font-black italic tracking-[0.08em] text-[#1434CB]">VISA</span>;
+  }
+
+  if (brand === "mastercard") {
+    return (
+      <span className="relative block h-7 w-11" aria-label="Mastercard">
+        <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-[#EB001B]" />
+        <span className="absolute right-1 top-1 h-5 w-5 rounded-full bg-[#F79E1B] mix-blend-multiply" />
+      </span>
+    );
+  }
+
+  if (brand === "amex") {
+    return <span className="rounded-[4px] bg-[#2E77BC] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-white">AMEX</span>;
+  }
+
+  if (brand === "diners") {
+    return <span className="rounded-[4px] bg-[#0079BE] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-white">DINERS</span>;
+  }
+
+  if (brand === "discover") {
+    return <span className="rounded-[4px] bg-[#F58220] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-black">DISC</span>;
+  }
+
+  return <CreditCard className="size-5 text-black/45" />;
 }
 
 const initialBuyer: CheckoutBuyer = {
@@ -113,6 +162,7 @@ export function CheckoutPaymentPage() {
   const [psePaymentForm, setPsePaymentForm] = useState<PsePaymentForm>(initialPsePaymentForm);
   const [cardFormReady, setCardFormReady] = useState(false);
   const [cardFormError, setCardFormError] = useState("");
+  const [cardBrand, setCardBrand] = useState<CardBrand>("unknown");
   const cardFormMountedRef = useRef(false);
 
   const selectedPackage = useMemo(() => {
@@ -224,6 +274,7 @@ export function CheckoutPaymentPage() {
     cardFormMountedRef.current = true;
     setCardFormReady(false);
     setCardFormError("");
+    setCardBrand("unknown");
 
     loadMercadoPago()
       .then(() => {
@@ -353,6 +404,11 @@ export function CheckoutPaymentPage() {
               setProcessingPayment(true);
               return () => setProcessingPayment(false);
             },
+            onPaymentMethodsReceived: (error: any, paymentMethods: any) => {
+              if (!active || error) return;
+              const paymentMethodId = paymentMethods?.paymentMethodId || paymentMethods?.payment_method_id || paymentMethods?.id || paymentMethods?.[0]?.id;
+              setCardBrand(normalizeCardBrand(paymentMethodId));
+            },
           },
         });
       })
@@ -391,6 +447,7 @@ export function CheckoutPaymentPage() {
     setPendingMessage("");
     setCardFormReady(false);
     setCardFormError("");
+    setCardBrand("unknown");
     cardFormMountedRef.current = false;
     setBuyer((current) => ({ ...current, ...nextBuyer }));
   }
@@ -676,7 +733,12 @@ export function CheckoutPaymentPage() {
                       )}
                       <label className="block sm:col-span-2">
                         <span className="text-sm font-bold text-white/80">Numero de tarjeta</span>
-                        <div id="card-checkout__cardNumber" className="mt-2 min-h-12 rounded-[8px] border border-white/12 bg-white px-4 py-3 text-black" />
+                        <div className="mt-2 flex min-h-12 items-center rounded-[8px] border border-white/12 bg-white text-black">
+                          <div id="card-checkout__cardNumber" className="min-w-0 flex-1 px-4 py-3" />
+                          <div className="mr-3 grid h-9 min-w-14 place-items-center rounded-[6px] border border-black/10 bg-white px-2" title={CARD_BRAND_LABELS[cardBrand]} aria-label={CARD_BRAND_LABELS[cardBrand]}>
+                            <CardBrandBadge brand={cardBrand} />
+                          </div>
+                        </div>
                       </label>
                       <label className="block">
                         <span className="text-sm font-bold text-white/80">Vencimiento</span>
@@ -690,12 +752,11 @@ export function CheckoutPaymentPage() {
                         <span className="text-sm font-bold text-white/80">Nombre en la tarjeta</span>
                         <input id="card-checkout__cardholderName" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/30" placeholder="Nombre como aparece en la tarjeta" />
                       </label>
-                      <label className="block">
-                        <span className="text-sm font-bold text-white/80">Banco emisor</span>
-                        <select id="card-checkout__issuer" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none">
-                          <option value="" className="bg-[#111111]">Selecciona</option>
-                        </select>
-                      </label>
+                      <select id="card-checkout__issuer" className="sr-only" tabIndex={-1} aria-hidden="true">
+                        <option value="" className="bg-[#111111]">
+                          Selecciona
+                        </option>
+                      </select>
                       <label className="block">
                         <span className="text-sm font-bold text-white/80">Cuotas</span>
                         <select id="card-checkout__installments" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none">
