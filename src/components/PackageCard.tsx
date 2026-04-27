@@ -37,8 +37,6 @@ export function PackageCard({
       <p className="font-heading text-3xl font-bold text-lime-300">{formatCOP(pack.price)}</p>
       <div className="mt-5 space-y-2 text-sm text-white/72">
         <p>{pack.wallpapers} wallpaper{pack.wallpapers > 1 ? "s" : ""} digital{pack.wallpapers > 1 ? "es" : ""}</p>
-        <p>{pack.rifas} numeros de rifa</p>
-
       </div>
       <button
         disabled={disabled}
