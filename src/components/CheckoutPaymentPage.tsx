@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { loadMercadoPago } from "@mercadopago/sdk-js";
 import { Banknote, CheckCircle2, CreditCard, Loader2 } from "lucide-react";
 import { useRifaConfig } from "@/components/use-rifa-config";
 import { formatCOP } from "@/components/utils";
@@ -41,6 +42,8 @@ type PsePaymentForm = {
   identificationNumber: string;
   financialInstitution: string;
 };
+
+type PaymentMethodMode = "card" | "pse";
 
 const COUNTRY_CODE = "+57";
 const COLOMBIA_API_BASE = "https://api-colombia.com/api/v1";
@@ -104,13 +107,22 @@ export function CheckoutPaymentPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
   const [pendingMessage, setPendingMessage] = useState("");
+  const [paymentMethodMode, setPaymentMethodMode] = useState<PaymentMethodMode>("card");
   const [pseBanks, setPseBanks] = useState<PseBank[]>([]);
   const [loadingPseBanks, setLoadingPseBanks] = useState(false);
   const [psePaymentForm, setPsePaymentForm] = useState<PsePaymentForm>(initialPsePaymentForm);
+  const [cardFormReady, setCardFormReady] = useState(false);
+  const [cardFormError, setCardFormError] = useState("");
+  const cardFormMountedRef = useRef(false);
 
   const selectedPackage = useMemo(() => {
     return rifaConfig.packages.find((pack) => pack.id === packageId) ?? null;
   }, [packageId, rifaConfig.packages]);
+
+  const paymentBuyer: CheckoutBuyer = {
+    ...buyer,
+    whatsapp: formatWhatsapp(buyer.whatsapp),
+  };
 
   useEffect(() => {
     let active = true;
@@ -168,7 +180,7 @@ export function CheckoutPaymentPage() {
   }, [departmentId]);
 
   useEffect(() => {
-    if (!paymentReady) return;
+    if (!paymentReady || paymentMethodMode !== "pse") return;
 
     let active = true;
     setLoadingPseBanks(true);
@@ -203,7 +215,157 @@ export function CheckoutPaymentPage() {
     return () => {
       active = false;
     };
-  }, [paymentReady]);
+  }, [paymentReady, paymentMethodMode]);
+
+  useEffect(() => {
+    if (!paymentReady || paymentMethodMode !== "card" || !selectedPackage || cardFormMountedRef.current) return;
+
+    let active = true;
+    cardFormMountedRef.current = true;
+    setCardFormReady(false);
+    setCardFormError("");
+
+    loadMercadoPago()
+      .then(() => {
+        if (!active) return;
+        const publicKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
+        const MercadoPago = (window as any).MercadoPago;
+
+        if (!publicKey || !MercadoPago) {
+          throw new Error("Mercado Pago no esta configurado para tarjetas.");
+        }
+
+        const mp = new MercadoPago(publicKey, { locale: "es-CO" });
+        const cardForm = mp.cardForm({
+          amount: String(selectedPackage.price),
+          iframe: true,
+          form: {
+            id: "card-checkout-form",
+            cardNumber: {
+              id: "card-checkout__cardNumber",
+              placeholder: "Numero de tarjeta",
+            },
+            expirationDate: {
+              id: "card-checkout__expirationDate",
+              placeholder: "MM/AA",
+            },
+            securityCode: {
+              id: "card-checkout__securityCode",
+              placeholder: "CVV",
+            },
+            cardholderName: {
+              id: "card-checkout__cardholderName",
+              placeholder: "Nombre en la tarjeta",
+            },
+            issuer: {
+              id: "card-checkout__issuer",
+              placeholder: "Banco emisor",
+            },
+            installments: {
+              id: "card-checkout__installments",
+              placeholder: "Cuotas",
+            },
+            identificationType: {
+              id: "card-checkout__identificationType",
+              placeholder: "Tipo de documento",
+            },
+            identificationNumber: {
+              id: "card-checkout__identificationNumber",
+              placeholder: "Numero de documento",
+            },
+            cardholderEmail: {
+              id: "card-checkout__cardholderEmail",
+              placeholder: "Email",
+            },
+          },
+          callbacks: {
+            onFormMounted: (error: any) => {
+              if (!active) return;
+              if (error) {
+                setCardFormError("No se pudo cargar el formulario de tarjeta.");
+                return;
+              }
+              setCardFormReady(true);
+            },
+            onSubmit: async (event: Event) => {
+              event.preventDefault();
+              setProcessingPayment(true);
+              setPaymentError("");
+              setPendingMessage("");
+
+              try {
+                const {
+                  paymentMethodId: payment_method_id,
+                  issuerId: issuer_id,
+                  cardholderEmail,
+                  amount,
+                  token,
+                  installments,
+                  identificationNumber,
+                  identificationType,
+                } = cardForm.getCardFormData();
+
+                const response = await fetch("/api/mercadopago/payments", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    packageId: selectedPackage.id,
+                    buyerName: buyer.name,
+                    buyerWhatsapp: paymentBuyer.whatsapp,
+                    buyerEmail: buyer.email,
+                    formData: {
+                      token,
+                      issuer_id,
+                      payment_method_id,
+                      transaction_amount: Number(amount),
+                      installments: Number(installments),
+                      payer: {
+                        email: cardholderEmail || buyer.email,
+                        identification: {
+                          type: identificationType,
+                          number: identificationNumber,
+                        },
+                      },
+                    },
+                  }),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                  throw new Error(data.error || "No se pudo procesar la tarjeta.");
+                }
+
+                if (data.approved) {
+                  setTicketNumbers(data.ticketNumbers ?? []);
+                  return;
+                }
+
+                const statusUrl = (data.statusUrl || (data.paymentId ? `/pago/estado?id=${encodeURIComponent(String(data.paymentId))}` : "/pago/estado")) as string;
+                setPendingMessage(data.message || "El pago esta en revision. Abriendo estado del pago...");
+                window.location.assign(statusUrl);
+              } catch (error: any) {
+                setPaymentError(error?.message || "No se pudo procesar la tarjeta.");
+              } finally {
+                setProcessingPayment(false);
+              }
+            },
+            onFetching: () => {
+              setProcessingPayment(true);
+              return () => setProcessingPayment(false);
+            },
+          },
+        });
+      })
+      .catch((error: any) => {
+        if (!active) return;
+        setCardFormError(error?.message || "No se pudo cargar Mercado Pago para tarjetas.");
+        cardFormMountedRef.current = false;
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [buyer.email, buyer.name, paymentBuyer.whatsapp, paymentMethodMode, paymentReady, selectedPackage]);
 
   const validName = countLetters(buyer.name) >= 4;
   const validWhatsapp = buyer.whatsapp.replace(/\D/g, "").length === 10;
@@ -227,6 +389,9 @@ export function CheckoutPaymentPage() {
     setPaymentReady(false);
     setPaymentError("");
     setPendingMessage("");
+    setCardFormReady(false);
+    setCardFormError("");
+    cardFormMountedRef.current = false;
     setBuyer((current) => ({ ...current, ...nextBuyer }));
   }
 
@@ -269,11 +434,6 @@ export function CheckoutPaymentPage() {
     setPendingMessage("");
     setPaymentReady(true);
   }
-
-  const paymentBuyer: CheckoutBuyer = {
-    ...buyer,
-    whatsapp: formatWhatsapp(buyer.whatsapp),
-  };
 
   async function handlePseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -480,12 +640,90 @@ export function CheckoutPaymentPage() {
               {paymentReady && selectedPackage && (
                 <div className="space-y-4 border-t border-white/12 pt-5">
                   <div className="flex items-center gap-3 text-white/80">
-                    <Banknote className="size-5 text-lime-300" />
-                    <p className="font-bold">Pago por PSE</p>
+                    {paymentMethodMode === "card" ? <CreditCard className="size-5 text-lime-300" /> : <Banknote className="size-5 text-lime-300" />}
+                    <p className="font-bold">Medio de pago</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 rounded-[8px] border border-white/12 bg-black/20 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethodMode("card")}
+                      className={`flex items-center justify-center gap-2 rounded-[6px] px-3 py-3 text-sm font-extrabold uppercase transition ${
+                        paymentMethodMode === "card" ? "bg-lime-300 text-black" : "text-white/70 hover:bg-white/8"
+                      }`}
+                    >
+                      <CreditCard className="size-4" />
+                      Tarjeta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethodMode("pse")}
+                      className={`flex items-center justify-center gap-2 rounded-[6px] px-3 py-3 text-sm font-extrabold uppercase transition ${
+                        paymentMethodMode === "pse" ? "bg-lime-300 text-black" : "text-white/70 hover:bg-white/8"
+                      }`}
+                    >
+                      <Banknote className="size-4" />
+                      PSE
+                    </button>
                   </div>
                   {paymentError && <p className="rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{paymentError}</p>}
                   {pendingMessage && <p className="rounded-[8px] border border-lime-300/25 bg-lime-300/10 p-3 text-sm text-lime-50">{pendingMessage}</p>}
-                  <form className="grid gap-3 rounded-[8px] border border-white/12 bg-black/20 p-4 sm:grid-cols-2" onSubmit={handlePseSubmit}>
+                  {paymentMethodMode === "card" && (
+                    <form id="card-checkout-form" className="grid gap-3 rounded-[8px] border border-white/12 bg-black/20 p-4 sm:grid-cols-2">
+                      {(cardFormError || !cardFormReady) && (
+                        <p className="sm:col-span-2 rounded-[8px] border border-white/12 bg-white/[0.04] p-3 text-sm text-white/70">
+                          {cardFormError || "Cargando formulario seguro de tarjeta..."}
+                        </p>
+                      )}
+                      <label className="block sm:col-span-2">
+                        <span className="text-sm font-bold text-white/80">Numero de tarjeta</span>
+                        <div id="card-checkout__cardNumber" className="mt-2 min-h-12 rounded-[8px] border border-white/12 bg-white px-4 py-3 text-black" />
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-bold text-white/80">Vencimiento</span>
+                        <div id="card-checkout__expirationDate" className="mt-2 min-h-12 rounded-[8px] border border-white/12 bg-white px-4 py-3 text-black" />
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-bold text-white/80">CVV</span>
+                        <div id="card-checkout__securityCode" className="mt-2 min-h-12 rounded-[8px] border border-white/12 bg-white px-4 py-3 text-black" />
+                      </label>
+                      <label className="block sm:col-span-2">
+                        <span className="text-sm font-bold text-white/80">Nombre en la tarjeta</span>
+                        <input id="card-checkout__cardholderName" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/30" placeholder="Nombre como aparece en la tarjeta" />
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-bold text-white/80">Banco emisor</span>
+                        <select id="card-checkout__issuer" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none">
+                          <option value="" className="bg-[#111111]">Selecciona</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-bold text-white/80">Cuotas</span>
+                        <select id="card-checkout__installments" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none">
+                          <option value="" className="bg-[#111111]">Selecciona</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-bold text-white/80">Tipo de documento</span>
+                        <select id="card-checkout__identificationType" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none">
+                          <option value="" className="bg-[#111111]">Selecciona</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-bold text-white/80">Numero de documento</span>
+                        <input id="card-checkout__identificationNumber" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/30" placeholder="123456789" />
+                      </label>
+                      <input id="card-checkout__cardholderEmail" type="hidden" value={buyer.email} readOnly />
+                      <button
+                        disabled={!cardFormReady || processingPayment}
+                        className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
+                      >
+                        {processingPayment ? <Loader2 className="size-5 animate-spin" /> : <CreditCard className="size-5" />}
+                        Pagar con tarjeta
+                      </button>
+                    </form>
+                  )}
+                  {paymentMethodMode === "pse" && (
+                    <form className="grid gap-3 rounded-[8px] border border-white/12 bg-black/20 p-4 sm:grid-cols-2" onSubmit={handlePseSubmit}>
                     <label className="block">
                       <span className="text-sm font-bold text-white/80">Tipo de persona</span>
                       <select
@@ -564,7 +802,8 @@ export function CheckoutPaymentPage() {
                       {processingPayment ? <Loader2 className="size-5 animate-spin" /> : <Banknote className="size-5" />}
                       Pagar con PSE
                     </button>
-                  </form>
+                    </form>
+                  )}
                 </div>
               )}
             </div>

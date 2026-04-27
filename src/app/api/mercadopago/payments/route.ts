@@ -168,7 +168,7 @@ function formatMercadoPagoError(error: any) {
   }
 
   if (lowerCombined.includes("internal_error")) {
-    return "Mercado Pago devolvio internal_error al crear el pago PSE. Si estas usando credenciales TEST, verifica que el deploy tenga MERCADO_PAGO_TEST_TOKEN=true o un access token TEST- para enviar X-Test-Token:true; si ya esta activo, prueba con otro banco sandbox o genera el pago desde el checkout para que el Brick entregue todos los datos.";
+    return "Mercado Pago devolvio internal_error al crear el pago. Si estas usando credenciales TEST, verifica que el deploy tenga MERCADO_PAGO_TEST_TOKEN=true o un access token TEST- para enviar X-Test-Token:true; si ya esta activo, revisa que el comprador sea un usuario de prueba valido para esa cuenta.";
   }
 
   return combined
@@ -374,6 +374,21 @@ export async function POST(request: Request) {
       }
     }
 
+    if (!pse) {
+      if (!payload.formData.token) {
+        return validationError("Faltan datos para pagar con tarjeta.", "Mercado Pago no retorno token de tarjeta.");
+      }
+      if (!payload.formData.issuer_id) {
+        return validationError("Faltan datos para pagar con tarjeta.", "Selecciona el banco emisor.");
+      }
+      if (!payload.formData.installments) {
+        return validationError("Faltan datos para pagar con tarjeta.", "Selecciona el numero de cuotas.");
+      }
+      if (!identification.type || !identification.number) {
+        return validationError("Faltan datos para pagar con tarjeta.", "Ingresa tipo y numero de documento del titular.");
+      }
+    }
+
     const publicBaseUrl = getPublicBaseUrl(request);
 
     if (!publicBaseUrl) {
@@ -402,19 +417,31 @@ export async function POST(request: Request) {
       },
       payer: {
         email: payload.formData.payer?.email || payload.buyerEmail,
-        entity_type: payerEntityType,
-        first_name: payload.formData.additional_info?.payer?.first_name || firstName,
-        last_name: payload.formData.additional_info?.payer?.last_name || lastName,
+        ...(pse
+          ? {
+              entity_type: payerEntityType,
+              first_name: payload.formData.additional_info?.payer?.first_name || firstName,
+              last_name: payload.formData.additional_info?.payer?.last_name || lastName,
+            }
+          : {}),
         identification,
-        address: pseAddress ?? undefined,
-        phone: psePhone ?? undefined,
+        ...(pse
+          ? {
+              address: pseAddress ?? undefined,
+              phone: psePhone ?? undefined,
+            }
+          : {}),
       },
-      additional_info: {
-        ip_address: buyerIpAddress ?? undefined,
-      },
-      transaction_details: {
-        financial_institution: financialInstitution,
-      },
+      ...(pse
+        ? {
+            additional_info: {
+              ip_address: buyerIpAddress ?? undefined,
+            },
+            transaction_details: {
+              financial_institution: financialInstitution,
+            },
+          }
+        : {}),
       ...(!pse
         ? {
             token: payload.formData.token,
