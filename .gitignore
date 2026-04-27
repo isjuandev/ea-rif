@@ -25,6 +25,7 @@ pnpm-debug.log*
 .env.test.local
 .env.production
 .env.production.local
+.cursor/mcp.json
 
 # vercel
 .vercel

@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, CreditCard } from "lucide-react";
-import { MercadoPagoPaymentBrick } from "@/components/MercadoPagoPaymentBrick";
+import { Banknote, CheckCircle2, CreditCard, Loader2 } from "lucide-react";
 import { useRifaConfig } from "@/components/use-rifa-config";
 import { formatCOP } from "@/components/utils";
 
@@ -31,8 +30,30 @@ type City = {
   postalCode?: string | null;
 };
 
+type PseBank = {
+  id: string;
+  description: string;
+};
+
+type PsePaymentForm = {
+  entityType: "individual" | "association";
+  identificationType: string;
+  identificationNumber: string;
+  financialInstitution: string;
+};
+
 const COUNTRY_CODE = "+57";
 const COLOMBIA_API_BASE = "https://api-colombia.com/api/v1";
+const NATURAL_DOC_TYPES = [
+  { label: "C.C", value: "CC" },
+  { label: "C.E.", value: "CE" },
+  { label: "Pasaporte", value: "PAS" },
+  { label: "Tarjeta de Extranjeria", value: "TE" },
+  { label: "Tarjeta de Identidad", value: "TI" },
+  { label: "Registro Civil", value: "RC" },
+  { label: "Documento de Identificacion", value: "DI" },
+];
+const COMPANY_DOC_TYPES = [{ label: "NIT", value: "NIT" }];
 
 function formatWhatsapp(localNumber: string) {
   return `${COUNTRY_CODE}${localNumber.replace(/\D/g, "")}`;
@@ -58,6 +79,13 @@ const initialBuyer: CheckoutBuyer = {
   federalUnit: "",
 };
 
+const initialPsePaymentForm: PsePaymentForm = {
+  entityType: "individual",
+  identificationType: "CC",
+  identificationNumber: "",
+  financialInstitution: "",
+};
+
 export function CheckoutPaymentPage() {
   const searchParams = useSearchParams();
   const packageId = searchParams.get("package");
@@ -73,8 +101,12 @@ export function CheckoutPaymentPage() {
   const [formError, setFormError] = useState("");
   const [paymentReady, setPaymentReady] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [ticketNumbers, setTicketNumbers] = useState<string[]>([]);
   const [pendingMessage, setPendingMessage] = useState("");
+  const [pseBanks, setPseBanks] = useState<PseBank[]>([]);
+  const [loadingPseBanks, setLoadingPseBanks] = useState(false);
+  const [psePaymentForm, setPsePaymentForm] = useState<PsePaymentForm>(initialPsePaymentForm);
 
   const selectedPackage = useMemo(() => {
     return rifaConfig.packages.find((pack) => pack.id === packageId) ?? null;
@@ -135,6 +167,44 @@ export function CheckoutPaymentPage() {
     };
   }, [departmentId]);
 
+  useEffect(() => {
+    if (!paymentReady) return;
+
+    let active = true;
+    setLoadingPseBanks(true);
+    setPaymentError("");
+
+    fetch("/api/mercadopago/payment-methods", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error("No se pudieron cargar los bancos PSE.");
+        return response.json();
+      })
+      .then((data) => {
+        if (!active) return;
+        const pse = data.methods?.find((method: any) => method.id === "pse");
+        const banks = ((pse?.financial_institutions ?? []) as Array<{ id?: string | number; description?: string }>)
+          .filter((bank) => bank.id && bank.description)
+          .map((bank) => ({ id: String(bank.id), description: String(bank.description) }))
+          .sort((a, b) => a.description.localeCompare(b.description));
+
+        setPseBanks(banks);
+        setPsePaymentForm((current) => ({
+          ...current,
+          financialInstitution: current.financialInstitution || banks[0]?.id || "",
+        }));
+      })
+      .catch((error: any) => {
+        if (active) setPaymentError(error?.message || "No se pudieron cargar los bancos PSE.");
+      })
+      .finally(() => {
+        if (active) setLoadingPseBanks(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [paymentReady]);
+
   const validName = countLetters(buyer.name) >= 4;
   const validWhatsapp = buyer.whatsapp.replace(/\D/g, "").length === 10;
   const validEmail = isValidEmail(buyer.email);
@@ -146,12 +216,24 @@ export function CheckoutPaymentPage() {
     buyer.federalUnit.trim().length >= 1 &&
     buyer.federalUnit.trim().length <= 18;
   const validBuyer = validName && validWhatsapp && validEmail && validAddress;
+  const documentOptions = psePaymentForm.entityType === "individual" ? NATURAL_DOC_TYPES : COMPANY_DOC_TYPES;
+  const validPsePayment =
+    Boolean(psePaymentForm.financialInstitution) &&
+    Boolean(psePaymentForm.identificationType) &&
+    psePaymentForm.identificationNumber.trim().length >= 1 &&
+    psePaymentForm.identificationNumber.trim().length <= 15;
 
   function updateBuyer(nextBuyer: Partial<CheckoutBuyer>) {
     setPaymentReady(false);
     setPaymentError("");
     setPendingMessage("");
     setBuyer((current) => ({ ...current, ...nextBuyer }));
+  }
+
+  function updatePsePaymentForm(nextForm: Partial<PsePaymentForm>) {
+    setPaymentError("");
+    setPendingMessage("");
+    setPsePaymentForm((current) => ({ ...current, ...nextForm }));
   }
 
   function handleDepartmentChange(nextDepartmentId: string) {
@@ -192,6 +274,73 @@ export function CheckoutPaymentPage() {
     ...buyer,
     whatsapp: formatWhatsapp(buyer.whatsapp),
   };
+
+  async function handlePseSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedPackage || !validBuyer || !validPsePayment) {
+      setPaymentError("Completa los datos de PSE antes de pagar.");
+      return;
+    }
+
+    setProcessingPayment(true);
+    setPaymentError("");
+    setPendingMessage("");
+
+    try {
+      const response = await fetch("/api/mercadopago/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          packageId: selectedPackage.id,
+          buyerName: buyer.name,
+          buyerWhatsapp: paymentBuyer.whatsapp,
+          buyerEmail: buyer.email,
+          buyerAddress: {
+            zipCode: buyer.zipCode,
+            streetName: buyer.streetName,
+            streetNumber: buyer.streetNumber,
+            neighborhood: buyer.neighborhood,
+            city: buyer.city,
+            federalUnit: buyer.federalUnit,
+          },
+          formData: {
+            payment_method_id: "pse",
+            transaction_amount: selectedPackage.price,
+            payer: {
+              email: buyer.email,
+              entity_type: psePaymentForm.entityType,
+              identification: {
+                type: psePaymentForm.identificationType,
+                number: psePaymentForm.identificationNumber.trim(),
+              },
+            },
+            transaction_details: {
+              financial_institution: psePaymentForm.financialInstitution,
+            },
+          },
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo crear el pago PSE.");
+      }
+
+      if (data.approved) {
+        setTicketNumbers(data.ticketNumbers ?? []);
+        return;
+      }
+
+      const redirectUrl = data.externalResourceUrl as string | undefined;
+      const statusUrl = (data.statusUrl || (data.paymentId ? `/pago/estado?id=${encodeURIComponent(String(data.paymentId))}` : "/pago/estado")) as string;
+      setPendingMessage(redirectUrl ? "Pago PSE creado. Redirigiendo al banco..." : "Pago PSE creado. Abriendo estado del pago...");
+      window.location.assign(redirectUrl || statusUrl);
+    } catch (error: any) {
+      setPaymentError(error?.message || "No se pudo crear el pago PSE.");
+    } finally {
+      setProcessingPayment(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#080808] px-4 py-6 text-white sm:px-6 lg:px-8">
@@ -331,24 +480,91 @@ export function CheckoutPaymentPage() {
               {paymentReady && selectedPackage && (
                 <div className="space-y-4 border-t border-white/12 pt-5">
                   <div className="flex items-center gap-3 text-white/80">
-                    <CreditCard className="size-5 text-lime-300" />
-                    <p className="font-bold">Elige tu metodo de pago en Mercado Pago</p>
+                    <Banknote className="size-5 text-lime-300" />
+                    <p className="font-bold">Pago por PSE</p>
                   </div>
                   {paymentError && <p className="rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{paymentError}</p>}
                   {pendingMessage && <p className="rounded-[8px] border border-lime-300/25 bg-lime-300/10 p-3 text-sm text-lime-50">{pendingMessage}</p>}
-                  <MercadoPagoPaymentBrick
-                    buyer={paymentBuyer}
-                    selectedPackage={selectedPackage}
-                    onApproved={(numbers) => {
-                      setTicketNumbers(numbers);
-                      setPaymentError("");
-                      setPendingMessage("");
-                    }}
-                    onPending={(message, _statusUrl, externalResourceUrl) => {
-                      setPendingMessage(externalResourceUrl ? `${message} Redirigiendo al banco...` : `${message} Abriendo estado del pago...`);
-                    }}
-                    onError={(message) => setPaymentError(message)}
-                  />
+                  <form className="grid gap-3 rounded-[8px] border border-white/12 bg-black/20 p-4 sm:grid-cols-2" onSubmit={handlePseSubmit}>
+                    <label className="block">
+                      <span className="text-sm font-bold text-white/80">Tipo de persona</span>
+                      <select
+                        value={psePaymentForm.entityType}
+                        onChange={(event) => {
+                          const entityType = event.target.value as PsePaymentForm["entityType"];
+                          updatePsePaymentForm({
+                            entityType,
+                            identificationType: entityType === "individual" ? "CC" : "NIT",
+                            identificationNumber: "",
+                          });
+                        }}
+                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none"
+                      >
+                        <option value="individual" className="bg-[#111111]">
+                          Natural
+                        </option>
+                        <option value="association" className="bg-[#111111]">
+                          Juridica
+                        </option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-sm font-bold text-white/80">Banco</span>
+                      <select
+                        required
+                        disabled={loadingPseBanks || pseBanks.length === 0}
+                        value={psePaymentForm.financialInstitution}
+                        onChange={(event) => updatePsePaymentForm({ financialInstitution: event.target.value })}
+                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none disabled:opacity-50"
+                      >
+                        <option value="">{loadingPseBanks ? "Cargando bancos..." : "Selecciona banco"}</option>
+                        {pseBanks.map((bank) => (
+                          <option key={bank.id} value={bank.id} className="bg-[#111111]">
+                            {bank.description}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-sm font-bold text-white/80">Tipo de documento</span>
+                      <select
+                        value={psePaymentForm.identificationType}
+                        onChange={(event) => updatePsePaymentForm({ identificationType: event.target.value })}
+                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none"
+                      >
+                        {documentOptions.map((documentType) => (
+                          <option key={documentType.value} value={documentType.value} className="bg-[#111111]">
+                            {documentType.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-sm font-bold text-white/80">Numero de documento</span>
+                      <input
+                        required
+                        inputMode={psePaymentForm.identificationType === "PAS" ? "text" : "numeric"}
+                        maxLength={15}
+                        value={psePaymentForm.identificationNumber}
+                        onChange={(event) => {
+                          const value =
+                            psePaymentForm.identificationType === "PAS"
+                              ? event.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 15)
+                              : event.target.value.replace(/\D/g, "").slice(0, 15);
+                          updatePsePaymentForm({ identificationNumber: value });
+                        }}
+                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/30"
+                        placeholder="123456789"
+                      />
+                    </label>
+                    <button
+                      disabled={!validPsePayment || processingPayment || loadingPseBanks}
+                      className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
+                    >
+                      {processingPayment ? <Loader2 className="size-5 animate-spin" /> : <Banknote className="size-5" />}
+                      Pagar con PSE
+                    </button>
+                  </form>
                 </div>
               )}
             </div>
