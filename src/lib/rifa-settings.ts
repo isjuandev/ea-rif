@@ -2,6 +2,12 @@ import { rifaConfig, type RifaConfig, type RifaPackage } from "@/config/rifa";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const SETTINGS_ID = "active";
+const MISSING_SETTINGS_TABLE_MESSAGE =
+  "Falta crear la tabla public.rifa_settings en Supabase. Ejecuta el bloque rifa_settings de supabase/schema.sql y vuelve a guardar.";
+
+function isMissingSettingsTableError(error: { code?: string; message?: string }) {
+  return error.code === "PGRST205" || Boolean(error.message?.includes("rifa_settings"));
+}
 
 function toPositiveInteger(value: unknown, fallback: number) {
   const number = Number(value);
@@ -66,7 +72,7 @@ export async function getEditableRifaConfig() {
   const { data, error } = await supabase.from("rifa_settings").select("config").eq("id", SETTINGS_ID).maybeSingle();
 
   if (error) {
-    if (error.code !== "PGRST205" && !error.message.includes("rifa_settings")) {
+    if (!isMissingSettingsTableError(error)) {
       console.error("Error leyendo configuracion de rifa", error.message);
     }
     return { config: rifaConfig, configured: false };
@@ -93,6 +99,10 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
   });
 
   if (error) {
+    if (isMissingSettingsTableError(error)) {
+      throw new Error(MISSING_SETTINGS_TABLE_MESSAGE);
+    }
+
     throw new Error(error.message);
   }
 
