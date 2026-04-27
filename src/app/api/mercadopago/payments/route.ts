@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { getMercadoPagoPayment, getMercadoPagoPaymentMethod } from "@/lib/mercadopago";
+import { getMercadoPagoPayment, getMercadoPagoPaymentMethod, shouldSendMercadoPagoTestToken } from "@/lib/mercadopago";
 import { fulfillApprovedMercadoPagoPayment } from "@/lib/mercadopago-fulfillment";
 import { logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
@@ -9,10 +9,6 @@ import { normalizeWhatsApp } from "@/lib/tickets";
 export const dynamic = "force-dynamic";
 
 const MERCADO_PAGO_MIN_CARD_AMOUNT = 1000;
-
-function shouldSendMercadoPagoTestToken() {
-  return process.env.MERCADO_PAGO_TEST_TOKEN === "true" || process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith("TEST-") === true;
-}
 
 type MercadoPagoPaymentPayload = {
   packageId: string;

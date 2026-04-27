@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMercadoPagoPaymentMethod } from "@/lib/mercadopago";
+import { getMercadoPagoPaymentMethod, shouldSendMercadoPagoTestToken } from "@/lib/mercadopago";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "Mercado Pago no esta configurado en el servidor." }, { status: 503 });
     }
 
-    const methods = await paymentMethodClient.get();
+    const methods = await paymentMethodClient.get({ requestOptions: { testToken: shouldSendMercadoPagoTestToken() } });
     return NextResponse.json({ methods });
   } catch (error: any) {
     return NextResponse.json(
