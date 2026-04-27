@@ -43,10 +43,10 @@ export const rifaConfig: RifaConfig = {
   drawMinute: 30,
   sellerName: "Rifas Wallpapers",
   packages: [
-    { id: "popular", name: "5 Wallpapers", wallpapers: 5, rifas: 5, price: 2500, featured: true },
-    { id: "pro", name: "10 Wallpapers", wallpapers: 10, rifas: 10, price: 5000 },
-    { id: "vip", name: "20 Wallpapers", wallpapers: 20, rifas: 20, price: 10000 },
-    { id: "max", name: "50 Wallpapers", wallpapers: 50, rifas: 50, price: 25000 },
+    { id: "starter", name: "10 Wallpapers", wallpapers: 10, rifas: 10, price: 5000 },
+    { id: "popular", name: "20 Wallpapers", wallpapers: 20, rifas: 20, price: 10000 },
+    { id: "pro", name: "40 Wallpapers", wallpapers: 40, rifas: 40, price: 20000, featured: true },
+    { id: "max", name: "100 Wallpapers", wallpapers: 100, rifas: 100, price: 50000 },
   ],
   fallbackSoldTickets: 0,
   socialLinks: {

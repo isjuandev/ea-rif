@@ -4,7 +4,7 @@ import { getMercadoPagoPayment, getMercadoPagoPaymentMethod, shouldSendMercadoPa
 import { fulfillApprovedMercadoPagoPayment } from "@/lib/mercadopago-fulfillment";
 import { logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
-import { normalizeWhatsApp } from "@/lib/tickets";
+import { assertPackageAvailability, normalizeWhatsApp, validateBuyerFields } from "@/lib/tickets";
 
 export const dynamic = "force-dynamic";
 
@@ -284,6 +284,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paquete invalido." }, { status: 400 });
     }
 
+    try {
+      await assertPackageAvailability(selectedPackage.rifas);
+    } catch (error: any) {
+      return NextResponse.json({ error: error?.message || "No hay suficientes numeros disponibles para este paquete." }, { status: 409 });
+    }
+
     const normalizedBuyerWhatsapp = normalizeWhatsApp(payload.buyerWhatsapp);
     const localBuyerWhatsapp = normalizedBuyerWhatsapp.startsWith("57") ? normalizedBuyerWhatsapp.slice(2) : normalizedBuyerWhatsapp;
 
@@ -297,6 +303,16 @@ export async function POST(request: Request) {
         "Datos del comprador incompletos.",
         "Verifica que el nombre tenga al menos 4 letras, el WhatsApp tenga 10 digitos colombianos y el correo sea valido.",
       );
+    }
+
+    try {
+      validateBuyerFields({
+        buyerName: payload.buyerName,
+        buyerWhatsapp: payload.buyerWhatsapp,
+        buyerEmail: payload.buyerEmail,
+      });
+    } catch (error: any) {
+      return validationError(error?.message || "Datos del comprador incompletos.", "Revisa los datos del comprador.");
     }
 
     const amount = Number(payload.formData.transaction_amount ?? selectedPackage.price);

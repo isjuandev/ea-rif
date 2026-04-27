@@ -21,21 +21,31 @@ export async function GET() {
     });
   }
 
-  const { count, error } = await supabase
+  const { count: soldCount, error: soldError } = await supabase
     .from("rifa_tickets")
     .select("number", { count: "exact", head: true })
     .eq("status", "sold");
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (soldError) {
+    return NextResponse.json({ error: soldError.message }, { status: 500 });
   }
 
-  const soldTickets = count ?? 0;
+  const { count: availableCount, error: availableError } = await supabase
+    .from("rifa_tickets")
+    .select("number", { count: "exact", head: true })
+    .eq("status", "available");
+
+  if (availableError) {
+    return NextResponse.json({ error: availableError.message }, { status: 500 });
+  }
+
+  const soldTickets = soldCount ?? 0;
+  const availableTickets = availableCount ?? Math.max(rifaConfig.totalTickets - soldTickets, 0);
 
   return NextResponse.json({
     totalTickets: rifaConfig.totalTickets,
     soldTickets,
-    availableTickets: rifaConfig.totalTickets - soldTickets,
+    availableTickets,
     drawDate,
     lotteryName: rifaConfig.lotteryName,
     configured: true,

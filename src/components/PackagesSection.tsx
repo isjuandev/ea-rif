@@ -35,6 +35,7 @@ export function PackagesSection() {
   }, []);
 
   function handleBuy(pack: RifaPackage) {
+    if (pack.rifas > status.availableTickets) return;
     router.push(`/pago/checkout?package=${encodeURIComponent(pack.id)}`);
   }
 
@@ -98,7 +99,12 @@ export function PackagesSection() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {rifaConfig.packages.map((pack) => (
               <div key={pack.id} className="min-w-0">
-                <PackageCard pack={pack} onBuy={handleBuy} />
+                <PackageCard
+                  pack={pack}
+                  disabled={pack.rifas > status.availableTickets}
+                  disabledReason="Sin cupos"
+                  onBuy={handleBuy}
+                />
               </div>
             ))}
           </div>

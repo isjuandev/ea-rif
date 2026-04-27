@@ -19,6 +19,54 @@ export function normalizeWhatsApp(value: string) {
   return `57${digits}`;
 }
 
+export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp: string; buyerEmail?: string }) {
+  const buyerName = input.buyerName.trim();
+  const buyerWhatsapp = normalizeWhatsApp(input.buyerWhatsapp);
+  const buyerEmail = input.buyerEmail?.trim() ?? "";
+
+  if (buyerName.length < 4 || buyerName.length > 120) {
+    throw new Error("El nombre debe tener entre 4 y 120 caracteres.");
+  }
+
+  if (buyerWhatsapp.length !== 12) {
+    throw new Error("El WhatsApp debe tener 10 digitos colombianos.");
+  }
+
+  if (buyerEmail.length > 160) {
+    throw new Error("El correo es demasiado largo.");
+  }
+
+  return { buyerName, buyerWhatsapp, buyerEmail };
+}
+
+export async function getAvailableTicketCount() {
+  const supabase = getSupabaseAdmin();
+  const { config: rifaConfig } = await getEditableRifaConfig();
+
+  if (!supabase) {
+    return rifaConfig.totalTickets - rifaConfig.fallbackSoldTickets;
+  }
+
+  const { count, error } = await supabase
+    .from("rifa_tickets")
+    .select("number", { count: "exact", head: true })
+    .eq("status", "available");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count ?? 0;
+}
+
+export async function assertPackageAvailability(ticketCount: number) {
+  const availableTickets = await getAvailableTicketCount();
+
+  if (availableTickets < ticketCount) {
+    throw new Error(`Solo quedan ${availableTickets} numeros disponibles para este paquete.`);
+  }
+}
+
 export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   const supabase = getSupabaseAdmin();
 
@@ -33,16 +81,18 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
     throw new Error("Paquete invalido.");
   }
 
-  const buyerWhatsapp = normalizeWhatsApp(input.buyerWhatsapp);
+  const buyer = validateBuyerFields({
+    buyerName: input.buyerName,
+    buyerWhatsapp: input.buyerWhatsapp,
+    buyerEmail: input.buyerEmail,
+  });
 
-  if (!input.buyerName || buyerWhatsapp.length < 12) {
-    throw new Error("Datos del comprador incompletos.");
-  }
+  await assertPackageAvailability(selectedPackage.rifas);
 
   const { data, error } = await supabase.rpc("sell_random_rifa_tickets", {
-    p_buyer_name: input.buyerName.trim(),
-    p_buyer_whatsapp: buyerWhatsapp,
-    p_buyer_email: input.buyerEmail?.trim() ?? "",
+    p_buyer_name: buyer.buyerName,
+    p_buyer_whatsapp: buyer.buyerWhatsapp,
+    p_buyer_email: buyer.buyerEmail,
     p_package_id: selectedPackage.id,
     p_package_name: selectedPackage.name,
     p_ticket_count: selectedPackage.rifas,
@@ -59,7 +109,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   const ticketNumbers = purchase?.ticket_numbers ?? [];
   const purchaseId = purchase?.purchase_id;
 
-  if (input.buyerEmail && ticketNumbers.length > 0 && purchaseId) {
+  if (buyer.buyerEmail && ticketNumbers.length > 0 && purchaseId) {
     try {
       const { data: purchaseRow } = await supabase
         .from("rifa_purchases")
@@ -76,8 +126,8 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
       }
 
       const email = await sendTicketEmail({
-        to: input.buyerEmail,
-        name: input.buyerName,
+        to: buyer.buyerEmail,
+        name: buyer.buyerName,
         packageName: selectedPackage.name,
         price: selectedPackage.price,
         numbers: ticketNumbers,
@@ -88,14 +138,14 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
       } else {
         console.error("Email no enviado", {
           purchaseId,
-          to: input.buyerEmail,
+          to: buyer.buyerEmail,
           reason: email.error || "Motivo desconocido",
         });
       }
     } catch (error: any) {
       console.error("Error enviando email de compra", {
         purchaseId,
-        to: input.buyerEmail,
+        to: buyer.buyerEmail,
         error: error?.message || error,
       });
     }
