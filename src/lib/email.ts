@@ -8,12 +8,14 @@ export async function sendTicketEmail({
   packageName,
   price,
   numbers,
+  lotteryName = rifaConfig.lotteryName,
 }: {
   to: string;
   name: string;
   packageName: string;
   price: number;
   numbers: string[];
+  lotteryName?: string;
 }) {
   if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacio." };
 
@@ -29,7 +31,7 @@ export async function sendTicketEmail({
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin:18px 0">
         ${numbers.map((number) => `<span style="border:1px solid #AAFF00;padding:8px 12px;border-radius:6px;font-weight:700">${number}</span>`).join("")}
       </div>
-      <p>El sorteo juega con la Loteria del Quindio el jueves habil correspondiente.</p>
+      <p>El sorteo juega con ${lotteryName}. La fecha se actualiza con el ultimo resultado oficial publicado.</p>
     </div>
   `;
 

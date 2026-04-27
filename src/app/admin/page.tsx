@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { LogOut, Plus, Save, Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { rifaConfig, type RifaConfig, type RifaPackage } from "@/config/rifa";
+import { getLotteryOption, lotteryOptions } from "@/lib/lottery-results";
 import { formatCOP } from "@/components/utils";
 
 function emptyPackage(index: number): RifaPackage {
@@ -52,6 +53,11 @@ export default function AdminRifaSettingsPage() {
       ...current,
       packages: current.packages.filter((_, itemIndex) => itemIndex !== index),
     }));
+  }
+
+  function updateLottery(slug: string) {
+    const lottery = getLotteryOption(slug);
+    setConfig({ ...config, lotterySlug: lottery.slug, lotteryName: lottery.name });
   }
 
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -123,7 +129,13 @@ export default function AdminRifaSettingsPage() {
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Loteria</span>
-            <input value={config.lotteryName} onChange={(event) => setConfig({ ...config, lotteryName: event.target.value })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <select value={config.lotterySlug} onChange={(event) => updateLottery(event.target.value)} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300">
+              {lotteryOptions.map((lottery) => (
+                <option key={lottery.slug} value={lottery.slug} className="bg-[#0a0a0a] text-white">
+                  {lottery.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Total numeros</span>

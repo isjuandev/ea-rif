@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getLatestQuindioResult } from "@/lib/lottery-results";
+import { getLatestLotteryResult } from "@/lib/lottery-results";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -10,7 +10,7 @@ export async function GET() {
   const { config: rifaConfig } = await getEditableRifaConfig();
 
   if (!supabase) {
-    const latestResult = await getLatestQuindioResult().catch(() => null);
+    const latestResult = await getLatestLotteryResult(rifaConfig.lotterySlug).catch(() => null);
     return NextResponse.json({
       winners: latestResult
         ? [
@@ -27,7 +27,7 @@ export async function GET() {
     });
   }
 
-  const latestResult = await getLatestQuindioResult().catch(() => null);
+  const latestResult = await getLatestLotteryResult(rifaConfig.lotterySlug).catch(() => null);
 
   if (latestResult) {
     const { data: existingWinner, error: existingError } = await supabase

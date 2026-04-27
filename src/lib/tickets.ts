@@ -131,6 +131,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
         packageName: selectedPackage.name,
         price: selectedPackage.price,
         numbers: ticketNumbers,
+        lotteryName: rifaConfig.lotteryName,
       });
 
       if (email.sent) {

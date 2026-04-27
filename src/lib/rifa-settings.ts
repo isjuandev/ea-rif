@@ -1,4 +1,5 @@
 import { rifaConfig, type RifaConfig, type RifaPackage } from "@/config/rifa";
+import { getLotteryOption } from "@/lib/lottery-results";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const SETTINGS_ID = "active";
@@ -36,6 +37,7 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
   const packagesInput = Array.isArray(input.packages) && input.packages.length > 0 ? input.packages : rifaConfig.packages;
   const packages = packagesInput.map(normalizePackage);
   const featuredIndex = packages.findIndex((pack) => pack.featured);
+  const lottery = getLotteryOption(input.lotterySlug || input.lotteryName || rifaConfig.lotterySlug);
 
   return {
     ...rifaConfig,
@@ -47,7 +49,8 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
     totalTickets: toPositiveInteger(input.totalTickets, rifaConfig.totalTickets),
     ticketPrice: toNonNegativeInteger(input.ticketPrice, rifaConfig.ticketPrice),
     minorPrizeCount: toNonNegativeInteger(input.minorPrizeCount, rifaConfig.minorPrizeCount),
-    lotteryName: String(input.lotteryName || rifaConfig.lotteryName).trim(),
+    lotterySlug: lottery.slug,
+    lotteryName: lottery.name,
     drawWeekday: toNonNegativeInteger(input.drawWeekday, rifaConfig.drawWeekday),
     drawHour: toNonNegativeInteger(input.drawHour, rifaConfig.drawHour),
     drawMinute: toNonNegativeInteger(input.drawMinute, rifaConfig.drawMinute),

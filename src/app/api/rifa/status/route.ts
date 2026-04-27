@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getNextDrawDate } from "@/lib/draw-date";
+import { getNextLotteryDrawDate } from "@/lib/lottery-results";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -8,15 +8,16 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const supabase = getSupabaseAdmin();
   const { config: rifaConfig } = await getEditableRifaConfig();
-  const drawDate = getNextDrawDate(new Date(), rifaConfig);
+  const drawDate = await getNextLotteryDrawDate(rifaConfig.lotterySlug, rifaConfig).catch(() => null);
 
   if (!supabase) {
     return NextResponse.json({
       totalTickets: rifaConfig.totalTickets,
       soldTickets: rifaConfig.fallbackSoldTickets,
       availableTickets: rifaConfig.totalTickets - rifaConfig.fallbackSoldTickets,
-      drawDate,
+      drawDate: drawDate ?? new Date(Date.now() + 1000).toISOString(),
       lotteryName: rifaConfig.lotteryName,
+      lotterySlug: rifaConfig.lotterySlug,
       configured: false,
     });
   }
@@ -46,8 +47,9 @@ export async function GET() {
     totalTickets: rifaConfig.totalTickets,
     soldTickets,
     availableTickets,
-    drawDate,
+    drawDate: drawDate ?? new Date(Date.now() + 1000).toISOString(),
     lotteryName: rifaConfig.lotteryName,
+    lotterySlug: rifaConfig.lotterySlug,
     configured: true,
   });
 }

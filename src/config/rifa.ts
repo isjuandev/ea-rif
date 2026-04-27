@@ -15,6 +15,7 @@ export type RifaConfig = {
   totalTickets: number;
   ticketPrice: number;
   minorPrizeCount: number;
+  lotterySlug: string;
   lotteryName: string;
   drawWeekday: number;
   drawHour: number;
@@ -37,6 +38,7 @@ export const rifaConfig: RifaConfig = {
   totalTickets: 10000,
   ticketPrice: 500,
   minorPrizeCount: 10,
+  lotterySlug: "quindio",
   lotteryName: "Loteria del Quindio",
   drawWeekday: 4,
   drawHour: 22,

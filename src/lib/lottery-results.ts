@@ -1,6 +1,13 @@
 const LOTTERY_RESULTS_API_BASE_URL = "https://api-resultadosloterias.com/api";
-const QUINDIO_SLUG = "quindio";
 const BOGOTA_TIME_ZONE = "America/Bogota";
+
+export const lotteryOptions = [
+  { name: "Loteria del Quindio", apiName: "QUINDIO", slug: "quindio", fallbackWeekday: 4 },
+  { name: "Loteria de Cundinamarca", apiName: "CUNDINAMARCA", slug: "cundinamarca", fallbackWeekday: 1 },
+  { name: "Loteria de Medellin", apiName: "MEDELLIN", slug: "medellin", fallbackWeekday: 5 },
+] as const;
+
+export type LotterySlug = (typeof lotteryOptions)[number]["slug"];
 
 export type LotteryResult = {
   lottery: string;
@@ -42,6 +49,37 @@ function subtractDays(date: Date, days: number) {
   return nextDate;
 }
 
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + days);
+  return nextDate;
+}
+
+function getDateAtBogotaTime(dateOnly: string, hour: number, minute: number) {
+  const [year, month, day] = dateOnly.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, hour + 5, minute, 0, 0));
+  return date;
+}
+
+function getNextFallbackDate(from: Date, weekday: number, hour: number, minute: number) {
+  for (let offset = 0; offset <= 14; offset += 1) {
+    const candidateDay = addDays(from, offset);
+    const dateOnly = formatDateOnly(candidateDay);
+    const candidate = getDateAtBogotaTime(dateOnly, hour, minute);
+    const localWeekday = new Intl.DateTimeFormat("en-US", {
+      timeZone: BOGOTA_TIME_ZONE,
+      weekday: "short",
+    }).format(candidate);
+    const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(localWeekday);
+
+    if (day === weekday && candidate.getTime() > from.getTime()) {
+      return candidate.toISOString();
+    }
+  }
+
+  return getDateAtBogotaTime(formatDateOnly(addDays(from, 7)), hour, minute).toISOString();
+}
+
 async function fetchResultsForDate(date: string) {
   const response = await fetch(`${LOTTERY_RESULTS_API_BASE_URL}/results/${date}`, {
     next: { revalidate: 60 * 30 },
@@ -55,11 +93,22 @@ async function fetchResultsForDate(date: string) {
   return Array.isArray(payload.data) ? payload.data : [];
 }
 
-export async function getLatestQuindioResult(from = new Date(), daysBack = 14) {
+export function getLotteryOption(slugOrName: string | undefined | null) {
+  const normalized = String(slugOrName ?? "").trim().toLowerCase();
+  return (
+    lotteryOptions.find((option) => option.slug === normalized) ??
+    lotteryOptions.find((option) => option.name.toLowerCase() === normalized || option.apiName.toLowerCase() === normalized) ??
+    lotteryOptions[0]
+  );
+}
+
+export async function getLatestLotteryResult(slugOrName: string, from = new Date(), daysBack = 21) {
+  const lottery = getLotteryOption(slugOrName);
+
   for (let offset = 0; offset <= daysBack; offset += 1) {
     const date = formatDateOnly(subtractDays(from, offset));
     const results = await fetchResultsForDate(date);
-    const result = results.find((item) => item.slug === QUINDIO_SLUG && /^\d{4}$/.test(item.result));
+    const result = results.find((item) => item.slug === lottery.slug && /^\d{4}$/.test(item.result));
 
     if (result) {
       return result;
@@ -67,4 +116,25 @@ export async function getLatestQuindioResult(from = new Date(), daysBack = 14) {
   }
 
   return null;
+}
+
+export async function getNextLotteryDrawDate(
+  slugOrName: string,
+  config: { drawHour: number; drawMinute: number },
+  from = new Date(),
+) {
+  const lottery = getLotteryOption(slugOrName);
+  const latestResult = await getLatestLotteryResult(lottery.slug, from);
+
+  if (!latestResult) {
+    return getNextFallbackDate(from, lottery.fallbackWeekday, config.drawHour, config.drawMinute);
+  }
+
+  let candidate = getDateAtBogotaTime(latestResult.date, config.drawHour, config.drawMinute);
+
+  do {
+    candidate = addDays(candidate, 7);
+  } while (candidate.getTime() <= from.getTime());
+
+  return candidate.toISOString();
 }
