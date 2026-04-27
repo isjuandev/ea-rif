@@ -58,6 +58,9 @@ const NATURAL_DOC_TYPES = [
   { label: "Documento de Identificacion", value: "DI" },
 ];
 const COMPANY_DOC_TYPES = [{ label: "NIT", value: "NIT" }];
+const CARD_SECURE_FIELD_CLASS = "flex h-12 items-center rounded-[8px] border border-white/12 bg-black/30 text-white transition focus-within:border-lime-300/70";
+const CARD_SECURE_FIELD_INNER_CLASS = "min-w-0 flex-1 px-4";
+const CHECKOUT_INPUT_CLASS = "mt-2 h-12 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 text-white outline-none transition placeholder:text-white/30 focus:border-lime-300/70";
 
 const CARD_BRAND_LABELS: Record<CardBrand, string> = {
   visa: "Visa",
@@ -733,24 +736,28 @@ export function CheckoutPaymentPage() {
                       )}
                       <label className="block sm:col-span-2">
                         <span className="text-sm font-bold text-white/80">Numero de tarjeta</span>
-                        <div className="mt-2 flex min-h-12 items-center rounded-[8px] border border-white/12 bg-white text-black">
-                          <div id="card-checkout__cardNumber" className="min-w-0 flex-1 px-4 py-3" />
-                          <div className="mr-3 grid h-9 min-w-14 place-items-center rounded-[6px] border border-black/10 bg-white px-2" title={CARD_BRAND_LABELS[cardBrand]} aria-label={CARD_BRAND_LABELS[cardBrand]}>
+                        <div className={`mt-2 ${CARD_SECURE_FIELD_CLASS}`}>
+                          <div id="card-checkout__cardNumber" className={CARD_SECURE_FIELD_INNER_CLASS} />
+                          <div className="mr-3 grid h-8 min-w-13 place-items-center rounded-[6px] border border-white/10 bg-white px-2" title={CARD_BRAND_LABELS[cardBrand]} aria-label={CARD_BRAND_LABELS[cardBrand]}>
                             <CardBrandBadge brand={cardBrand} />
                           </div>
                         </div>
                       </label>
                       <label className="block">
                         <span className="text-sm font-bold text-white/80">Vencimiento</span>
-                        <div id="card-checkout__expirationDate" className="mt-2 min-h-12 rounded-[8px] border border-white/12 bg-white px-4 py-3 text-black" />
+                        <div className={`mt-2 ${CARD_SECURE_FIELD_CLASS}`}>
+                          <div id="card-checkout__expirationDate" className={CARD_SECURE_FIELD_INNER_CLASS} />
+                        </div>
                       </label>
                       <label className="block">
                         <span className="text-sm font-bold text-white/80">CVV</span>
-                        <div id="card-checkout__securityCode" className="mt-2 min-h-12 rounded-[8px] border border-white/12 bg-white px-4 py-3 text-black" />
+                        <div className={`mt-2 ${CARD_SECURE_FIELD_CLASS}`}>
+                          <div id="card-checkout__securityCode" className={CARD_SECURE_FIELD_INNER_CLASS} />
+                        </div>
                       </label>
                       <label className="block sm:col-span-2">
                         <span className="text-sm font-bold text-white/80">Nombre en la tarjeta</span>
-                        <input id="card-checkout__cardholderName" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/30" placeholder="Nombre como aparece en la tarjeta" />
+                        <input id="card-checkout__cardholderName" className={CHECKOUT_INPUT_CLASS} placeholder="Nombre como aparece en la tarjeta" />
                       </label>
                       <select id="card-checkout__issuer" className="sr-only" tabIndex={-1} aria-hidden="true">
                         <option value="" className="bg-[#111111]">
@@ -759,19 +766,19 @@ export function CheckoutPaymentPage() {
                       </select>
                       <label className="block">
                         <span className="text-sm font-bold text-white/80">Cuotas</span>
-                        <select id="card-checkout__installments" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none">
+                        <select id="card-checkout__installments" className={CHECKOUT_INPUT_CLASS}>
                           <option value="" className="bg-[#111111]">Selecciona</option>
                         </select>
                       </label>
                       <label className="block">
                         <span className="text-sm font-bold text-white/80">Tipo de documento</span>
-                        <select id="card-checkout__identificationType" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none">
+                        <select id="card-checkout__identificationType" className={CHECKOUT_INPUT_CLASS}>
                           <option value="" className="bg-[#111111]">Selecciona</option>
                         </select>
                       </label>
                       <label className="block">
                         <span className="text-sm font-bold text-white/80">Numero de documento</span>
-                        <input id="card-checkout__identificationNumber" className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/30" placeholder="123456789" />
+                        <input id="card-checkout__identificationNumber" className={CHECKOUT_INPUT_CLASS} placeholder="123456789" />
                       </label>
                       <input id="card-checkout__cardholderEmail" type="hidden" value={buyer.email} readOnly />
                       <button
