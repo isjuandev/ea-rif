@@ -2,9 +2,9 @@ const LOTTERY_RESULTS_API_BASE_URL = "https://api-resultadosloterias.com/api";
 const BOGOTA_TIME_ZONE = "America/Bogota";
 
 export const lotteryOptions = [
-  { name: "Loteria del Quindio", apiName: "QUINDIO", slug: "quindio", fallbackWeekday: 4 },
-  { name: "Loteria de Cundinamarca", apiName: "CUNDINAMARCA", slug: "cundinamarca", fallbackWeekday: 1 },
-  { name: "Loteria de Medellin", apiName: "MEDELLIN", slug: "medellin", fallbackWeekday: 5 },
+  { name: "Loteria del Quindio", apiName: "QUINDIO", slug: "quindio", fallbackWeekday: 4, drawHour: 22, drawMinute: 30 },
+  { name: "Loteria de Cundinamarca", apiName: "CUNDINAMARCA", slug: "cundinamarca", fallbackWeekday: 1, drawHour: 22, drawMinute: 30 },
+  { name: "Loteria de Medellin", apiName: "MEDELLIN", slug: "medellin", fallbackWeekday: 5, drawHour: 23, drawMinute: 0 },
 ] as const;
 
 export type LotterySlug = (typeof lotteryOptions)[number]["slug"];
@@ -120,17 +120,16 @@ export async function getLatestLotteryResult(slugOrName: string, from = new Date
 
 export async function getNextLotteryDrawDate(
   slugOrName: string,
-  config: { drawHour: number; drawMinute: number },
   from = new Date(),
 ) {
   const lottery = getLotteryOption(slugOrName);
   const latestResult = await getLatestLotteryResult(lottery.slug, from);
 
   if (!latestResult) {
-    return getNextFallbackDate(from, lottery.fallbackWeekday, config.drawHour, config.drawMinute);
+    return getNextFallbackDate(from, lottery.fallbackWeekday, lottery.drawHour, lottery.drawMinute);
   }
 
-  let candidate = getDateAtBogotaTime(latestResult.date, config.drawHour, config.drawMinute);
+  let candidate = getDateAtBogotaTime(latestResult.date, lottery.drawHour, lottery.drawMinute);
 
   do {
     candidate = addDays(candidate, 7);

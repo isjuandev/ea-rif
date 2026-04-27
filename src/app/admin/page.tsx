@@ -57,7 +57,7 @@ export default function AdminRifaSettingsPage() {
 
   function updateLottery(slug: string) {
     const lottery = getLotteryOption(slug);
-    setConfig({ ...config, lotterySlug: lottery.slug, lotteryName: lottery.name });
+    setConfig({ ...config, lotterySlug: lottery.slug, lotteryName: lottery.name, drawHour: lottery.drawHour, drawMinute: lottery.drawMinute });
   }
 
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -145,16 +145,10 @@ export default function AdminRifaSettingsPage() {
             <span className="text-sm font-bold text-white/76">Precio base por numero</span>
             <input type="number" min={0} value={config.ticketPrice} onChange={(event) => setConfig({ ...config, ticketPrice: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-sm font-bold text-white/76">Hora</span>
-              <input type="number" min={0} max={23} value={config.drawHour} onChange={(event) => setConfig({ ...config, drawHour: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
-            </label>
-            <label className="block">
-              <span className="text-sm font-bold text-white/76">Minuto</span>
-              <input type="number" min={0} max={59} value={config.drawMinute} onChange={(event) => setConfig({ ...config, drawMinute: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
-            </label>
-          </div>
+          <label className="block">
+            <span className="text-sm font-bold text-white/76">Hora del sorteo</span>
+            <input readOnly value={`${String(config.drawHour).padStart(2, "0")}:${String(config.drawMinute).padStart(2, "0")}`} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white/65 outline-none" />
+          </label>
         </section>
 
         <section className="py-4">

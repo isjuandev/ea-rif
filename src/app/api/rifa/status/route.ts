@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const supabase = getSupabaseAdmin();
   const { config: rifaConfig } = await getEditableRifaConfig();
-  const drawDate = await getNextLotteryDrawDate(rifaConfig.lotterySlug, rifaConfig).catch(() => null);
+  const drawDate = await getNextLotteryDrawDate(rifaConfig.lotterySlug).catch(() => null);
 
   if (!supabase) {
     return NextResponse.json({
