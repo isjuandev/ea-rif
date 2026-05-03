@@ -60,9 +60,9 @@ const NATURAL_DOC_TYPES = [
   { label: "Documento de Identificacion", value: "DI" },
 ];
 const COMPANY_DOC_TYPES = [{ label: "NIT", value: "NIT" }];
-const CARD_SECURE_FIELD_CLASS = "flex h-12 items-center rounded-[8px] border border-white/12 bg-black/30 text-white transition focus-within:border-lime-300/70";
+const CARD_SECURE_FIELD_CLASS = "flex h-12 items-center rounded-md border border-white/12 bg-black/30 text-foreground transition focus-within:border-lime-300/70";
 const CARD_SECURE_FIELD_INNER_CLASS = "min-w-0 flex-1 px-4";
-const CHECKOUT_INPUT_CLASS = "mt-2 h-12 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 text-white outline-none transition placeholder:text-white/30 focus:border-lime-300/70";
+const CHECKOUT_INPUT_CLASS = "mt-2 h-12 w-full rounded-md border border-white/12 bg-black/30 px-4 text-foreground outline-none transition placeholder:text-white/30 focus:border-transparent focus:ring-2 focus:ring-primary";
 
 const CARD_BRAND_LABELS: Record<CardBrand, string> = {
   visa: "Visa",
@@ -107,18 +107,18 @@ function CardBrandBadge({ brand }: { brand: CardBrand }) {
   }
 
   if (brand === "amex") {
-    return <span className="rounded-[4px] bg-[#2E77BC] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-white">AMEX</span>;
+    return <span className="rounded-[4px] bg-[#2E77BC] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-foreground">AMEX</span>;
   }
 
   if (brand === "diners") {
-    return <span className="rounded-[4px] bg-[#0079BE] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-white">DINERS</span>;
+    return <span className="rounded-[4px] bg-[#0079BE] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-foreground">DINERS</span>;
   }
 
   if (brand === "discover") {
-    return <span className="rounded-[4px] bg-[#F58220] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-black">DISC</span>;
+    return <span className="rounded-[4px] bg-[#F58220] px-2 py-1 text-[11px] font-black tracking-[0.04em] text-primary-foreground">DISC</span>;
   }
 
-  return <CreditCard className="size-5 text-black/45" />;
+  return <CreditCard className="size-5 text-primary-foreground/45" />;
 }
 
 const initialBuyer: CheckoutBuyer = {
@@ -586,9 +586,9 @@ export function CheckoutPaymentPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] px-4 py-6 text-white sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:py-8">
-        <aside className="self-start rounded-[8px] border border-white/12 bg-white/[0.045] p-5">
+        <aside className="self-start rounded-md border border-white/12 bg-white/[0.045] p-5">
           <Link href="/#paquetes" className="text-sm font-bold text-lime-300 transition hover:text-lime-200">
             Volver a paquetes
           </Link>
@@ -598,7 +598,7 @@ export function CheckoutPaymentPage() {
           </div>
 
           {(selectedPackage || isCustomPurchase) ? (
-            <div className="mt-6 rounded-[8px] border border-white/12 bg-black/25 p-4">
+            <div className="mt-6 rounded-md border border-white/12 bg-black/25 p-4">
               <p className="font-heading text-2xl font-bold">{resolvedTicketCount} Entradas</p>
               <p className="mt-1 text-sm text-white/60">
                 Elite Club
@@ -607,13 +607,13 @@ export function CheckoutPaymentPage() {
               {ticketCountError && <p className="mt-2 text-sm text-red-300">{ticketCountError}</p>}
             </div>
           ) : (
-            <p className="mt-6 rounded-[8px] border border-yellow-300/25 bg-yellow-300/10 p-4 text-sm text-yellow-50">
+            <p className="mt-6 rounded-md border border-yellow-300/25 bg-yellow-300/10 p-4 text-sm text-yellow-50">
               No encontramos el paquete seleccionado.
             </p>
           )}
         </aside>
 
-        <section className="min-w-0 rounded-[8px] border border-white/12 bg-white/[0.04] p-4 sm:p-5">
+        <section className="min-w-0 rounded-md border border-white/12 bg-white/[0.04] p-4 sm:p-5">
           {ticketNumbers.length === 0 && (
             <div className="grid gap-6">
               <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
@@ -621,7 +621,7 @@ export function CheckoutPaymentPage() {
                   <h2 className="font-heading text-2xl font-bold">Datos para el pago</h2>
                 </div>
                 {(formError || locationsError) && (
-                  <p className="sm:col-span-2 rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">
+                  <p className="sm:col-span-2 rounded-md border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">
                     {formError || locationsError}
                   </p>
                 )}
@@ -632,13 +632,13 @@ export function CheckoutPaymentPage() {
                     minLength={4}
                     value={buyer.name}
                     onChange={(event) => updateBuyer({ name: event.target.value })}
-                    className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                    className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
                     placeholder="Tu nombre"
                   />
                 </label>
                 <label className="block">
                   <span className="text-sm font-bold text-white/80">WhatsApp</span>
-                  <div className="phone-field mt-2 rounded-[8px] border border-white/12 bg-black/30 p-1">
+                  <div className="phone-field mt-2 rounded-md border border-white/12 bg-black/30 p-1">
                     <PhoneInput
                       defaultCountry={"co" as CountryIso2}
                       countries={defaultCountries}
@@ -659,7 +659,7 @@ export function CheckoutPaymentPage() {
                     required
                     value={buyer.email}
                     onChange={(event) => updateBuyer({ email: event.target.value })}
-                    className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                    className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
                     placeholder="correo@ejemplo.com"
                   />
                 </label>
@@ -670,7 +670,7 @@ export function CheckoutPaymentPage() {
                     disabled={loadingDepartments}
                     value={departmentId}
                     onChange={(event) => handleDepartmentChange(event.target.value)}
-                    className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition disabled:opacity-50"
+                    className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition disabled:opacity-50"
                   >
                     <option value="">{loadingDepartments ? "Cargando..." : "Selecciona"}</option>
                     {departments.map((department) => (
@@ -687,7 +687,7 @@ export function CheckoutPaymentPage() {
                     disabled={!departmentId || loadingCities}
                     value={cityId}
                     onChange={(event) => handleCityChange(event.target.value)}
-                    className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition disabled:opacity-50"
+                    className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition disabled:opacity-50"
                   >
                     <option value="">{loadingCities ? "Cargando..." : "Selecciona"}</option>
                     {cities.map((city) => (
@@ -704,13 +704,13 @@ export function CheckoutPaymentPage() {
                     maxLength={18}
                     value={buyer.streetName}
                     onChange={(event) => updateBuyer({ streetName: event.target.value.slice(0, 18) })}
-                    className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-white/30"
+                    className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
                     placeholder="Calle 10"
                   />
                 </label>
                 <button
                   disabled={(!selectedPackage && !isCustomPurchase) || !validBuyer}
-                  className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
+                  className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-md bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
                 >
                   <CreditCard className="size-5" />
                   Continuar a medios de pago
@@ -723,12 +723,12 @@ export function CheckoutPaymentPage() {
                     {paymentMethodMode === "card" ? <CreditCard className="size-5 text-lime-300" /> : <Banknote className="size-5 text-lime-300" />}
                     <p className="font-bold">Medio de pago</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 rounded-[8px] border border-white/12 bg-black/20 p-1">
+                  <div className="grid grid-cols-2 gap-2 rounded-md border border-white/12 bg-black/20 p-1">
                     <button
                       type="button"
                       onClick={() => setPaymentMethodMode("card")}
                       className={`flex items-center justify-center gap-2 rounded-[6px] px-3 py-3 text-sm font-extrabold uppercase transition ${
-                        paymentMethodMode === "card" ? "bg-lime-300 text-black" : "text-white/70 hover:bg-white/8"
+                        paymentMethodMode === "card" ? "bg-lime-300 text-primary-foreground" : "text-white/70 hover:bg-white/8"
                       }`}
                     >
                       <CreditCard className="size-4" />
@@ -738,19 +738,19 @@ export function CheckoutPaymentPage() {
                       type="button"
                       onClick={() => setPaymentMethodMode("pse")}
                       className={`flex items-center justify-center gap-2 rounded-[6px] px-3 py-3 text-sm font-extrabold uppercase transition ${
-                        paymentMethodMode === "pse" ? "bg-lime-300 text-black" : "text-white/70 hover:bg-white/8"
+                        paymentMethodMode === "pse" ? "bg-lime-300 text-primary-foreground" : "text-white/70 hover:bg-white/8"
                       }`}
                     >
                       <Banknote className="size-4" />
                       PSE
                     </button>
                   </div>
-                  {paymentError && <p className="rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{paymentError}</p>}
-                  {pendingMessage && <p className="rounded-[8px] border border-lime-300/25 bg-lime-300/10 p-3 text-sm text-lime-50">{pendingMessage}</p>}
+                  {paymentError && <p className="rounded-md border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{paymentError}</p>}
+                  {pendingMessage && <p className="rounded-md border border-lime-300/25 bg-lime-300/10 p-3 text-sm text-lime-50">{pendingMessage}</p>}
                   {paymentMethodMode === "card" && (
-                    <form id="card-checkout-form" className="grid gap-3 rounded-[8px] border border-white/12 bg-black/20 p-4 sm:grid-cols-2">
+                    <form id="card-checkout-form" className="grid gap-3 rounded-md border border-white/12 bg-black/20 p-4 sm:grid-cols-2">
                       {(cardFormError || !cardFormReady) && (
-                        <p className="sm:col-span-2 rounded-[8px] border border-white/12 bg-white/[0.04] p-3 text-sm text-white/70">
+                        <p className="sm:col-span-2 rounded-md border border-white/12 bg-white/[0.04] p-3 text-sm text-white/70">
                           {cardFormError || "Cargando formulario seguro de tarjeta..."}
                         </p>
                       )}
@@ -803,7 +803,7 @@ export function CheckoutPaymentPage() {
                       <input id="card-checkout__cardholderEmail" type="hidden" value={buyer.email} readOnly />
                       <button
                         disabled={!cardFormReady || processingPayment}
-                        className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
+                        className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-md bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
                       >
                         {processingPayment ? <Loader2 className="size-5 animate-spin" /> : <CreditCard className="size-5" />}
                         Pagar con tarjeta
@@ -811,7 +811,7 @@ export function CheckoutPaymentPage() {
                     </form>
                   )}
                   {paymentMethodMode === "pse" && (
-                    <form className="grid gap-3 rounded-[8px] border border-white/12 bg-black/20 p-4 sm:grid-cols-2" onSubmit={handlePseSubmit}>
+                    <form className="grid gap-3 rounded-md border border-white/12 bg-black/20 p-4 sm:grid-cols-2" onSubmit={handlePseSubmit}>
                     <label className="block">
                       <span className="text-sm font-bold text-white/80">Tipo de persona</span>
                       <select
@@ -824,7 +824,7 @@ export function CheckoutPaymentPage() {
                             identificationNumber: "",
                           });
                         }}
-                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none"
+                        className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none"
                       >
                         <option value="individual" className="bg-[#111111]">
                           Natural
@@ -841,7 +841,7 @@ export function CheckoutPaymentPage() {
                         disabled={loadingPseBanks || pseBanks.length === 0}
                         value={psePaymentForm.financialInstitution}
                         onChange={(event) => updatePsePaymentForm({ financialInstitution: event.target.value })}
-                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none disabled:opacity-50"
+                        className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none disabled:opacity-50"
                       >
                         <option value="">{loadingPseBanks ? "Cargando bancos..." : "Selecciona banco"}</option>
                         {pseBanks.map((bank) => (
@@ -856,7 +856,7 @@ export function CheckoutPaymentPage() {
                       <select
                         value={psePaymentForm.identificationType}
                         onChange={(event) => updatePsePaymentForm({ identificationType: event.target.value })}
-                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none"
+                        className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none"
                       >
                         {documentOptions.map((documentType) => (
                           <option key={documentType.value} value={documentType.value} className="bg-[#111111]">
@@ -879,13 +879,13 @@ export function CheckoutPaymentPage() {
                               : event.target.value.replace(/\D/g, "").slice(0, 15);
                           updatePsePaymentForm({ identificationNumber: value });
                         }}
-                        className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/30"
+                        className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none placeholder:text-white/30"
                         placeholder="123456789"
                       />
                     </label>
                     <button
                       disabled={!validPsePayment || processingPayment || loadingPseBanks}
-                      className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
+                      className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-md bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
                     >
                       {processingPayment ? <Loader2 className="size-5 animate-spin" /> : <Banknote className="size-5" />}
                       Pagar con PSE
@@ -911,7 +911,7 @@ export function CheckoutPaymentPage() {
                   </span>
                 ))}
               </div>
-              <Link href="/#paquetes" className="mt-7 inline-flex rounded-[8px] bg-lime-300 px-8 py-3 font-extrabold uppercase text-black">
+              <Link href="/#paquetes" className="mt-7 inline-flex rounded-md bg-lime-300 px-8 py-3 font-extrabold uppercase text-primary-foreground">
                 Volver
               </Link>
             </div>

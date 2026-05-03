@@ -1,51 +1,95 @@
 @import "tailwindcss";
+@config "../../tailwind.config.js";
 
 @theme {
   --font-heading: var(--font-syne);
   --font-sans: var(--font-dm-sans);
   --color-lime-300: #aaff00;
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-border: var(--color-border);
+  --color-muted: var(--color-muted);
+  --color-danger: var(--color-danger);
+  --color-warning: var(--color-warning);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-glow: var(--shadow-glow);
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  :root {
+    --color-primary: #aaff00;
+    --color-primary-hover: #d7ff62;
+    --color-primary-foreground: #050505;
+    --color-accent: #fbbf24;
+    --color-accent-foreground: #111111;
+    --color-background: #0a0a0a;
+    --color-foreground: #ffffff;
+    --color-surface: rgba(255, 255, 255, 0.045);
+    --color-surface-raised: rgba(255, 255, 255, 0.06);
+    --color-border: rgba(255, 255, 255, 0.12);
+    --color-muted: rgba(255, 255, 255, 0.62);
+    --color-danger: #fca5a5;
+    --color-warning: #fde68a;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.26);
+    --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.36);
+    --shadow-glow: 0 0 34px rgba(170, 255, 0, 0.24);
+  }
 
-html {
-  scroll-behavior: smooth;
-  background: #0a0a0a;
-  overflow-x: hidden;
-}
+  .dark {
+    --color-background: #0a0a0a;
+    --color-foreground: #ffffff;
+    --color-surface: rgba(255, 255, 255, 0.045);
+    --color-surface-raised: rgba(255, 255, 255, 0.06);
+    --color-border: rgba(255, 255, 255, 0.12);
+    --color-muted: rgba(255, 255, 255, 0.62);
+  }
 
-body {
-  margin: 0;
-  background: #0a0a0a;
-  color: #ffffff;
-  font-family: var(--font-dm-sans), system-ui, sans-serif;
-  overflow-x: hidden;
-}
+  *,
+  *::before,
+  *::after {
+    @apply box-border;
+  }
 
-button,
-a,
-input {
-  -webkit-tap-highlight-color: transparent;
-}
+  html {
+    @apply overflow-x-hidden scroll-smooth bg-background;
+  }
 
-button,
-a,
-input {
-  min-width: 0;
-}
+  body {
+    @apply m-0 overflow-x-hidden bg-background font-sans text-base leading-relaxed text-foreground;
+  }
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible {
-  outline: 2px solid #aaff00;
-  outline-offset: 3px;
-}
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    @apply min-w-0;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-::selection {
-  background: #aaff00;
-  color: #000000;
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
 }
 
 @keyframes fade-in {
@@ -75,59 +119,168 @@ input:focus-visible {
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 160ms ease-out;
+@layer components {
+  .animate-fade-in {
+    animation: fade-in 160ms ease-out;
+  }
+
+  .animate-accordion-down {
+    animation: accordion-down 220ms ease-out;
+  }
+
+  .animate-accordion-up {
+    animation: accordion-up 180ms ease-out;
+  }
+
+  .card {
+    @apply flex flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition-shadow duration-200;
+  }
+
+  .card--elevated {
+    @apply shadow-md transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
+  .card--flat {
+    @apply shadow-none;
+  }
+
+  .card--interactive {
+    @apply cursor-pointer hover:border-primary hover:shadow-md;
+  }
+
+  .card__body {
+    @apply flex flex-1 flex-col p-5;
+  }
+
+  .card__footer {
+    @apply mt-auto px-5 pb-5;
+  }
+
+  .card__image {
+    @apply aspect-video w-full object-cover;
+  }
+
+  .panel {
+    @apply rounded-xl border border-border bg-surface;
+  }
+
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-eyebrow text-primary;
+  }
+
+  .text-heading-1 {
+    @apply font-heading text-3xl font-extrabold uppercase leading-none tracking-normal text-foreground sm:text-5xl lg:text-7xl;
+  }
+
+  .text-heading-2 {
+    @apply font-heading text-2xl font-bold tracking-normal text-foreground sm:text-3xl;
+  }
+
+  .text-heading-3 {
+    @apply font-heading text-xl font-semibold text-foreground;
+  }
+
+  .text-body {
+    @apply text-base leading-relaxed text-muted;
+  }
+
+  .text-caption {
+    @apply text-sm text-muted;
+  }
+
+  .btn {
+    @apply inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md px-5 py-2 text-sm font-extrabold uppercase transition duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-sm {
+    @apply h-9 px-3 text-xs;
+  }
+
+  .btn-lg {
+    @apply h-12 px-7 text-base;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover;
+  }
+
+  .btn-secondary {
+    @apply border border-border text-foreground hover:border-primary hover:text-primary;
+  }
+
+  .btn-danger {
+    @apply border border-border text-foreground hover:border-danger hover:text-danger;
+  }
+
+  .btn-icon {
+    @apply grid size-10 place-items-center rounded-md border border-border text-muted transition duration-200 hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .input-field {
+    @apply h-10 w-full rounded-md border border-border bg-surface px-3 text-base text-foreground outline-none transition duration-200 placeholder:text-white/35 focus:border-transparent focus:ring-2 focus:ring-primary;
+  }
+
+  .input-field--dark {
+    @apply bg-black/30;
+  }
+
+  .field-label {
+    @apply text-sm font-medium text-white/75;
+  }
+
+  .field-label--compact {
+    @apply text-xs font-bold uppercase tracking-[0.12em] text-white/50;
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm;
+  }
+
+  .modal-panel {
+    @apply fixed left-1/2 top-1/2 z-[310] -translate-x-1/2 -translate-y-1/2;
+  }
+
+  .phone-field .react-international-phone-country-selector-button {
+    @apply h-10 rounded-l-md border-0 border-r border-border bg-transparent px-2.5;
+  }
+
+  .phone-field .react-international-phone-input {
+    @apply h-10 border-0 bg-transparent text-sm text-foreground;
+  }
+
+  .phone-field .react-international-phone-input::placeholder {
+    @apply text-white/30;
+  }
+
+  .phone-field .react-international-phone-country-selector-dropdown {
+    @apply rounded-md border border-border bg-[#0f0f0f] shadow-lg;
+  }
+
+  .phone-field .react-international-phone-country-selector-dropdown__list-item {
+    @apply bg-transparent text-white/85;
+  }
+
+  .phone-field .react-international-phone-country-selector-dropdown__list-item:hover,
+  .phone-field .react-international-phone-country-selector-dropdown__list-item--focused {
+    @apply bg-primary/15 text-foreground;
+  }
+
+  .phone-field .react-international-phone-country-selector-dropdown__list-item--selected {
+    @apply bg-primary/25 text-primary;
+  }
 }
 
-.animate-accordion-down {
-  animation: accordion-down 220ms ease-out;
-}
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 
-.animate-accordion-up {
-  animation: accordion-up 180ms ease-out;
-}
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 
-/* react-international-phone customization aligned with raffle UI */
-.phone-field .react-international-phone-country-selector-button {
-  height: 40px;
-  border: 0;
-  background: transparent;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px 0 0 6px;
-  padding-inline: 10px;
-}
-
-.phone-field .react-international-phone-input {
-  height: 40px;
-  border: 0;
-  background: transparent;
-  color: #fff;
-  font-size: 14px;
-}
-
-.phone-field .react-international-phone-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.phone-field .react-international-phone-country-selector-dropdown {
-  background: #0f0f0f;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-}
-
-.phone-field .react-international-phone-country-selector-dropdown__list-item {
-  color: rgba(255, 255, 255, 0.85);
-  background: transparent;
-}
-
-.phone-field .react-international-phone-country-selector-dropdown__list-item:hover,
-.phone-field .react-international-phone-country-selector-dropdown__list-item--focused {
-  background: rgba(170, 255, 0, 0.14);
-  color: #fff;
-}
-
-.phone-field .react-international-phone-country-selector-dropdown__list-item--selected {
-  background: rgba(170, 255, 0, 0.24);
-  color: #aaff00;
+  .text-balance {
+    text-wrap: balance;
+  }
 }

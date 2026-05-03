@@ -55,21 +55,21 @@ export function CompactInfoSection() {
   }, []);
 
   return (
-    <section className="border-t border-white/8 bg-[#070707] px-4 py-10 sm:px-6 lg:px-8">
+    <section className="border-t border-white/8 bg-background px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
         <div className="min-w-0">
           <div className="mb-4">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Entradas incluidas</p>
-            <h2 className="mt-2 max-w-2xl font-heading text-3xl font-bold leading-tight text-white sm:text-4xl">
+            <h2 className="mt-2 max-w-2xl font-heading text-3xl font-bold leading-tight text-foreground sm:text-4xl">
               Previews listos para desbloquear
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {entradas.map((gradient, index) => (
-              <div key={gradient} className="aspect-[4/3] overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.04] p-2">
+              <div key={gradient} className="aspect-[4/3] overflow-hidden rounded-md border border-white/12 bg-white/[0.04] p-2">
                 <div className={`relative h-full rounded-[6px] bg-gradient-to-br ${gradient}`}>
                   <div className="absolute inset-0 bg-[línear-gradient(135deg,rgba(0,0,0,0.04),rgba(0,0,0,0.38)),repeating-línear-gradient(90deg,rgba(255,255,255,0.12)_0_1px,transparent_1px_24px)]" />
-                  <div className="absolute bottom-2 left-2 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
+                  <div className="absolute bottom-2 left-2 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-foreground backdrop-blur">
                     Drop {String(index + 1).padStart(2, "0")}
                   </div>
                 </div>
@@ -79,10 +79,10 @@ export function CompactInfoSection() {
         </div>
 
         <aside className="grid gap-4">
-          <div className="rounded-[8px] border border-white/12 bg-white/[0.035]">
+          <div className="rounded-md border border-white/12 bg-white/[0.035]">
             <button
               onClick={() => setWinnersOpen(!winnersOpen)}
-              className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left font-heading text-xl font-bold text-white"
+              className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left font-heading text-xl font-bold text-foreground"
             >
               Numeros ganadores
               <ChevronDown className={`size-5 transition ${winnersOpen ? "rotate-180" : ""}`} />
@@ -92,7 +92,7 @@ export function CompactInfoSection() {
                 {winners.length === 0 && <p className="text-sm leading-6 text-white/55">Aun no hay ganadores registrados.</p>}
                 <div className="grid gap-3">
                   {winners.slice(0, 4).map((winner) => (
-                    <div key={`${winner.draw_date}-${winner.major_number}`} className="rounded-[8px] border border-white/8 bg-black/20 p-3">
+                    <div key={`${winner.draw_date}-${winner.major_number}`} className="rounded-md border border-white/8 bg-black/20 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{winner.draw_date}</p>
                         <p className="font-heading text-2xl font-bold text-lime-300">{winner.major_number ?? "Pendiente"}</p>
@@ -104,8 +104,8 @@ export function CompactInfoSection() {
             )}
           </div>
 
-          <div className="rounded-[8px] border border-white/12 bg-white/[0.035] px-4 py-3">
-            <h2 className="font-heading text-2xl font-bold text-white">FAQ</h2>
+          <div className="rounded-md border border-white/12 bg-white/[0.035] px-4 py-3">
+            <h2 className="font-heading text-2xl font-bold text-foreground">FAQ</h2>
             <Accordion type="single" collapsible className="mt-2 divide-y divide-white/10">
               {questions.map((item, index) => (
                 <AccordionItem key={item.q} value={`item-${index}`}>

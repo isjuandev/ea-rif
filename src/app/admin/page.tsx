@@ -119,7 +119,7 @@ export default function AdminRifaSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-6 text-white sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <form onSubmit={save} className="mx-auto max-w-7xl">
         <header className="flex flex-col gap-5 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -133,14 +133,14 @@ export default function AdminRifaSettingsPage() {
             <button
               type="button"
               onClick={logout}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] border border-white/14 px-5 py-3 font-extrabold uppercase text-white transition hover:border-red-200 hover:text-red-100"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/14 px-5 py-3 font-extrabold uppercase text-foreground transition hover:border-red-200 hover:text-red-100"
             >
               <LogOut className="size-5" />
               Salir
             </button>
             <button
               disabled={saving}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-lime-300 px-5 py-3 font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="size-5" />
               {saving ? "Guardando" : "Guardar cambios"}
@@ -151,17 +151,17 @@ export default function AdminRifaSettingsPage() {
         <section className="grid gap-4 py-6 lg:grid-cols-3">
           <label className="block">
             <span className="text-sm font-bold text-white/76">Nombre de la rifa</span>
-            <input value={config.eventName} onChange={(event) => setConfig({ ...config, eventName: event.target.value })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <input value={config.eventName} onChange={(event) => setConfig({ ...config, eventName: event.target.value })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Vendedor / marca</span>
-            <input value={config.sellerName} onChange={(event) => setConfig({ ...config, sellerName: event.target.value })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <input value={config.sellerName} onChange={(event) => setConfig({ ...config, sellerName: event.target.value })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Lotería</span>
-            <select value={config.lotterySlug} onChange={(event) => updateLottery(event.target.value)} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300">
+            <select value={config.lotterySlug} onChange={(event) => updateLottery(event.target.value)} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary">
               {lotteryOptions.map((lottery) => (
-                <option key={lottery.slug} value={lottery.slug} className="bg-[#0a0a0a] text-white">
+                <option key={lottery.slug} value={lottery.slug} className="bg-background text-foreground">
                   {lottery.name}
                 </option>
               ))}
@@ -169,22 +169,22 @@ export default function AdminRifaSettingsPage() {
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Total números</span>
-            <input type="number" min={1} value={config.totalTickets} onChange={(event) => setConfig({ ...config, totalTickets: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <input type="number" min={1} value={config.totalTickets} onChange={(event) => setConfig({ ...config, totalTickets: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Precio base por número</span>
-            <input type="number" min={0} value={config.ticketPrice} onChange={(event) => setConfig({ ...config, ticketPrice: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <input type="number" min={0} value={config.ticketPrice} onChange={(event) => setConfig({ ...config, ticketPrice: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Hora del sorteo</span>
-            <input readOnly value={`${String(config.drawHour).padStart(2, "0")}:${String(config.drawMinute).padStart(2, "0")}`} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white/65 outline-none" />
+            <input readOnly value={`${String(config.drawHour).padStart(2, "0")}:${String(config.drawMinute).padStart(2, "0")}`} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-white/65 outline-none" />
           </label>
           <label className="block lg:col-span-2">
             <span className="text-sm font-bold text-white/76">Numeros bendecidos (separados por coma)</span>
             <input
               value={blessedNumbersInput}
               onChange={(event) => setBlessedNumbersInput(event.target.value)}
-              className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300"
+              className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
               placeholder="0001,1234,8888"
             />
           </label>
@@ -195,32 +195,32 @@ export default function AdminRifaSettingsPage() {
               min={0}
               value={blessedPrizeValueInput}
               onChange={(event) => setBlessedPrizeValueInput(event.target.value.replace(/\D/g, ""))}
-              className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300"
+              className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
               placeholder="250000"
             />
           </label>
           <label className="block lg:col-span-1">
             <span className="text-sm font-bold text-white/76">Valor número invertido (COP)</span>
-            <input type="number" min={0} value={config.invertedWinnerPrizeCop} onChange={(event) => setConfig({ ...config, invertedWinnerPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <input type="number" min={0} value={config.invertedWinnerPrizeCop} onChange={(event) => setConfig({ ...config, invertedWinnerPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
           <label className="block lg:col-span-1">
             <span className="text-sm font-bold text-white/76">Umbral condición compra</span>
-            <input type="number" min={1} value={config.bulkPrizeThreshold} onChange={(event) => setConfig({ ...config, bulkPrizeThreshold: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <input type="number" min={1} value={config.bulkPrizeThreshold} onChange={(event) => setConfig({ ...config, bulkPrizeThreshold: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
           <label className="block lg:col-span-1">
             <span className="text-sm font-bold text-white/76">Valor condición compra (COP)</span>
-            <input type="number" min={0} value={config.bulkPrizeCop} onChange={(event) => setConfig({ ...config, bulkPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+            <input type="number" min={0} value={config.bulkPrizeCop} onChange={(event) => setConfig({ ...config, bulkPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
         </section>
 
         <section className="grid gap-4 pb-4 lg:grid-cols-2">
-          <article className="rounded-[8px] border border-white/12 bg-white/[0.045] p-4">
+          <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
             <p className="text-sm font-bold text-white/80">Se ha vendido el {soldPercentage}%</p>
             <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full bg-lime-300" style={{ width: `${Math.min(soldPercentage, 100)}%` }} />
             </div>
           </article>
-          <article className="rounded-[8px] border border-white/12 bg-white/[0.045] p-4">
+          <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
             <p className="text-sm font-bold text-white/80">Se han vendido {soldCount} Numeros</p>
             <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full bg-yellow-300" style={{ width: `${Math.min(config.totalTickets > 0 ? Math.round((soldCount / config.totalTickets) * 100) : 0, 100)}%` }} />
@@ -233,7 +233,7 @@ export default function AdminRifaSettingsPage() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Ventas</p>
             <h2 className="mt-1 font-heading text-2xl font-bold">Numeros vendidos</h2>
           </div>
-          <div className="overflow-x-auto rounded-[8px] border border-white/12 bg-white/[0.03]">
+          <div className="overflow-x-auto rounded-md border border-white/12 bg-white/[0.03]">
             <table className="min-w-full text-sm">
               <thead className="bg-white/5 text-white/70">
                 <tr>
@@ -263,7 +263,7 @@ export default function AdminRifaSettingsPage() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Paquetes</p>
               <h2 className="mt-2 font-heading text-3xl font-bold">Precios y Entradas</h2>
             </div>
-            <button type="button" onClick={() => setConfig({ ...config, packages: [...config.packages, emptyPackage(config.packages.length)] })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[8px] border border-white/14 px-4 py-2 font-bold text-white transition hover:border-lime-300 hover:text-lime-300">
+            <button type="button" onClick={() => setConfig({ ...config, packages: [...config.packages, emptyPackage(config.packages.length)] })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-white/14 px-4 py-2 font-bold text-foreground transition hover:border-lime-300 hover:text-lime-300">
               <Plus className="size-5" />
               Agregar paquete
             </button>
@@ -271,17 +271,17 @@ export default function AdminRifaSettingsPage() {
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {config.packages.map((pack, index) => (
-              <article key={`${pack.id}-${index}`} className="rounded-[8px] border border-white/12 bg-white/[0.045] p-4 shadow-xl shadow-black/20">
+              <article key={`${pack.id}-${index}`} className="rounded-md border border-white/12 bg-white/[0.045] p-4 shadow-xl shadow-black/20">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <p className="font-heading text-2xl font-bold text-lime-300">{formatCOP(pack.price || 0)}</p>
                     <p className="mt-1 text-sm text-white/55">{pack.rifas} números</p>
                   </div>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => markFeatured(index)} className={`grid size-10 place-items-center rounded-[8px] border transition ${pack.featured ? "border-lime-300 bg-lime-300 text-black" : "border-white/12 text-white/65 hover:text-lime-300"}`} title="Marcar popular">
+                    <button type="button" onClick={() => markFeatured(index)} className={`grid size-10 place-items-center rounded-md border transition ${pack.featured ? "border-lime-300 bg-lime-300 text-primary-foreground" : "border-white/12 text-white/65 hover:text-lime-300"}`} title="Marcar popular">
                       <Star className="size-5" />
                     </button>
-                    <button type="button" onClick={() => removePackage(index)} className="grid size-10 place-items-center rounded-[8px] border border-white/12 text-white/65 transition hover:border-red-300 hover:text-red-200" title="Eliminar">
+                    <button type="button" onClick={() => removePackage(index)} className="grid size-10 place-items-center rounded-md border border-white/12 text-white/65 transition hover:border-red-300 hover:text-red-200" title="Eliminar">
                       <Trash2 className="size-5" />
                     </button>
                   </div>
@@ -289,24 +289,24 @@ export default function AdminRifaSettingsPage() {
                 <div className="space-y-3">
                   <label className="block">
                     <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">ID</span>
-                    <input value={pack.id} onChange={(event) => updatePackage(index, { id: event.target.value })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
+                    <input value={pack.id} onChange={(event) => updatePackage(index, { id: event.target.value })} className="mt-1 w-full rounded-md border border-white/12 bg-black/30 px-3 py-2 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
                   </label>
                   <label className="block">
                     <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Nombre</span>
-                    <input value={pack.name} onChange={(event) => updatePackage(index, { name: event.target.value })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
+                    <input value={pack.name} onChange={(event) => updatePackage(index, { name: event.target.value })} className="mt-1 w-full rounded-md border border-white/12 bg-black/30 px-3 py-2 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Entradas</span>
-                      <input type="number" min={1} value={pack.entradas} onChange={(event) => updatePackage(index, { entradas: Number(event.target.value) })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
+                      <input type="number" min={1} value={pack.entradas} onChange={(event) => updatePackage(index, { entradas: Number(event.target.value) })} className="mt-1 w-full rounded-md border border-white/12 bg-black/30 px-3 py-2 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
                     </label>
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Rifas</span>
-                      <input type="number" min={1} value={pack.rifas} onChange={(event) => updatePackage(index, { rifas: Number(event.target.value) })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
+                      <input type="number" min={1} value={pack.rifas} onChange={(event) => updatePackage(index, { rifas: Number(event.target.value) })} className="mt-1 w-full rounded-md border border-white/12 bg-black/30 px-3 py-2 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
                     </label>
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Precio</span>
-                      <input type="number" min={0} value={pack.price} onChange={(event) => updatePackage(index, { price: Number(event.target.value) })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
+                      <input type="number" min={0} value={pack.price} onChange={(event) => updatePackage(index, { price: Number(event.target.value) })} className="mt-1 w-full rounded-md border border-white/12 bg-black/30 px-3 py-2 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
                     </label>
                   </div>
                 </div>

@@ -35,9 +35,9 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[#0a0a0a] px-4 text-white">
-      <form onSubmit={login} className="w-full max-w-sm rounded-[8px] border border-white/12 bg-white/[0.045] p-5 shadow-2xl shadow-black/30">
-        <div className="mb-5 grid size-12 place-items-center rounded-[8px] bg-lime-300 text-black">
+    <main className="grid min-h-screen place-items-center bg-background px-4 text-foreground">
+      <form onSubmit={login} className="w-full max-w-sm rounded-md border border-white/12 bg-white/[0.045] p-5 shadow-2xl shadow-black/30">
+        <div className="mb-5 grid size-12 place-items-center rounded-md bg-lime-300 text-primary-foreground">
           <LockKeyhole className="size-6" />
         </div>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Admin</p>
@@ -49,7 +49,7 @@ export default function AdminLoginPage() {
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="username"
-            className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none focus:border-lime-300"
+            className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
           />
         </label>
 
@@ -60,13 +60,13 @@ export default function AdminLoginPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             autoComplete="current-password"
-            className="mt-2 w-full rounded-[8px] border border-white/12 bg-black/30 px-4 py-3 text-white outline-none focus:border-lime-300"
+            className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
           />
         </label>
 
-        {error && <p className="mt-4 rounded-[8px] border border-red-300/25 bg-red-500/10 px-3 py-2 text-sm text-red-100">{error}</p>}
+        {error && <p className="mt-4 rounded-md border border-red-300/25 bg-red-500/10 px-3 py-2 text-sm text-red-100">{error}</p>}
 
-        <button disabled={loading} className="mt-5 w-full rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
+        <button disabled={loading} className="mt-5 w-full rounded-md bg-lime-300 px-5 py-3 font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
           {loading ? "Entrando" : "Entrar"}
         </button>
       </form>

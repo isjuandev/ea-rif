@@ -9,7 +9,7 @@ export function Footer() {
     <footer className="border-t border-white/10 px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-heading text-2xl font-bold text-white">{rifaConfig.sellerName}</p>
+          <p className="font-heading text-2xl font-bold text-foreground">{rifaConfig.sellerName}</p>
           <p className="mt-2 max-w-xl text-xs leading-5 text-white/45">
             Compra tus entradas digitales. Entrega inmediata.
           </p>

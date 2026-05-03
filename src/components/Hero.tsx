@@ -33,7 +33,7 @@ export function Hero() {
             <CalendarDays className="size-4" />
             <span className="truncate">{drawDate}</span>
           </div>
-          <h1 className="font-heading text-[clamp(2.35rem,12vw,4rem)] font-extrabold uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
+          <h1 className="font-heading text-[clamp(2.35rem,12vw,4rem)] font-extrabold uppercase leading-[0.92] tracking-normal text-foreground sm:text-7xl lg:text-8xl">
             {rifaConfig.eventName}
             <span className="block text-lime-300">7 De Mayo</span>
           </h1>
@@ -46,7 +46,7 @@ export function Hero() {
           <CountdownTimer drawDate={countdownDate} />
           <a
             href="#paquetes"
-            className="group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-7 py-4 text-base font-extrabold uppercase text-black shadow-[0_0_34px_rgba(170,255,0,0.34)] transition hover:-translate-y-0.5 hover:shadow-[0_0_50px_rgba(170,255,0,0.55)] sm:w-auto"
+            className="group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-md bg-lime-300 px-7 py-4 text-base font-extrabold uppercase text-primary-foreground shadow-glow transition hover:-translate-y-0.5 hover:shadow-glow sm:w-auto"
           >
             Comprar ahora
             <ArrowDown className="size-5 transition group-hover:translate-y-1" />

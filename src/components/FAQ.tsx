@@ -27,7 +27,7 @@ export function FAQ() {
   return (
     <section className="px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
-        <h2 className="font-heading text-4xl font-bold text-white sm:text-5xl">FAQ</h2>
+        <h2 className="font-heading text-4xl font-bold text-foreground sm:text-5xl">FAQ</h2>
         <Accordion type="single" collapsible className="mt-6 divide-y divide-white/10 border-y border-white/10">
           {questions.map((item, index) => (
             <AccordionItem key={item.q} value={`item-${index}`}>

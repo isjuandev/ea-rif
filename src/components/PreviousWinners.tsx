@@ -24,8 +24,8 @@ export function PreviousWinners() {
 
   return (
     <section className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl rounded-[8px] border border-white/12 bg-white/[0.035]">
-        <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left font-heading text-xl font-bold text-white">
+      <div className="mx-auto max-w-3xl rounded-md border border-white/12 bg-white/[0.035]">
+        <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left font-heading text-xl font-bold text-foreground">
           Numeros ganadores anteriores
           <ChevronDown className={`size-5 transition ${open ? "rotate-180" : ""}`} />
         </button>

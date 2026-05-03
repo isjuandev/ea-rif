@@ -77,13 +77,13 @@ export function PaymentStatusClient({
   const pending = !approved && !declined;
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-6 text-white sm:px-5 sm:py-8">
+    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-5 sm:py-8">
       <section className="mx-auto flex min-h-[calc(100svh-3rem)] w-full max-w-2xl flex-col justify-center">
-        <Link href="/" className="mb-8 text-sm font-bold text-white/55 transition hover:text-white">
+        <Link href="/" className="mb-8 text-sm font-bold text-white/55 transition hover:text-foreground">
           Volver a la rifa
         </Link>
 
-        <div className="rounded-[8px] border border-white/12 bg-white/[0.04] p-5 sm:p-8">
+        <div className="rounded-md border border-white/12 bg-white/[0.04] p-5 sm:p-8">
           {!paymentId ? (
             <>
               <AlertTriangle className="size-12 text-yellow-300" />
@@ -110,7 +110,7 @@ export function PaymentStatusClient({
                     : "Estamos esperando la confirmacion de Mercado Pago. Esta página se actualiza automáticamente."}
               </p>
 
-              <dl className="mt-6 grid gap-3 rounded-[8px] border border-white/10 bg-black/25 p-4 text-sm">
+              <dl className="mt-6 grid gap-3 rounded-md border border-white/10 bg-black/25 p-4 text-sm">
                 <div className="grid gap-1 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-4">
                   <dt className="text-white/45">ID de pago</dt>
                   <dd className="break-all font-mono text-white/80 sm:text-right">{status?.paymentId || paymentId}</dd>
@@ -139,18 +139,18 @@ export function PaymentStatusClient({
                 </div>
               )}
 
-              {error && <p className="mt-5 rounded-[8px] border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{error}</p>}
+              {error && <p className="mt-5 rounded-md border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100">{error}</p>}
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={refresh}
                   disabled={loading}
-                  className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-lime-300 px-5 py-3 font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-lime-300 px-5 py-3 font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? <Loader2 className="size-5 animate-spin" /> : <RefreshCw className="size-5" />}
                   Actualizar
                 </button>
-                <Link href="/" className="inline-flex items-center justify-center rounded-[8px] border border-white/14 px-5 py-3 font-extrabold uppercase text-white transition hover:bg-white/8">
+                <Link href="/" className="inline-flex items-center justify-center rounded-md border border-white/14 px-5 py-3 font-extrabold uppercase text-foreground transition hover:bg-white/8">
                   Ir al inicio
                 </Link>
               </div>
