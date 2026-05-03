@@ -1,11 +1,13 @@
 import { linkRifaPurchaseToPayment, logMercadoPagoEvent } from "@/lib/payment-tracking";
-import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { fulfillTicketPurchase } from "@/lib/tickets";
 
 export async function fulfillApprovedMercadoPagoPayment(payment: any, source: "payment_api" | "webhook" | "sync") {
   const mpPaymentId = String(payment.id);
   const metadata = payment.metadata ?? {};
   const packageId = metadata.package_id || metadata.packageId;
+  const packageName = metadata.package_name || metadata.packageName;
+  const metadataTicketCount = Number(metadata.ticket_count ?? metadata.ticketCount);
+  const metadataPackagePrice = Number(metadata.package_price ?? metadata.packagePrice);
   const buyerName = metadata.buyer_name || metadata.buyerName;
   const buyerWhatsapp = metadata.buyer_whatsapp || metadata.buyerWhatsapp;
   const buyerEmail = metadata.buyer_email || metadata.buyerEmail || payment.payer?.email;
@@ -23,11 +25,12 @@ export async function fulfillApprovedMercadoPagoPayment(payment: any, source: "p
     throw new Error("El pago aprobado no trae metadata suficiente.");
   }
 
-  const { config: rifaConfig } = await getEditableRifaConfig();
-  const selectedPackage = rifaConfig.packages.find((pack) => pack.id === packageId);
   const paidAmount = Number(payment.transaction_amount);
+  const expectedAmount = Number.isFinite(metadataPackagePrice) && metadataPackagePrice > 0 ? metadataPackagePrice : null;
+  const expectedTicketCount = Number.isFinite(metadataTicketCount) ? metadataTicketCount : null;
+  const hasValidTicketCount = expectedTicketCount !== null && Number.isInteger(expectedTicketCount) && expectedTicketCount >= 5 && expectedTicketCount <= 500;
 
-  if (!selectedPackage || paidAmount !== selectedPackage.price) {
+  if (expectedAmount === null || paidAmount !== expectedAmount || !hasValidTicketCount) {
     await logMercadoPagoEvent({
       mpPaymentId,
       source,
@@ -38,7 +41,9 @@ export async function fulfillApprovedMercadoPagoPayment(payment: any, source: "p
       payload: {
         packageId,
         paidAmount,
-        expectedAmount: selectedPackage?.price ?? null,
+        expectedAmount,
+        expectedTicketCount,
+        metadata,
       },
     });
     throw new Error("El pago aprobado no coincide con el paquete comprado.");
@@ -46,6 +51,9 @@ export async function fulfillApprovedMercadoPagoPayment(payment: any, source: "p
 
   const result = await fulfillTicketPurchase({
     packageId,
+    packageName: typeof packageName === "string" && packageName.trim() ? packageName.trim() : undefined,
+    ticketCount: expectedTicketCount,
+    amountCop: expectedAmount,
     buyerName,
     buyerWhatsapp,
     buyerEmail,

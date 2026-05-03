@@ -12,6 +12,7 @@ const MERCADO_PAGO_MIN_CARD_AMOUNT = 1000;
 
 type MercadoPagoPaymentPayload = {
   packageId: string;
+  ticketCount?: number;
   buyerName: string;
   buyerWhatsapp: string;
   buyerEmail: string;
@@ -261,7 +262,9 @@ function getPseAddress(address: MercadoPagoPaymentPayload["buyerAddress"]) {
 }
 
 function getPsePhone(whatsapp: string) {
-  const localNumber = normalizeWhatsApp(whatsapp).replace(/^57/, "").replace(/\D/g, "").slice(0, 10);
+  const normalized = normalizeWhatsApp(whatsapp);
+  const digits = normalized.replace(/\D/g, "");
+  const localNumber = digits.startsWith("57") ? digits.slice(2, 12) : digits.slice(-10);
   return {
     area_code: localNumber.slice(0, 3),
     number: localNumber.slice(3, 10),
@@ -278,20 +281,25 @@ export async function POST(request: Request) {
 
     const payload = (await request.json()) as MercadoPagoPaymentPayload;
     const { config: rifaConfig } = await getEditableRifaConfig();
-    const selectedPackage = rifaConfig.packages.find((pack) => pack.id === payload.packageId);
+    const selectedPackage = rifaConfig.packages.find((pack) => pack.id === payload.packageId) ?? null;
+    const requestedTicketCount = Number(payload.ticketCount ?? selectedPackage?.rifas ?? NaN);
+    const isCustomPurchase = payload.packageId === "custom" || !selectedPackage;
 
-    if (!selectedPackage) {
-      return NextResponse.json({ error: "Paquete invalido." }, { status: 400 });
+    if (!Number.isInteger(requestedTicketCount) || requestedTicketCount < 5 || requestedTicketCount > 500) {
+      return NextResponse.json({ error: "La cantidad debe estar entre 5 y 500 entradas." }, { status: 400 });
     }
 
+    const expectedAmount = isCustomPurchase ? requestedTicketCount * rifaConfig.ticketPrice : selectedPackage!.price;
+    const packageName = isCustomPurchase ? `Compra personalizada (${requestedTicketCount} entradas)` : selectedPackage!.name;
+
     try {
-      await assertPackageAvailability(selectedPackage.rifas);
+      await assertPackageAvailability(requestedTicketCount);
     } catch (error: any) {
       return NextResponse.json({ error: error?.message || "No hay suficientes numeros disponibles para este paquete." }, { status: 409 });
     }
 
     const normalizedBuyerWhatsapp = normalizeWhatsApp(payload.buyerWhatsapp);
-    const localBuyerWhatsapp = normalizedBuyerWhatsapp.startsWith("57") ? normalizedBuyerWhatsapp.slice(2) : normalizedBuyerWhatsapp;
+    const localBuyerWhatsapp = normalizedBuyerWhatsapp.replace(/\D/g, "");
 
     if (
       !payload.formData ||
@@ -301,7 +309,7 @@ export async function POST(request: Request) {
     ) {
       return validationError(
         "Datos del comprador incompletos.",
-        "Verifica que el nombre tenga al menos 4 letras, el WhatsApp tenga 10 digitos colombianos y el correo sea valido.",
+        "Verifica que el nombre tenga al menos 4 letras, el WhatsApp sea valido con indicativo internacional y el correo sea valido.",
       );
     }
 
@@ -315,13 +323,13 @@ export async function POST(request: Request) {
       return validationError(error?.message || "Datos del comprador incompletos.", "Revisa los datos del comprador.");
     }
 
-    const amount = Number(payload.formData.transaction_amount ?? selectedPackage.price);
+    const amount = Number(payload.formData.transaction_amount ?? expectedAmount);
 
-    if (amount !== selectedPackage.price) {
+    if (amount !== expectedAmount) {
       return NextResponse.json({ error: "El valor del pago no coincide con el paquete." }, { status: 400 });
     }
 
-    if (selectedPackage.price < MERCADO_PAGO_MIN_CARD_AMOUNT) {
+    if (expectedAmount < MERCADO_PAGO_MIN_CARD_AMOUNT) {
       return NextResponse.json(
         {
           error: `Mercado Pago solo esta disponible desde ${MERCADO_PAGO_MIN_CARD_AMOUNT} COP.`,
@@ -382,7 +390,7 @@ export async function POST(request: Request) {
         );
       }
       if (!hasPhone) {
-        return validationError("Faltan datos para pagar por PSE.", "Ingresa un WhatsApp colombiano valido de 10 digitos.");
+        return validationError("Faltan datos para pagar por PSE.", "Ingresa un WhatsApp valido para contacto.");
       }
     }
 
@@ -416,13 +424,16 @@ export async function POST(request: Request) {
     const payerEntityType = normalizeEntityType(entityTypeRaw);
     const paymentBody = {
       payment_method_id: payload.formData.payment_method_id,
-      transaction_amount: selectedPackage.price,
-      description: `${rifaConfig.eventName} - ${selectedPackage.name}`,
-      external_reference: `${selectedPackage.id}:${randomUUID()}`,
+      transaction_amount: expectedAmount,
+      description: `${rifaConfig.eventName} - ${packageName}`,
+      external_reference: `${payload.packageId || "custom"}:${randomUUID()}`,
       notification_url: `${publicBaseUrl}/api/mercadopago/webhook`,
       callback_url: `${publicBaseUrl}/pago/estado`,
       metadata: {
-        package_id: selectedPackage.id,
+        package_id: selectedPackage?.id || "custom",
+        package_name: packageName,
+        package_price: expectedAmount,
+        ticket_count: requestedTicketCount,
         buyer_name: payload.buyerName,
         buyer_whatsapp: normalizeWhatsApp(payload.buyerWhatsapp),
         buyer_email: payload.buyerEmail,
@@ -464,11 +475,11 @@ export async function POST(request: Request) {
               ip_address: buyerIpAddress ?? undefined,
               items: [
                 {
-                  id: selectedPackage.id,
-                  title: `${rifaConfig.eventName} - ${selectedPackage.name}`,
-                  description: `${selectedPackage.wallpapers} wallpapers + ${selectedPackage.rifas} numeros de rifa`,
+                  id: selectedPackage?.id || "custom",
+                  title: `${rifaConfig.eventName} - ${packageName}`,
+                  description: `${requestedTicketCount} numeros de rifa`,
                   quantity: 1,
-                  unit_price: selectedPackage.price,
+                  unit_price: expectedAmount,
                 },
               ],
             },
@@ -494,7 +505,7 @@ export async function POST(request: Request) {
           status: "error",
           statusDetail: error?.cause?.message || error?.cause?.error || error?.message || null,
           payload: {
-            packageId: selectedPackage.id,
+            packageId: selectedPackage?.id || "custom",
             paymentMethodId: payload.formData.payment_method_id,
             pse,
             buyerIpAddress,
@@ -524,8 +535,8 @@ export async function POST(request: Request) {
       status: payment.status ?? null,
       statusDetail: payment.status_detail ?? null,
       payload: {
-        packageId: selectedPackage.id,
-        transactionAmount: selectedPackage.price,
+        packageId: selectedPackage?.id || "custom",
+        transactionAmount: expectedAmount,
         externalReference: payment.external_reference ?? null,
       },
     });

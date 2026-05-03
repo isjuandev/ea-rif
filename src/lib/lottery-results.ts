@@ -2,9 +2,7 @@ const LOTTERY_RESULTS_API_BASE_URL = "https://api-resultadosloterias.com/api";
 const BOGOTA_TIME_ZONE = "America/Bogota";
 
 export const lotteryOptions = [
-  { name: "Loteria del Quindio", apiName: "QUINDIO", slug: "quindio", fallbackWeekday: 4, drawHour: 22, drawMinute: 30 },
-  { name: "Loteria de Cundinamarca", apiName: "CUNDINAMARCA", slug: "cundinamarca", fallbackWeekday: 1, drawHour: 22, drawMinute: 30 },
-  { name: "Loteria de Medellin", apiName: "MEDELLIN", slug: "medellin", fallbackWeekday: 5, drawHour: 23, drawMinute: 0 },
+  { name: "Loteria de Boyaca", apiName: "BOYACA", slug: "boyaca", fallbackWeekday: 6, drawHour: 22, drawMinute: 30 },
 ] as const;
 
 export type LotterySlug = (typeof lotteryOptions)[number]["slug"];

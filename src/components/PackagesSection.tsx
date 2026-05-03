@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarDays } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { PackageCard } from "@/components/PackageCard";
 import { useRifaConfig } from "@/components/use-rifa-config";
+import { formatCOP } from "@/components/utils";
 import { rifaConfig as fallbackRifaConfig } from "@/config/rifa";
 import { type RifaPackage } from "@/config/rifa";
 
@@ -26,6 +27,10 @@ export function PackagesSection() {
     configured: false,
   });
   const rifaConfig = useRifaConfig();
+  const [customTickets, setCustomTickets] = useState(5);
+  const [customError, setCustomError] = useState("");
+
+  const boundedCustomTickets = useMemo(() => Math.max(5, Math.min(500, customTickets)), [customTickets]);
 
   useEffect(() => {
     fetch("/api/rifa/status")
@@ -37,6 +42,16 @@ export function PackagesSection() {
   function handleBuy(pack: RifaPackage) {
     if (pack.rifas > status.availableTickets) return;
     router.push(`/pago/checkout?package=${encodeURIComponent(pack.id)}`);
+  }
+
+  function handleBuyCustom() {
+    if (!Number.isInteger(customTickets) || customTickets < 5 || customTickets > 500) {
+      setCustomError("La cantidad debe estar entre 5 y 500 entradas.");
+      return;
+    }
+    setCustomError("");
+    if (boundedCustomTickets > status.availableTickets) return;
+    router.push(`/pago/checkout?package=custom&quantity=${encodeURIComponent(String(boundedCustomTickets))}`);
   }
 
   const drawDateIso = status.drawDate ?? new Date(Date.now() + 1000).toISOString();
@@ -64,7 +79,7 @@ export function PackagesSection() {
               <span className="truncate">{drawDate}</span>
             </div>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
-              Compra wallpapers digitales, recibelos enumerados en tu correo.
+              Compra tus entradas digitales, recíbelos enumerados en tu correo.
             </p>
           </div>
 
@@ -107,6 +122,44 @@ export function PackagesSection() {
                 />
               </div>
             ))}
+            <div className="group relative flex h-full min-w-0 flex-col rounded-[8px] border border-white/12 bg-white/[0.045] p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-lime-300/70 hover:shadow-[0_0_34px_rgba(170,255,0,0.22)]">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h3 className="font-heading text-2xl font-bold leading-tight text-white">{boundedCustomTickets} Entradas</h3>
+              </div>
+              <p className="font-heading text-3xl font-bold text-lime-300">{formatCOP(boundedCustomTickets * rifaConfig.ticketPrice)}</p>
+              <div className="mt-4 space-y-2 text-sm text-white/72">
+                <p>Compra entre 5 y 500 entradas</p>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <button type="button" onClick={() => { setCustomTickets((v) => Math.max(5, v - 1)); setCustomError(""); }} className="h-11 w-11 rounded-[8px] border border-white/20 text-xl">-</button>
+                <input
+                  type="number"
+                  min={5}
+                  max={500}
+                  value={customTickets}
+                  onChange={(event) => {
+                    setCustomTickets(Number(event.target.value));
+                    setCustomError("");
+                  }}
+                  className="h-11 w-full appearance-none rounded-[8px] border border-white/12 bg-black/30 px-3 text-white outline-none [appearance:textfield] [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-lime-300"
+                />
+                <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 1)); setCustomError(""); }} className="h-11 w-11 rounded-[8px] border border-white/20 text-xl">+</button>
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 5)); setCustomError(""); }} className="rounded-[8px] border border-white/20 py-2 text-xs">+5</button>
+                <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 10)); setCustomError(""); }} className="rounded-[8px] border border-white/20 py-2 text-xs">+10</button>
+                <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 50)); setCustomError(""); }} className="rounded-[8px] border border-white/20 py-2 text-xs">+50</button>
+              </div>
+              {customError && <p className="mt-1 text-xs text-red-300">{customError}</p>}
+              <button
+                type="button"
+                onClick={handleBuyCustom}
+                disabled={boundedCustomTickets > status.availableTickets}
+                className="mt-6 w-full rounded-[8px] bg-white px-5 py-3 font-extrabold uppercase text-black transition group-hover:bg-lime-300 disabled:cursor-not-allowed disabled:bg-white/18 disabled:text-white/45"
+              >
+                Comprar
+              </button>
+            </div>
           </div>
         </div>
       </div>

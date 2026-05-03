@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { loadMercadoPago } from "@mercadopago/sdk-js";
+import { PhoneInput, defaultCountries, type CountryIso2 } from "react-international-phone";
+import "react-international-phone/style.css";
 import { Banknote, CheckCircle2, CreditCard, Loader2 } from "lucide-react";
 import { useRifaConfig } from "@/components/use-rifa-config";
 import { formatCOP } from "@/components/utils";
@@ -46,7 +48,7 @@ type PsePaymentForm = {
 type PaymentMethodMode = "card" | "pse";
 type CardBrand = "visa" | "mastercard" | "amex" | "diners" | "discover" | "unknown";
 
-const COUNTRY_CODE = "+57";
+
 const COLOMBIA_API_BASE = "https://api-colombia.com/api/v1";
 const NATURAL_DOC_TYPES = [
   { label: "C.C", value: "CC" },
@@ -71,10 +73,6 @@ const CARD_BRAND_LABELS: Record<CardBrand, string> = {
   unknown: "Tarjeta",
 };
 
-function formatWhatsapp(localNumber: string) {
-  return `${COUNTRY_CODE}${localNumber.replace(/\D/g, "")}`;
-}
-
 function countLetters(value: string) {
   return (value.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) ?? []).length;
 }
@@ -82,6 +80,7 @@ function countLetters(value: string) {
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
+
 
 function normalizeCardBrand(paymentMethodId?: string): CardBrand {
   const normalized = (paymentMethodId || "").toLowerCase();
@@ -124,7 +123,7 @@ function CardBrandBadge({ brand }: { brand: CardBrand }) {
 
 const initialBuyer: CheckoutBuyer = {
   name: "",
-  whatsapp: "",
+  whatsapp: "+57 ",
   email: "",
   zipCode: "",
   streetName: "",
@@ -144,6 +143,7 @@ const initialPsePaymentForm: PsePaymentForm = {
 export function CheckoutPaymentPage() {
   const searchParams = useSearchParams();
   const packageId = searchParams.get("package");
+  const requestedQuantity = Number(searchParams.get("quantity"));
   const rifaConfig = useRifaConfig();
   const [buyer, setBuyer] = useState<CheckoutBuyer>(initialBuyer);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -166,16 +166,21 @@ export function CheckoutPaymentPage() {
   const [cardFormReady, setCardFormReady] = useState(false);
   const [cardFormError, setCardFormError] = useState("");
   const [cardBrand, setCardBrand] = useState<CardBrand>("unknown");
+  const [customTicketCount, setCustomTicketCount] = useState(5);
+  const [ticketCountError, setTicketCountError] = useState("");
   const cardFormMountedRef = useRef(false);
 
   const selectedPackage = useMemo(() => {
     return rifaConfig.packages.find((pack) => pack.id === packageId) ?? null;
   }, [packageId, rifaConfig.packages]);
 
-  const paymentBuyer: CheckoutBuyer = {
-    ...buyer,
-    whatsapp: formatWhatsapp(buyer.whatsapp),
-  };
+  const isCustomPurchase = packageId === "custom";
+  const minTickets = 5;
+  const maxTickets = 500;
+  const resolvedTicketCount = isCustomPurchase ? customTicketCount : (selectedPackage?.rifas ?? 0);
+  const resolvedAmount = isCustomPurchase ? resolvedTicketCount * rifaConfig.ticketPrice : (selectedPackage?.price ?? 0);
+
+  const paymentBuyer: CheckoutBuyer = { ...buyer };
 
   useEffect(() => {
     let active = true;
@@ -233,6 +238,18 @@ export function CheckoutPaymentPage() {
   }, [departmentId]);
 
   useEffect(() => {
+    if (isCustomPurchase) {
+      const initialValue = Number.isInteger(requestedQuantity) ? requestedQuantity : 5;
+      const bounded = Math.max(minTickets, Math.min(maxTickets, initialValue));
+      setCustomTicketCount(bounded);
+      setTicketCountError("");
+    } else if (selectedPackage) {
+      setCustomTicketCount(selectedPackage.rifas);
+      setTicketCountError("");
+    }
+  }, [isCustomPurchase, requestedQuantity, selectedPackage]);
+
+  useEffect(() => {
     if (!paymentReady || paymentMethodMode !== "pse") return;
 
     let active = true;
@@ -271,7 +288,7 @@ export function CheckoutPaymentPage() {
   }, [paymentReady, paymentMethodMode]);
 
   useEffect(() => {
-    if (!paymentReady || paymentMethodMode !== "card" || !selectedPackage || cardFormMountedRef.current) return;
+    if (!paymentReady || paymentMethodMode !== "card" || resolvedAmount <= 0 || cardFormMountedRef.current) return;
 
     let active = true;
     cardFormMountedRef.current = true;
@@ -291,7 +308,7 @@ export function CheckoutPaymentPage() {
 
         const mp = new MercadoPago(publicKey, { locale: "es-CO" });
         const cardForm = mp.cardForm({
-          amount: String(selectedPackage.price),
+          amount: String(resolvedAmount),
           iframe: true,
           form: {
             id: "card-checkout-form",
@@ -363,7 +380,8 @@ export function CheckoutPaymentPage() {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    packageId: selectedPackage.id,
+                    packageId: selectedPackage?.id || "custom",
+                    ticketCount: resolvedTicketCount,
                     buyerName: buyer.name,
                     buyerWhatsapp: paymentBuyer.whatsapp,
                     buyerEmail: buyer.email,
@@ -424,10 +442,10 @@ export function CheckoutPaymentPage() {
     return () => {
       active = false;
     };
-  }, [buyer.email, buyer.name, paymentBuyer.whatsapp, paymentMethodMode, paymentReady, selectedPackage]);
+  }, [buyer.email, buyer.name, paymentBuyer.whatsapp, paymentMethodMode, paymentReady, selectedPackage, resolvedAmount, resolvedTicketCount]);
 
   const validName = countLetters(buyer.name) >= 4;
-  const validWhatsapp = buyer.whatsapp.replace(/\D/g, "").length === 10;
+  const validWhatsapp = buyer.whatsapp.replace(/\D/g, "").length >= 8;
   const validEmail = isValidEmail(buyer.email);
   const validAddress =
     buyer.streetName.trim().length >= 1 &&
@@ -480,12 +498,16 @@ export function CheckoutPaymentPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedPackage) {
+    if (!selectedPackage && !isCustomPurchase) {
       setFormError("Selecciona un paquete antes de pagar.");
       return;
     }
+    if (resolvedTicketCount < minTickets || resolvedTicketCount > maxTickets) {
+      setFormError("La cantidad debe estar entre 5 y 500 entradas.");
+      return;
+    }
     if (!validBuyer) {
-      setFormError("Revisa tus datos: nombre minimo 4 letras, WhatsApp de 10 digitos, correo valido, departamento, ciudad y direccion.");
+      setFormError("Revisa tus datos: nombre minimo 4 letras, WhatsApp valido para el pais seleccionado, correo valido, departamento, ciudad y direccion.");
       return;
     }
 
@@ -497,7 +519,7 @@ export function CheckoutPaymentPage() {
 
   async function handlePseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedPackage || !validBuyer || !validPsePayment) {
+    if ((!selectedPackage && !isCustomPurchase) || !validBuyer || !validPsePayment) {
       setPaymentError("Completa los datos de PSE antes de pagar.");
       return;
     }
@@ -511,7 +533,8 @@ export function CheckoutPaymentPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          packageId: selectedPackage.id,
+          packageId: selectedPackage?.id || "custom",
+                    ticketCount: resolvedTicketCount,
           buyerName: buyer.name,
           buyerWhatsapp: paymentBuyer.whatsapp,
           buyerEmail: buyer.email,
@@ -525,7 +548,7 @@ export function CheckoutPaymentPage() {
           },
           formData: {
             payment_method_id: "pse",
-            transaction_amount: selectedPackage.price,
+            transaction_amount: resolvedAmount,
             payer: {
               email: buyer.email,
               entity_type: psePaymentForm.entityType,
@@ -574,13 +597,14 @@ export function CheckoutPaymentPage() {
             <h1 className="mt-2 font-heading text-3xl font-bold">Pasarela de pago</h1>
           </div>
 
-          {selectedPackage ? (
+          {(selectedPackage || isCustomPurchase) ? (
             <div className="mt-6 rounded-[8px] border border-white/12 bg-black/25 p-4">
-              <p className="font-heading text-2xl font-bold">{selectedPackage.name}</p>
+              <p className="font-heading text-2xl font-bold">{resolvedTicketCount} Entradas</p>
               <p className="mt-1 text-sm text-white/60">
-                {selectedPackage.wallpapers} wallpapers + {selectedPackage.rifas} rifas
+                Elite Club
               </p>
-              <p className="mt-4 font-heading text-3xl font-bold text-lime-300">{formatCOP(selectedPackage.price)}</p>
+              <p className="mt-4 font-heading text-3xl font-bold text-lime-300">{formatCOP(resolvedAmount)}</p>
+              {ticketCountError && <p className="mt-2 text-sm text-red-300">{ticketCountError}</p>}
             </div>
           ) : (
             <p className="mt-6 rounded-[8px] border border-yellow-300/25 bg-yellow-300/10 p-4 text-sm text-yellow-50">
@@ -614,21 +638,17 @@ export function CheckoutPaymentPage() {
                 </label>
                 <label className="block">
                   <span className="text-sm font-bold text-white/80">WhatsApp</span>
-                  <div className="mt-2 flex rounded-[8px] border border-white/12 bg-black/30">
-                    <span className="grid place-items-center border-r border-white/12 px-4 py-3 font-bold text-white/70" aria-hidden="true">
-                      {COUNTRY_CODE}
-                    </span>
-                    <input
-                      required
-                      inputMode="numeric"
-                      autoComplete="tel-national"
-                      minLength={10}
-                      maxLength={10}
-                      pattern="[0-9]{10}"
+                  <div className="phone-field mt-2 rounded-[8px] border border-white/12 bg-black/30 p-1">
+                    <PhoneInput
+                      defaultCountry={"co" as CountryIso2}
+                      countries={defaultCountries}
                       value={buyer.whatsapp}
-                      onChange={(event) => updateBuyer({ whatsapp: event.target.value.replace(/\D/g, "").slice(0, 10) })}
-                      className="min-w-0 flex-1 bg-transparent px-4 py-3 text-white outline-none placeholder:text-white/30"
-                      placeholder="3001234567"
+                      onChange={(value) => updateBuyer({ whatsapp: value })}
+                      inputProps={{ required: true, name: "whatsapp", autoComplete: "tel" }}
+                      className="phone-field__input"
+                      style={{ width: "100%", background: "transparent" }}
+                      inputStyle={{ width: "100%", background: "transparent", border: "none", color: "white", height: "40px" }}
+                      countrySelectorStyleProps={{ buttonStyle: { background: "transparent", border: "none" }, dropdownArrowStyle: { color: "rgba(255,255,255,0.7)" } }}
                     />
                   </div>
                 </label>
@@ -689,7 +709,7 @@ export function CheckoutPaymentPage() {
                   />
                 </label>
                 <button
-                  disabled={!selectedPackage || !validBuyer}
+                  disabled={(!selectedPackage && !isCustomPurchase) || !validBuyer}
                   className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-[8px] bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
                 >
                   <CreditCard className="size-5" />
@@ -697,7 +717,7 @@ export function CheckoutPaymentPage() {
                 </button>
               </form>
 
-              {paymentReady && selectedPackage && (
+              {paymentReady && (
                 <div className="space-y-4 border-t border-white/12 pt-5">
                   <div className="flex items-center gap-3 text-white/80">
                     {paymentMethodMode === "card" ? <CreditCard className="size-5 text-lime-300" /> : <Banknote className="size-5 text-lime-300" />}

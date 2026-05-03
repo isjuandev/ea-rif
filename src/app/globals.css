@@ -86,3 +86,48 @@ input:focus-visible {
 .animate-accordion-up {
   animation: accordion-up 180ms ease-out;
 }
+
+/* react-international-phone customization aligned with raffle UI */
+.phone-field .react-international-phone-country-selector-button {
+  height: 40px;
+  border: 0;
+  background: transparent;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px 0 0 6px;
+  padding-inline: 10px;
+}
+
+.phone-field .react-international-phone-input {
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+}
+
+.phone-field .react-international-phone-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.phone-field .react-international-phone-country-selector-dropdown {
+  background: #0f0f0f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.phone-field .react-international-phone-country-selector-dropdown__list-item {
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+}
+
+.phone-field .react-international-phone-country-selector-dropdown__list-item:hover,
+.phone-field .react-international-phone-country-selector-dropdown__list-item--focused {
+  background: rgba(170, 255, 0, 0.14);
+  color: #fff;
+}
+
+.phone-field .react-international-phone-country-selector-dropdown__list-item--selected {
+  background: rgba(170, 255, 0, 0.24);
+  color: #aaff00;
+}

@@ -1,11 +1,14 @@
-import { sendTicketEmail } from "@/lib/email";
+import { sendBlessedNumberAlertEmail, sendTicketEmail } from "@/lib/email";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export type PaymentMethod = "mercado_pago";
 
 export type FulfillTicketPurchaseInput = {
-  packageId: string;
+  packageId?: string;
+  packageName?: string;
+  ticketCount?: number;
+  amountCop?: number;
   buyerName: string;
   buyerWhatsapp: string;
   buyerEmail?: string;
@@ -14,9 +17,11 @@ export type FulfillTicketPurchaseInput = {
 };
 
 export function normalizeWhatsApp(value: string) {
-  const digits = value.replace(/\D/g, "");
-  if (digits.startsWith("57")) return digits;
-  return `57${digits}`;
+  const trimmed = value.trim();
+  const hasPlus = trimmed.startsWith("+");
+  const digits = trimmed.replace(/\D/g, "");
+  if (!digits) return "";
+  return `${hasPlus ? "+" : "+"}${digits}`;
 }
 
 export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp: string; buyerEmail?: string }) {
@@ -28,8 +33,9 @@ export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp: s
     throw new Error("El nombre debe tener entre 4 y 120 caracteres.");
   }
 
-  if (buyerWhatsapp.length !== 12) {
-    throw new Error("El WhatsApp debe tener 10 digitos colombianos.");
+  const whatsappDigits = buyerWhatsapp.replace(/\D/g, "");
+  if (whatsappDigits.length < 8 || whatsappDigits.length > 15) {
+    throw new Error("El WhatsApp debe tener entre 8 y 15 digitos incluyendo indicativo internacional.");
   }
 
   if (buyerEmail.length > 160) {
@@ -75,10 +81,17 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   }
 
   const { config: rifaConfig } = await getEditableRifaConfig();
-  const selectedPackage = rifaConfig.packages.find((pack) => pack.id === input.packageId);
+  const selectedPackage = input.packageId ? rifaConfig.packages.find((pack) => pack.id === input.packageId) ?? null : null;
+  const resolvedTicketCount = input.ticketCount ?? selectedPackage?.rifas ?? null;
+  const resolvedPackageName = input.packageName ?? selectedPackage?.name ?? "Compra personalizada";
+  const resolvedAmountCop = input.amountCop ?? (resolvedTicketCount !== null ? resolvedTicketCount * rifaConfig.ticketPrice : null);
 
-  if (!selectedPackage) {
-    throw new Error("Paquete invalido.");
+  if (resolvedTicketCount === null || !Number.isInteger(resolvedTicketCount) || resolvedTicketCount < 5 || resolvedTicketCount > 500) {
+    throw new Error("La cantidad de rifas es invalida. Debe estar entre 5 y 500.");
+  }
+
+  if (resolvedAmountCop === null || !Number.isInteger(resolvedAmountCop) || resolvedAmountCop < 0) {
+    throw new Error("El valor de la compra es invalido.");
   }
 
   const buyer = validateBuyerFields({
@@ -87,16 +100,16 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
     buyerEmail: input.buyerEmail,
   });
 
-  await assertPackageAvailability(selectedPackage.rifas);
+  await assertPackageAvailability(resolvedTicketCount);
 
   const { data, error } = await supabase.rpc("sell_random_rifa_tickets", {
     p_buyer_name: buyer.buyerName,
     p_buyer_whatsapp: buyer.buyerWhatsapp,
     p_buyer_email: buyer.buyerEmail,
-    p_package_id: selectedPackage.id,
-    p_package_name: selectedPackage.name,
-    p_ticket_count: selectedPackage.rifas,
-    p_amount_cop: selectedPackage.price,
+    p_package_id: selectedPackage?.id ?? "custom",
+    p_package_name: resolvedPackageName,
+    p_ticket_count: resolvedTicketCount,
+    p_amount_cop: resolvedAmountCop,
     p_payment_method: input.paymentMethod,
     p_mercado_pago_payment_id: input.mercadoPagoPaymentId ?? null,
   });
@@ -128,8 +141,8 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
       const email = await sendTicketEmail({
         to: buyer.buyerEmail,
         name: buyer.buyerName,
-        packageName: selectedPackage.name,
-        price: selectedPackage.price,
+        packageName: resolvedPackageName,
+        price: resolvedAmountCop,
         numbers: ticketNumbers,
         lotteryName: rifaConfig.lotteryName,
       });
@@ -149,6 +162,23 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
         to: buyer.buyerEmail,
         error: error?.message || error,
       });
+    }
+  }
+
+  if (ticketNumbers.length > 0) {
+    const blessed = (rifaConfig.blessedNumbers ?? []).filter((number) => ticketNumbers.includes(number));
+
+    if (blessed.length > 0) {
+      const recipients = [buyer.buyerEmail, "juandiegogarcia162@gmail.com", "carlos.serna.franco@gmail.com"].filter(Boolean) as string[];
+      for (const to of recipients) {
+        await sendBlessedNumberAlertEmail({
+          to,
+          buyerName: buyer.buyerName,
+          buyerWhatsapp: buyer.buyerWhatsapp,
+          blessedNumbers: blessed,
+          allNumbers: ticketNumbers,
+        }).catch(() => undefined);
+      }
     }
   }
 

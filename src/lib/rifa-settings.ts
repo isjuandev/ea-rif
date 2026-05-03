@@ -62,6 +62,11 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
       whatsapp: String(input.socialLinks?.whatsapp || rifaConfig.socialLinks.whatsapp).trim(),
     },
     previousWinners: Array.isArray(input.previousWinners) ? input.previousWinners : rifaConfig.previousWinners,
+    blessedNumbers: Array.isArray(input.blessedNumbers)
+      ? input.blessedNumbers
+          .map((value) => String(value).replace(/\D/g, "").padStart(4, "0").slice(-4))
+          .filter((value, index, arr) => /^\d{4}$/.test(value) && arr.indexOf(value) === index)
+      : rifaConfig.blessedNumbers,
   };
 }
 

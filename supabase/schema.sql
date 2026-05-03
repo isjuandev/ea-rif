@@ -128,8 +128,8 @@ begin
     end if;
   end if;
 
-  if p_ticket_count < 10 or p_ticket_count > 100 then
-    raise exception 'ticket_count must be between 10 and 100';
+  if p_ticket_count < 5 or p_ticket_count > 500 then
+    raise exception 'ticket_count must be between 5 and 500';
   end if;
 
   select array_agg(selected.number)

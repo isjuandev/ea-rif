@@ -28,6 +28,7 @@ export type RifaConfig = {
     whatsapp: string;
   };
   previousWinners: unknown[];
+  blessedNumbers: string[];
 };
 
 export const rifaConfig: RifaConfig = {
@@ -38,17 +39,17 @@ export const rifaConfig: RifaConfig = {
   totalTickets: 10000,
   ticketPrice: 500,
   minorPrizeCount: 10,
-  lotterySlug: "quindio",
-  lotteryName: "Loteria del Quindio",
-  drawWeekday: 4,
+  lotterySlug: "boyaca",
+  lotteryName: "Loteria de Boyaca",
+  drawWeekday: 6,
   drawHour: 22,
   drawMinute: 30,
   sellerName: "Rifas Wallpapers",
   packages: [
-    { id: "starter", name: "10 Wallpapers", wallpapers: 10, rifas: 10, price: 5000 },
-    { id: "popular", name: "20 Wallpapers", wallpapers: 20, rifas: 20, price: 10000 },
-    { id: "pro", name: "40 Wallpapers", wallpapers: 40, rifas: 40, price: 20000, featured: true },
-    { id: "max", name: "100 Wallpapers", wallpapers: 100, rifas: 100, price: 50000 },
+    { id: "starter", name: "XX Entradas", wallpapers: 10, rifas: 10, price: 5000 },
+    { id: "popular", name: "XX Entradas", wallpapers: 20, rifas: 20, price: 5000 },
+    { id: "pro", name: "XX Entradas", wallpapers: 40, rifas: 40, price: 5000, featured: true },
+    { id: "max", name: "XX Entradas", wallpapers: 100, rifas: 100, price: 5000 },
   ],
   fallbackSoldTickets: 0,
   socialLinks: {
@@ -56,4 +57,5 @@ export const rifaConfig: RifaConfig = {
     whatsapp: "https://wa.me/573001234567",
   },
   previousWinners: [],
+  blessedNumbers: [],
 };
