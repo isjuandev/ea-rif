@@ -268,6 +268,20 @@
   .phone-field .react-international-phone-country-selector-dropdown__list-item--selected {
     @apply bg-primary/25 text-primary;
   }
+
+  .checkout-input:-webkit-autofill,
+  .checkout-input:-webkit-autofill:hover,
+  .checkout-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-foreground);
+    caret-color: var(--color-foreground);
+    box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3) inset;
+    transition: background-color 9999s ease-out;
+  }
+
+  .checkout-secure-field iframe {
+    max-width: 100%;
+    color-scheme: dark;
+  }
 }
 
 @layer utilities {

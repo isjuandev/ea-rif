@@ -60,9 +60,9 @@ const NATURAL_DOC_TYPES = [
   { label: "Documento de Identificacion", value: "DI" },
 ];
 const COMPANY_DOC_TYPES = [{ label: "NIT", value: "NIT" }];
-const CARD_SECURE_FIELD_CLASS = "flex h-12 items-center rounded-md border border-white/12 bg-black/30 text-foreground transition focus-within:border-lime-300/70";
-const CARD_SECURE_FIELD_INNER_CLASS = "min-w-0 flex-1 px-4";
-const CHECKOUT_INPUT_CLASS = "mt-2 h-12 w-full rounded-md border border-white/12 bg-black/30 px-4 text-foreground outline-none transition placeholder:text-white/30 focus:border-transparent focus:ring-2 focus:ring-primary";
+const CARD_SECURE_FIELD_CLASS = "checkout-secure-field flex h-12 items-center overflow-hidden rounded-md border border-white/12 bg-black/30 text-foreground transition focus-within:border-lime-300/70";
+const CARD_SECURE_FIELD_INNER_CLASS = "min-w-0 flex-1 px-4 [&>iframe]:block [&>iframe]:h-12 [&>iframe]:w-full";
+const CHECKOUT_INPUT_CLASS = "checkout-input mt-2 h-12 w-full rounded-md border border-white/12 bg-black/30 px-4 text-foreground outline-none transition placeholder:text-white/30 focus:border-transparent focus:ring-2 focus:ring-primary";
 
 const CARD_BRAND_LABELS: Record<CardBrand, string> = {
   visa: "Visa",
@@ -314,9 +314,12 @@ export function CheckoutPaymentPage() {
             input: {
               color: "#F5F5F5",
               fontSize: "16px",
+              fontWeight: "700",
+              backgroundColor: "transparent",
+              caretColor: "#AAFF00",
             },
             "::placeholder": {
-              color: "rgba(245, 245, 245, 0.45)",
+              color: "rgba(245, 245, 245, 0.42)",
             },
           },
           form: {
