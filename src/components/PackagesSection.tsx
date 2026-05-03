@@ -161,6 +161,20 @@ export function PackagesSection() {
               </button>
             </div>
           </div>
+
+          {rifaConfig.blessedPrizes && rifaConfig.blessedPrizes.length > 0 && (
+            <div className="mt-6 rounded-[8px] border border-amber-300/35 bg-amber-300/10 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Numeros bendecidos</p>
+              <p className="mt-1 text-sm font-bold text-white">Premio por numero: {formatCOP(rifaConfig.blessedPrizes[0].prizeCop || 0)}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {rifaConfig.blessedPrizes.map((item) => (
+                  <span key={item.number} className="rounded-[6px] border border-amber-200/45 bg-black/25 px-3 py-1 text-sm font-bold text-amber-100">
+                    {item.number}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

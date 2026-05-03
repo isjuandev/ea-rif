@@ -24,6 +24,7 @@ export default function AdminRifaSettingsPage() {
   const [status, setStatus] = useState("Cargando configuracion...");
   const [saving, setSaving] = useState(false);
   const [blessedNumbersInput, setBlessedNumbersInput] = useState("");
+  const [blessedPrizeValueInput, setBlessedPrizeValueInput] = useState("");
   const [soldNumbers, setSoldNumbers] = useState<Array<{ number: string; buyer_name: string | null; buyer_whatsapp: string | null; sold_at: string | null; purchase_id: string | null }>>([]);
   const [soldCount, setSoldCount] = useState(0);
   const [soldPercentage, setSoldPercentage] = useState(0);
@@ -35,6 +36,7 @@ export default function AdminRifaSettingsPage() {
         if (data?.config) {
           setConfig(data.config);
           setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
+          setBlessedPrizeValueInput(String(data.config.blessedPrizes?.[0]?.prizeCop ?? ""));
         }
         setStatus(data?.configured ? "Configuracion cargada desde Supabase." : "Usando configuracion base. Guarda para persistir cambios.");
       })
@@ -88,10 +90,13 @@ export default function AdminRifaSettingsPage() {
       .map((value) => value.trim())
       .filter(Boolean);
 
+    const blessedPrizeValue = Number(blessedPrizeValueInput || 0);
+    const blessedPrizes = normalizedBlessedNumbers.map((number) => ({ number: number.replace(/\D/g, "").padStart(4, "0").slice(-4), prizeCop: Number.isFinite(blessedPrizeValue) ? Math.max(0, Math.round(blessedPrizeValue)) : 0 }));
+
     const response = await fetch("/api/rifa/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ config: { ...config, blessedNumbers: normalizedBlessedNumbers } }),
+      body: JSON.stringify({ config: { ...config, blessedNumbers: normalizedBlessedNumbers, blessedPrizes } }),
     });
     const data = await response.json();
     setSaving(false);
@@ -103,6 +108,7 @@ export default function AdminRifaSettingsPage() {
 
     setConfig(data.config);
     setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
+    setBlessedPrizeValueInput(String(data.config.blessedPrizes?.[0]?.prizeCop ?? ""));
     setStatus("Cambios guardados. La pagina publica ya puede leer esta configuracion.");
   }
 
@@ -173,13 +179,24 @@ export default function AdminRifaSettingsPage() {
             <span className="text-sm font-bold text-white/76">Hora del sorteo</span>
             <input readOnly value={`${String(config.drawHour).padStart(2, "0")}:${String(config.drawMinute).padStart(2, "0")}`} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white/65 outline-none" />
           </label>
-          <label className="block lg:col-span-3">
+          <label className="block lg:col-span-2">
             <span className="text-sm font-bold text-white/76">Numeros bendecidos (separados por coma)</span>
             <input
               value={blessedNumbersInput}
               onChange={(event) => setBlessedNumbersInput(event.target.value)}
               className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300"
               placeholder="0001,1234,8888"
+            />
+          </label>
+          <label className="block lg:col-span-1">
+            <span className="text-sm font-bold text-white/76">Valor premio numeros bendecidos (COP)</span>
+            <input
+              type="number"
+              min={0}
+              value={blessedPrizeValueInput}
+              onChange={(event) => setBlessedPrizeValueInput(event.target.value.replace(/\D/g, ""))}
+              className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300"
+              placeholder="250000"
             />
           </label>
         </section>

@@ -67,6 +67,14 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
           .map((value) => String(value).replace(/\D/g, "").padStart(4, "0").slice(-4))
           .filter((value, index, arr) => /^\d{4}$/.test(value) && arr.indexOf(value) === index)
       : rifaConfig.blessedNumbers,
+    blessedPrizes: Array.isArray(input.blessedPrizes)
+      ? input.blessedPrizes
+          .map((item) => ({
+            number: String((item as any)?.number ?? "").replace(/\D/g, "").padStart(4, "0").slice(-4),
+            prizeCop: toNonNegativeInteger((item as any)?.prizeCop, 0),
+          }))
+          .filter((item, index, arr) => /^\d{4}$/.test(item.number) && arr.findIndex((x) => x.number === item.number) === index)
+      : rifaConfig.blessedPrizes,
   };
 }
 

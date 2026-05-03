@@ -29,6 +29,7 @@ export type RifaConfig = {
   };
   previousWinners: unknown[];
   blessedNumbers: string[];
+  blessedPrizes: { number: string; prizeCop: number }[];
 };
 
 export const rifaConfig: RifaConfig = {
@@ -58,4 +59,5 @@ export const rifaConfig: RifaConfig = {
   },
   previousWinners: [],
   blessedNumbers: [],
+  blessedPrizes: [],
 };
