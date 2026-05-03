@@ -23,6 +23,7 @@ export default function AdminRifaSettingsPage() {
   const [config, setConfig] = useState<RifaConfig>(rifaConfig);
   const [status, setStatus] = useState("Cargando configuracion...");
   const [saving, setSaving] = useState(false);
+  const [blessedNumbersInput, setBlessedNumbersInput] = useState("");
   const [soldNumbers, setSoldNumbers] = useState<Array<{ number: string; buyer_name: string | null; buyer_whatsapp: string | null; sold_at: string | null; purchase_id: string | null }>>([]);
   const [soldCount, setSoldCount] = useState(0);
   const [soldPercentage, setSoldPercentage] = useState(0);
@@ -31,7 +32,10 @@ export default function AdminRifaSettingsPage() {
     fetch("/api/rifa/config", { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => {
-        if (data?.config) setConfig(data.config);
+        if (data?.config) {
+          setConfig(data.config);
+          setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
+        }
         setStatus(data?.configured ? "Configuracion cargada desde Supabase." : "Usando configuracion base. Guarda para persistir cambios.");
       })
       .catch(() => setStatus("No se pudo leer la configuracion. Revisa Supabase."));
@@ -79,10 +83,15 @@ export default function AdminRifaSettingsPage() {
     setSaving(true);
     setStatus("Guardando...");
 
+    const normalizedBlessedNumbers = blessedNumbersInput
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
     const response = await fetch("/api/rifa/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ config }),
+      body: JSON.stringify({ config: { ...config, blessedNumbers: normalizedBlessedNumbers } }),
     });
     const data = await response.json();
     setSaving(false);
@@ -93,6 +102,7 @@ export default function AdminRifaSettingsPage() {
     }
 
     setConfig(data.config);
+    setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
     setStatus("Cambios guardados. La pagina publica ya puede leer esta configuracion.");
   }
 
@@ -166,16 +176,8 @@ export default function AdminRifaSettingsPage() {
           <label className="block lg:col-span-3">
             <span className="text-sm font-bold text-white/76">Numeros bendecidos (separados por coma)</span>
             <input
-              value={(config.blessedNumbers ?? []).join(",")}
-              onChange={(event) =>
-                setConfig({
-                  ...config,
-                  blessedNumbers: event.target.value
-                    .split(",")
-                    .map((value) => value.trim())
-                    .filter(Boolean),
-                })
-              }
+              value={blessedNumbersInput}
+              onChange={(event) => setBlessedNumbersInput(event.target.value)}
               className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300"
               placeholder="0001,1234,8888"
             />
@@ -230,7 +232,7 @@ export default function AdminRifaSettingsPage() {
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Paquetes</p>
-              <h2 className="mt-2 font-heading text-3xl font-bold">Precios y rifas</h2>
+              <h2 className="mt-2 font-heading text-3xl font-bold">Precios y Entradas</h2>
             </div>
             <button type="button" onClick={() => setConfig({ ...config, packages: [...config.packages, emptyPackage(config.packages.length)] })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[8px] border border-white/14 px-4 py-2 font-bold text-white transition hover:border-lime-300 hover:text-lime-300">
               <Plus className="size-5" />
@@ -266,7 +268,7 @@ export default function AdminRifaSettingsPage() {
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Wallpapers</span>
+                      <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Entradas</span>
                       <input type="number" min={1} value={pack.wallpapers} onChange={(event) => updatePackage(index, { wallpapers: Number(event.target.value) })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
                     </label>
                     <label className="block">
