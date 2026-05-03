@@ -20,6 +20,7 @@ export type RifaConfig = {
   drawWeekday: number;
   drawHour: number;
   drawMinute: number;
+  nextDrawDateOverride: string | null;
   sellerName: string;
   packages: RifaPackage[];
   fallbackSoldTickets: number;
@@ -48,6 +49,7 @@ export const rifaConfig: RifaConfig = {
   drawWeekday: 6,
   drawHour: 22,
   drawMinute: 30,
+  nextDrawDateOverride: null,
   sellerName: "Entradas Digitales - Club Élite",
   packages: [
     { id: "starter", name: "XX Entradas", entradas: 10, rifas: 10, price: 5000 },

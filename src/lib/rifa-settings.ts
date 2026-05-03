@@ -20,6 +20,15 @@ function toNonNegativeInteger(value: unknown, fallback: number) {
   return Number.isFinite(number) && number >= 0 ? Math.round(number) : fallback;
 }
 
+function normalizeOptionalFutureIsoDate(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString();
+}
+
 function normalizePackage(pack: Partial<RifaPackage>, index: number): RifaPackage {
   const rifas = toPositiveInteger(pack.rifas, 5);
 
@@ -54,6 +63,7 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
     drawWeekday: toNonNegativeInteger(input.drawWeekday, rifaConfig.drawWeekday),
     drawHour: lottery.drawHour,
     drawMinute: lottery.drawMinute,
+    nextDrawDateOverride: normalizeOptionalFutureIsoDate(input.nextDrawDateOverride),
     sellerName: String(input.sellerName || rifaConfig.sellerName).trim(),
     packages: packages.map((pack, index) => ({ ...pack, featured: featuredIndex === -1 ? index === 0 : index === featuredIndex })),
     fallbackSoldTickets: toNonNegativeInteger(input.fallbackSoldTickets, rifaConfig.fallbackSoldTickets),

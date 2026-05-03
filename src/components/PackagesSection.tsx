@@ -111,7 +111,7 @@ export function PackagesSection() {
             </div>
             <p className="text-sm font-bold text-white/55">Elige tu paquete y paga en línea.</p>
           </div>
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,4fr)_minmax(220px,1fr)]">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,4fr)_minmax(220px,1fr)] xl:items-stretch">
             <div className="min-w-0">
               <div className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {rifaConfig.packages.map((pack) => (
@@ -151,7 +151,7 @@ export function PackagesSection() {
               )}
             </div>
 
-            <div className="card card--elevated group relative min-w-0 p-4 hover:border-primary hover:shadow-glow">
+            <div className="card card--elevated group relative h-full min-w-0 p-4 hover:border-primary hover:shadow-glow">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h3 className="font-heading text-2xl font-bold leading-tight text-foreground">{boundedCustomTickets} Entradas</h3>
               </div>
@@ -159,7 +159,7 @@ export function PackagesSection() {
               <div className="mt-4 space-y-2 text-sm text-muted">
                 <p>Compra entre 5 y 500 entradas</p>
               </div>
-              <div className="pt-5">
+              <div className="mt-auto pt-5">
                 <div className="flex items-center gap-2">
                 <button type="button" onClick={() => { setCustomTickets((v) => Math.max(5, v - 1)); setCustomError(""); }} className="btn-icon h-11 w-11 text-xl">-</button>
                 <input

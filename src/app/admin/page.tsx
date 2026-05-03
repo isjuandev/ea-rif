@@ -18,6 +18,14 @@ function emptyPackage(index: number): RifaPackage {
   };
 }
 
+function toDateTimeLocalValue(isoDate: string | null | undefined) {
+  if (!isoDate) return "";
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export default function AdminRifaSettingsPage() {
   const router = useRouter();
   const [config, setConfig] = useState<RifaConfig>(rifaConfig);
@@ -178,6 +186,30 @@ export default function AdminRifaSettingsPage() {
           <label className="block">
             <span className="text-sm font-bold text-white/76">Hora del sorteo</span>
             <input readOnly value={`${String(config.drawHour).padStart(2, "0")}:${String(config.drawMinute).padStart(2, "0")}`} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-white/65 outline-none" />
+          </label>
+          <label className="block lg:col-span-2">
+            <span className="text-sm font-bold text-white/76">Próxima fecha de juego (manual)</span>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <input
+                type="datetime-local"
+                value={toDateTimeLocalValue(config.nextDrawDateOverride)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setConfig({ ...config, nextDrawDateOverride: value ? new Date(value).toISOString() : null });
+                }}
+                className="w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setConfig({ ...config, nextDrawDateOverride: null })}
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/14 px-4 py-2 text-sm font-bold text-foreground transition hover:border-lime-300 hover:text-lime-300"
+              >
+                Usar automático
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-white/60">
+              Si defines una fecha futura, esta se mostrará en la web. Si la limpias o vence, el sistema vuelve al cálculo automático.
+            </p>
           </label>
           <label className="block lg:col-span-2">
             <span className="text-sm font-bold text-white/76">Numeros bendecidos (separados por coma)</span>

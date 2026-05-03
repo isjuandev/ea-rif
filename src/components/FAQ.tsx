@@ -7,7 +7,7 @@ const questions = [
   },
   {
     q: "Que estoy comprando exactamente?",
-    a: "Cada entrada cuesta $1000 COP e incluye una entrada digital. Puedes comprar paquetes de 5, 10, 20 o 50 entradas.",
+    a: "Cada entrada cuesta $1000 COP e incluye una entrada digital para ser un feliz ganador. Puedes comprar paquetes de 5, 10, 20, 50 o hasta 500 entradas.",
   },
   {
     q: "Puedo elegir mis entradas?",

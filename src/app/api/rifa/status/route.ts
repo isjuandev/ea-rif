@@ -8,7 +8,10 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const supabase = getSupabaseAdmin();
   const { config: rifaConfig } = await getEditableRifaConfig();
-  const drawDate = await getNextLotteryDrawDate(rifaConfig.lotterySlug).catch(() => null);
+  const automaticDrawDate = await getNextLotteryDrawDate(rifaConfig.lotterySlug).catch(() => null);
+  const overrideDate = rifaConfig.nextDrawDateOverride ? new Date(rifaConfig.nextDrawDateOverride) : null;
+  const validOverride = overrideDate && !Number.isNaN(overrideDate.getTime()) && overrideDate.getTime() > Date.now();
+  const drawDate = validOverride ? overrideDate.toISOString() : automaticDrawDate;
 
   if (!supabase) {
     return NextResponse.json({
