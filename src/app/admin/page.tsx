@@ -21,7 +21,7 @@ function emptyPackage(index: number): RifaPackage {
 export default function AdminRifaSettingsPage() {
   const router = useRouter();
   const [config, setConfig] = useState<RifaConfig>(rifaConfig);
-  const [status, setStatus] = useState("Cargando configuracion...");
+  const [status, setStatus] = useState("Cargando configuración...");
   const [saving, setSaving] = useState(false);
   const [blessedNumbersInput, setBlessedNumbersInput] = useState("");
   const [blessedPrizeValueInput, setBlessedPrizeValueInput] = useState("");
@@ -38,9 +38,9 @@ export default function AdminRifaSettingsPage() {
           setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
           setBlessedPrizeValueInput(String(data.config.blessedPrizes?.[0]?.prizeCop ?? ""));
         }
-        setStatus(data?.configured ? "Configuracion cargada desde Supabase." : "Usando configuracion base. Guarda para persistir cambios.");
+        setStatus(data?.configured ? "Configuracion cargada desde Supabase." : "Usando configuración base. Guarda para persistir cambios.");
       })
-      .catch(() => setStatus("No se pudo leer la configuracion. Revisa Supabase."));
+      .catch(() => setStatus("No se pudo leer la configuración. Revisa Supabase."));
   }, []);
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function AdminRifaSettingsPage() {
     setConfig(data.config);
     setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
     setBlessedPrizeValueInput(String(data.config.blessedPrizes?.[0]?.prizeCop ?? ""));
-    setStatus("Cambios guardados. La pagina publica ya puede leer esta configuracion.");
+    setStatus("Cambios guardados. La página pública ya puede leer esta configuración.");
   }
 
   async function logout() {
@@ -158,7 +158,7 @@ export default function AdminRifaSettingsPage() {
             <input value={config.sellerName} onChange={(event) => setConfig({ ...config, sellerName: event.target.value })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
           </label>
           <label className="block">
-            <span className="text-sm font-bold text-white/76">Loteria</span>
+            <span className="text-sm font-bold text-white/76">Lotería</span>
             <select value={config.lotterySlug} onChange={(event) => updateLottery(event.target.value)} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300">
               {lotteryOptions.map((lottery) => (
                 <option key={lottery.slug} value={lottery.slug} className="bg-[#0a0a0a] text-white">
@@ -168,11 +168,11 @@ export default function AdminRifaSettingsPage() {
             </select>
           </label>
           <label className="block">
-            <span className="text-sm font-bold text-white/76">Total numeros</span>
+            <span className="text-sm font-bold text-white/76">Total números</span>
             <input type="number" min={1} value={config.totalTickets} onChange={(event) => setConfig({ ...config, totalTickets: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
           </label>
           <label className="block">
-            <span className="text-sm font-bold text-white/76">Precio base por numero</span>
+            <span className="text-sm font-bold text-white/76">Precio base por número</span>
             <input type="number" min={0} value={config.ticketPrice} onChange={(event) => setConfig({ ...config, ticketPrice: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
           </label>
           <label className="block">
@@ -189,7 +189,7 @@ export default function AdminRifaSettingsPage() {
             />
           </label>
           <label className="block lg:col-span-1">
-            <span className="text-sm font-bold text-white/76">Valor premio numeros bendecidos (COP)</span>
+            <span className="text-sm font-bold text-white/76">Valor premio números bendecidos (COP)</span>
             <input
               type="number"
               min={0}
@@ -198,6 +198,18 @@ export default function AdminRifaSettingsPage() {
               className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300"
               placeholder="250000"
             />
+          </label>
+          <label className="block lg:col-span-1">
+            <span className="text-sm font-bold text-white/76">Valor número invertido (COP)</span>
+            <input type="number" min={0} value={config.invertedWinnerPrizeCop} onChange={(event) => setConfig({ ...config, invertedWinnerPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+          </label>
+          <label className="block lg:col-span-1">
+            <span className="text-sm font-bold text-white/76">Umbral condición compra</span>
+            <input type="number" min={1} value={config.bulkPrizeThreshold} onChange={(event) => setConfig({ ...config, bulkPrizeThreshold: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
+          </label>
+          <label className="block lg:col-span-1">
+            <span className="text-sm font-bold text-white/76">Valor condición compra (COP)</span>
+            <input type="number" min={0} value={config.bulkPrizeCop} onChange={(event) => setConfig({ ...config, bulkPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-4 py-3 text-white outline-none focus:border-lime-300" />
           </label>
         </section>
 

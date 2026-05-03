@@ -75,6 +75,9 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
           }))
           .filter((item, index, arr) => /^\d{4}$/.test(item.number) && arr.findIndex((x) => x.number === item.number) === index)
       : rifaConfig.blessedPrizes,
+    invertedWinnerPrizeCop: toNonNegativeInteger(input.invertedWinnerPrizeCop, rifaConfig.invertedWinnerPrizeCop),
+    bulkPrizeThreshold: toPositiveInteger(input.bulkPrizeThreshold, rifaConfig.bulkPrizeThreshold),
+    bulkPrizeCop: toNonNegativeInteger(input.bulkPrizeCop, rifaConfig.bulkPrizeCop),
   };
 }
 
@@ -89,7 +92,7 @@ export async function getEditableRifaConfig() {
 
   if (error) {
     if (!isMissingSettingsTableError(error)) {
-      console.error("Error leyendo configuracion de rifa", error.message);
+      console.error("Error leyendo configuración de rifa", error.message);
     }
     return { config: rifaConfig, configured: false };
   }

@@ -2,7 +2,7 @@ const LOTTERY_RESULTS_API_BASE_URL = "https://api-resultadosloterias.com/api";
 const BOGOTA_TIME_ZONE = "America/Bogota";
 
 export const lotteryOptions = [
-  { name: "Loteria de Boyaca", apiName: "BOYACA", slug: "boyaca", fallbackWeekday: 6, drawHour: 22, drawMinute: 30 },
+  { name: "Lotería de Boyacá", apiName: "BOYACA", slug: "boyaca", fallbackWeekday: 6, drawHour: 22, drawMinute: 30 },
 ] as const;
 
 export type LotterySlug = (typeof lotteryOptions)[number]["slug"];

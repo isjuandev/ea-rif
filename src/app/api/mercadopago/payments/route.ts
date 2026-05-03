@@ -145,32 +145,32 @@ function formatMercadoPagoError(error: any) {
   const lowerCombined = combined.toLowerCase();
 
   if (lowerCombined.includes("ip_address")) {
-    return "No pudimos iniciar el pago por PSE porque Mercado Pago no recibio la IP del comprador. Si estas probando manualmente, envia formData.additional_info.ip_address; en produccion revisa que el proxy envie x-forwarded-for, x-real-ip o cf-connecting-ip.";
+    return "No pudimos iniciar el pago por PSE porque Mercado Pago no recibio la IP del comprador. Si estas probando manualmente, envía formData.additional_info.ip_address; en producción revisa que el proxy envie x-forwarded-for, x-real-ip o cf-connecting-ip.";
   }
 
   if (lowerCombined.includes("financial_institution")) {
-    return "No pudimos iniciar el pago por PSE porque falta el banco o el codigo del banco no es valido. Vuelve a seleccionar la entidad financiera e intenta de nuevo.";
+    return "No pudimos iniciar el pago por PSE porque falta el banco o el código del banco no es válido. Vuelve a seleccionar la entidad financiera e intenta de nuevo.";
   }
 
   if (lowerCombined.includes("identification")) {
-    return "No pudimos iniciar el pago por PSE porque el tipo o numero de documento no fue aceptado por Mercado Pago. Revisa que el documento tenga entre 1 y 15 caracteres y corresponda al tipo seleccionado.";
+    return "No pudimos iniciar el pago por PSE porque el tipo o número de documento no fue aceptado por Mercado Pago. Revisa que el documento tenga entre 1 y 15 caracteres y corresponda al tipo seleccionado.";
   }
 
   if (lowerCombined.includes("callback_url") || lowerCombined.includes("notification_url")) {
-    return "No pudimos iniciar el pago por PSE porque la URL publica del sitio no esta configurada correctamente. Configura NEXT_PUBLIC_SITE_URL con una URL HTTPS publica.";
+    return "No pudimos iniciar el pago por PSE porque la URL pública del sitio no esta configurada correctamente. Configura NEXT_PUBLIC_SITE_URL con una URL HTTPS pública.";
   }
 
   if (lowerCombined.includes("address") || lowerCombined.includes("zip_code") || lowerCombined.includes("street")) {
-    return "No pudimos iniciar el pago por PSE porque Mercado Pago no acepto la direccion. Usa codigo postal de 5 digitos, calle de maximo 18 caracteres, numero de maximo 5, barrio, ciudad y departamento.";
+    return "No pudimos iniciar el pago por PSE porque Mercado Pago no acepto la direccion. Usa código postal de 5 dígitos, calle de máximo 18 caracteres, número de máximo 5, barrio, ciudad y departamento.";
   }
 
   if (lowerCombined.includes("internal_error")) {
-    return "Mercado Pago devolvio internal_error al crear el pago. Si estas usando credenciales TEST, verifica que el deploy tenga MERCADO_PAGO_TEST_TOKEN=true o un access token TEST- para enviar X-Test-Token:true; si ya esta activo, revisa que el comprador sea un usuario de prueba valido para esa cuenta.";
+    return "Mercado Pago devolvio internal_error al crear el pago. Si estas usando credenciales TEST, verifica que el deploy tenga MERCADO_PAGO_TEST_TOKEN=true o un access token TEST- para envíar X-Test-Token:true; si ya esta activo, revisa que el comprador sea un usuario de prueba válido para esa cuenta.";
   }
 
   return combined
-    ? `Mercado Pago rechazo la solicitud de pago. Detalle: ${combined}`
-    : "Mercado Pago rechazo la solicitud de pago. Revisa los datos del comprador y vuelve a intentarlo.";
+    ? `Mercado Pago rechazó la solicitud de pago. Detalle: ${combined}`
+    : "Mercado Pago rechazó la solicitud de pago. Revisa los datos del comprador y vuelve a intentarlo.";
 }
 
 function normalizePublicBaseUrl(value?: string | null) {
@@ -295,7 +295,7 @@ export async function POST(request: Request) {
     try {
       await assertPackageAvailability(requestedTicketCount);
     } catch (error: any) {
-      return NextResponse.json({ error: error?.message || "No hay suficientes numeros disponibles para este paquete." }, { status: 409 });
+      return NextResponse.json({ error: error?.message || "No hay suficientes números disponibles para este paquete." }, { status: 409 });
     }
 
     const normalizedBuyerWhatsapp = normalizeWhatsApp(payload.buyerWhatsapp);
@@ -309,7 +309,7 @@ export async function POST(request: Request) {
     ) {
       return validationError(
         "Datos del comprador incompletos.",
-        "Verifica que el nombre tenga al menos 4 letras, el WhatsApp sea valido con indicativo internacional y el correo sea valido.",
+        "Verifica que el nombre tenga al menos 4 letras, el WhatsApp sea válido con indicativo internacional y el correo sea válido.",
       );
     }
 
@@ -368,7 +368,7 @@ export async function POST(request: Request) {
         return validationError("Faltan datos para pagar por PSE.", "Selecciona el tipo de persona: individual o association.");
       }
       if (!hasIdType || !hasIdNumber) {
-        return validationError("Faltan datos para pagar por PSE.", "Ingresa tipo y numero de documento del comprador.");
+        return validationError("Faltan datos para pagar por PSE.", "Ingresa tipo y número de documento del comprador.");
       }
       if (!hasBank) {
         return validationError("Faltan datos para pagar por PSE.", "Selecciona el banco desde el formulario de Mercado Pago.");
@@ -380,17 +380,17 @@ export async function POST(request: Request) {
       if (!buyerIpAddress) {
         return validationError(
           "No pudimos iniciar el pago por PSE porque falta la IP del comprador.",
-          "Si estas probando manualmente, envia formData.additional_info.ip_address; en produccion revisa que el proxy envie x-forwarded-for, x-real-ip o cf-connecting-ip.",
+          "Si estas probando manualmente, envía formData.additional_info.ip_address; en producción revisa que el proxy envie x-forwarded-for, x-real-ip o cf-connecting-ip.",
         );
       }
       if (!hasAddress) {
         return validationError(
           "Faltan datos para pagar por PSE.",
-          "Completa codigo postal de 5 digitos, direccion, barrio, ciudad y departamento.",
+          "Completa código postal de 5 dígitos, direccion, barrio, ciudad y departamento.",
         );
       }
       if (!hasPhone) {
-        return validationError("Faltan datos para pagar por PSE.", "Ingresa un WhatsApp valido para contacto.");
+        return validationError("Faltan datos para pagar por PSE.", "Ingresa un WhatsApp válido para contacto.");
       }
     }
 
@@ -402,10 +402,10 @@ export async function POST(request: Request) {
         return validationError("Faltan datos para pagar con tarjeta.", "Selecciona el banco emisor.");
       }
       if (!payload.formData.installments) {
-        return validationError("Faltan datos para pagar con tarjeta.", "Selecciona el numero de cuotas.");
+        return validationError("Faltan datos para pagar con tarjeta.", "Selecciona el número de cuotas.");
       }
       if (!identification.type || !identification.number) {
-        return validationError("Faltan datos para pagar con tarjeta.", "Ingresa tipo y numero de documento del titular.");
+        return validationError("Faltan datos para pagar con tarjeta.", "Ingresa tipo y número de documento del titular.");
       }
     }
 
@@ -414,7 +414,7 @@ export async function POST(request: Request) {
     if (!publicBaseUrl) {
       return NextResponse.json(
         {
-          error: "Configura NEXT_PUBLIC_SITE_URL con la URL publica HTTPS del sitio para procesar pagos por PSE.",
+          error: "Configura NEXT_PUBLIC_SITE_URL con la URL pública HTTPS del sitio para procesar pagos por PSE.",
         },
         { status: 500 },
       );
@@ -477,7 +477,7 @@ export async function POST(request: Request) {
                 {
                   id: selectedPackage?.id || "custom",
                   title: `${rifaConfig.eventName} - ${packageName}`,
-                  description: `${requestedTicketCount} numeros de rifa`,
+                  description: `${requestedTicketCount} números de rifa`,
                   quantity: 1,
                   unit_price: expectedAmount,
                 },
@@ -550,7 +550,7 @@ export async function POST(request: Request) {
         statusDetail: payment.status_detail,
         externalResourceUrl,
         statusUrl: payment.id ? `/pago/estado?id=${encodeURIComponent(String(payment.id))}` : "/pago/estado",
-        message: "El pago fue creado pero aun no esta aprobado.",
+        message: "El pago fue creado pero aún no esta aprobado.",
       });
     }
 

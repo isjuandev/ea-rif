@@ -30,6 +30,9 @@ export type RifaConfig = {
   previousWinners: unknown[];
   blessedNumbers: string[];
   blessedPrizes: { number: string; prizeCop: number }[];
+  invertedWinnerPrizeCop: number;
+  bulkPrizeThreshold: number;
+  bulkPrizeCop: number;
 };
 
 export const rifaConfig: RifaConfig = {
@@ -41,7 +44,7 @@ export const rifaConfig: RifaConfig = {
   ticketPrice: 1000,
   minorPrizeCount: 10,
   lotterySlug: "boyacá",
-  lotteryName: "Loteria de Boyacá",
+  lotteryName: "Lotería de Boyacá",
   drawWeekday: 6,
   drawHour: 22,
   drawMinute: 30,
@@ -60,4 +63,7 @@ export const rifaConfig: RifaConfig = {
   previousWinners: [],
   blessedNumbers: [],
   blessedPrizes: [],
+  invertedWinnerPrizeCop: 800000,
+  bulkPrizeThreshold: 20,
+  bulkPrizeCop: 3500000,
 };

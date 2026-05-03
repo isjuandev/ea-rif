@@ -46,7 +46,7 @@ type PsePaymentForm = {
 };
 
 type PaymentMethodMode = "card" | "pse";
-type CardBrand = "visa" | "mastercard" | "amex" | "diners" | "discover" | "unknown";
+type CardBrand = "visa" | "mástercard" | "amex" | "diners" | "discover" | "unknown";
 
 
 const COLOMBIA_API_BASE = "https://api-colombia.com/api/v1";
@@ -66,7 +66,7 @@ const CHECKOUT_INPUT_CLASS = "mt-2 h-12 w-full rounded-[8px] border border-white
 
 const CARD_BRAND_LABELS: Record<CardBrand, string> = {
   visa: "Visa",
-  mastercard: "Mastercard",
+  mástercard: "Mastercard",
   amex: "Amex",
   diners: "Diners",
   discover: "Discover",
@@ -85,7 +85,7 @@ function isValidEmail(value: string) {
 function normalizeCardBrand(paymentMethodId?: string): CardBrand {
   const normalized = (paymentMethodId || "").toLowerCase();
   if (normalized.includes("visa")) return "visa";
-  if (normalized.includes("master")) return "mastercard";
+  if (normalized.includes("máster")) return "mástercard";
   if (normalized.includes("amex") || normalized.includes("american")) return "amex";
   if (normalized.includes("diners")) return "diners";
   if (normalized.includes("discover")) return "discover";
@@ -97,7 +97,7 @@ function CardBrandBadge({ brand }: { brand: CardBrand }) {
     return <span className="text-[18px] font-black italic tracking-[0.08em] text-[#1434CB]">VISA</span>;
   }
 
-  if (brand === "mastercard") {
+  if (brand === "mástercard") {
     return (
       <span className="relative block h-7 w-11" aria-label="Mastercard">
         <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-[#EB001B]" />
@@ -195,7 +195,7 @@ export function CheckoutPaymentPage() {
         setDepartments(data.map((department) => ({ id: department.id, name: department.name })).sort((a, b) => a.name.localeCompare(b.name)));
       })
       .catch(() => {
-        if (active) setLocationsError("No se pudieron cargar departamentos y ciudades. Intenta recargar la pagina.");
+        if (active) setLocationsError("No se pudieron cargar departamentos y ciudades. Intenta recargar la página.");
       })
       .finally(() => {
         if (active) setLoadingDepartments(false);
@@ -507,7 +507,7 @@ export function CheckoutPaymentPage() {
       return;
     }
     if (!validBuyer) {
-      setFormError("Revisa tus datos: nombre minimo 4 letras, WhatsApp valido para el pais seleccionado, correo valido, departamento, ciudad y direccion.");
+      setFormError("Revisa tus datos: nombre mínimo 4 letras, WhatsApp válido para el pais seleccionado, correo válido, departamento, ciudad y direccion.");
       return;
     }
 
@@ -902,7 +902,7 @@ export function CheckoutPaymentPage() {
               <CheckCircle2 className="mx-auto size-16 text-lime-300" />
               <h2 className="mt-5 font-heading text-3xl font-bold">Gracias</h2>
               <p className="mx-auto mt-3 max-w-sm text-white/68">
-                Tus numeros quedaron asignados y tambien los enviaremos a tu correo.
+                Tus números quedaron asignados y tambien los envíaremos a tu correo.
               </p>
               <div className="mx-auto mt-5 flex max-w-sm flex-wrap justify-center gap-2">
                 {ticketNumbers.map((number) => (

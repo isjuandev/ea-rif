@@ -88,7 +88,7 @@ export function PaymentStatusClient({
             <>
               <AlertTriangle className="size-12 text-yellow-300" />
               <h1 className="mt-5 font-heading text-3xl font-bold">No encontramos el pago</h1>
-              <p className="mt-3 text-white/65">Abre esta pagina desde el checkout de Mercado Pago o vuelve a iniciar la compra.</p>
+              <p className="mt-3 text-white/65">Abre esta página desde el checkout de Mercado Pago o vuelve a iniciar la compra.</p>
             </>
           ) : (
             <>
@@ -104,10 +104,10 @@ export function PaymentStatusClient({
 
               <p className="mt-5 text-white/68">
                 {approved
-                  ? "Tus numeros quedaron asignados. Tambien los enviaremos a tu correo."
+                  ? "Tus números quedaron asignados. También los envíaremos a tu correo."
                   : declined
-                    ? status?.message || "El pago no fue aprobado. No se asignaron numeros de rifa."
-                    : "Estamos esperando la confirmacion de Mercado Pago. Esta pagina se actualiza automaticamente."}
+                    ? status?.message || "El pago no fue aprobado. No se asignaron números de rifa."
+                    : "Estamos esperando la confirmacion de Mercado Pago. Esta página se actualiza automáticamente."}
               </p>
 
               <dl className="mt-6 grid gap-3 rounded-[8px] border border-white/10 bg-black/25 p-4 text-sm">

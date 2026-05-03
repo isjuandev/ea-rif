@@ -14,8 +14,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Entradas 2.5M | 23 de Mayo",
-  description: "Compra entradas digitales, recibe numeros de 4 cifras y participa con la Loteria de Boyaca.",
+  title: "Club Élite | 23 de Mayo",
+  description: "Compra entradas digitales, recibe números de 4 cifras y participa con la Lotería de Boyacá.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

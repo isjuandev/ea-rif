@@ -35,11 +35,11 @@ export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp: s
 
   const whatsappDigits = buyerWhatsapp.replace(/\D/g, "");
   if (whatsappDigits.length < 8 || whatsappDigits.length > 15) {
-    throw new Error("El WhatsApp debe tener entre 8 y 15 digitos incluyendo indicativo internacional.");
+    throw new Error("El WhatsApp debe tener entre 8 y 15 dígitos incluyendo indicativo internacional.");
   }
 
   if (buyerEmail.length > 160) {
-    throw new Error("El correo es demasiado largo.");
+    throw new Error("El correo es demásiado largo.");
   }
 
   return { buyerName, buyerWhatsapp, buyerEmail };
@@ -69,7 +69,7 @@ export async function assertPackageAvailability(ticketCount: number) {
   const availableTickets = await getAvailableTicketCount();
 
   if (availableTickets < ticketCount) {
-    throw new Error(`Solo quedan ${availableTickets} numeros disponibles para este paquete.`);
+    throw new Error(`Solo quedan ${availableTickets} números disponibles para este paquete.`);
   }
 }
 
@@ -91,7 +91,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   }
 
   if (resolvedAmountCop === null || !Number.isInteger(resolvedAmountCop) || resolvedAmountCop < 0) {
-    throw new Error("El valor de la compra es invalido.");
+    throw new Error("El valor de la compra es inválido.");
   }
 
   const buyer = validateBuyerFields({
@@ -150,14 +150,14 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
       if (email.sent) {
         await supabase.from("rifa_purchases").update({ email_sent_at: new Date().toISOString() }).eq("id", purchaseId);
       } else {
-        console.error("Email no enviado", {
+        console.error("Email no envíado", {
           purchaseId,
           to: buyer.buyerEmail,
           reason: email.error || "Motivo desconocido",
         });
       }
     } catch (error: any) {
-      console.error("Error enviando email de compra", {
+      console.error("Error envíando email de compra", {
         purchaseId,
         to: buyer.buyerEmail,
         error: error?.message || error,

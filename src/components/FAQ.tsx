@@ -18,8 +18,8 @@ const questions = [
     a: "En un directo en instagram se anuncia el ganador",
   },
   {
-    q: "Hay mas premios ademas del mayor?",
-    a: "Si. En cada sorteo se registran 10 entradas premiados aleatorios con recompensas menores.",
+    q: "Hay más premios además del mayor?",
+    a: "Sí. En cada sorteo se registran 10 entradas premiados aleatorios con recompensas menores.",
   },
 ];
 

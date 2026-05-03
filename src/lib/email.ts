@@ -33,11 +33,11 @@ export async function sendTicketEmail({
         <div style="position:absolute;right:-8px;top:58px;width:16px;height:16px;background:#000;border-radius:999px"></div>
         <div style="position:absolute;right:-8px;top:90px;width:16px;height:16px;background:#000;border-radius:999px"></div>
         <div style="position:absolute;right:-8px;top:122px;width:16px;height:16px;background:#000;border-radius:999px"></div>
-        <div style="border:2px solid #c89b2c;border-radius:18px;padding:20px;background:linear-gradient(120deg,#d7b14a 0%,#f5e2a1 22%,#e0b647 55%,#f1d780 78%,#c99622 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.25)">
+        <div style="border:2px solid #c89b2c;border-radius:18px;padding:20px;background:línear-gradient(120deg,#d7b14a 0%,#f5e2a1 22%,#e0b647 55%,#f1d780 78%,#c99622 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.25)">
           <h1 style="margin:0 0 14px;color:#7a5414;font-size:34px;line-height:1.1;font-weight:900;letter-spacing:0.02em">${rifaConfig.eventName}</h1>
           <p style="margin:0 0 12px;font-size:20px;line-height:1.45">Hola ${name}, tu compra del paquete <strong>${packageName}</strong> fue registrada.</p>
           <p style="margin:0 0 12px;font-size:20px;line-height:1.45">Valor: <strong>${formatCOP(price)}</strong></p>
-          <p style="margin:0 0 14px;font-size:20px;line-height:1.45">Tus numeros de rifa son:</p>
+          <p style="margin:0 0 14px;font-size:20px;line-height:1.45">Tus números de rifa son:</p>
           <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0 0 18px">
           ${numbers
             .map(
@@ -46,7 +46,7 @@ export async function sendTicketEmail({
             )
             .join("")}
           </div>
-          <p style="margin:0;font-size:18px;line-height:1.45">El sorteo juega con ${lotteryName}. La fecha se actualiza con el ultimo resultado oficial publicado.</p>
+          <p style="margin:0;font-size:18px;line-height:1.45">El sorteo juega con ${lotteryName}. La fecha se actualiza con el ultimo resultado oficial públicado.</p>
         </div>
       </div>
     </div>
@@ -55,12 +55,12 @@ export async function sendTicketEmail({
   const result = await resend.emails.send({
     from,
     to,
-    subject: `Tus numeros de rifa - ${rifaConfig.eventName}`,
+    subject: `Tus números de rifa - ${rifaConfig.eventName}`,
     html,
   });
 
   if (result.error) {
-    return { sent: false, error: result.error.message || "Resend rechazo el envio." };
+    return { sent: false, error: result.error.message || "Resend rechazó el envio." };
   }
 
   return { sent: true, messageId: result.data?.id || null };
@@ -97,10 +97,10 @@ export async function sendBlessedNumberAlertEmail({
   const result = await resend.emails.send({
     from,
     to,
-    subject: `Alerta numero bendecido - ${rifaConfig.eventName}`,
+    subject: `Alerta número bendecido - ${rifaConfig.eventName}`,
     html,
   });
 
-  if (result.error) return { sent: false, error: result.error.message || "Resend rechazo el envio." };
+  if (result.error) return { sent: false, error: result.error.message || "Resend rechazó el envio." };
   return { sent: true, messageId: result.data?.id || null };
 }

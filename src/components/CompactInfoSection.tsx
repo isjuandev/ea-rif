@@ -16,7 +16,7 @@ const entradas = [
 const questions = [
   {
     q: "Como recibo mis entradas?",
-    a: "Al registrar la compra, el sistema asigna entradas aleatorias disponibles del 0000 al 9999 y las envia al correo registrado.",
+    a: "Al registrar la compra, el sistema asigna entradas aleatorias disponibles del 0000 al 9999 y las envía al correo registrado.",
   },
   {
     q: "Que estoy comprando exactamente?",
@@ -31,8 +31,8 @@ const questions = [
     a: "En un directo en Instagram se anuncia el ganador.",
   },
   {
-    q: "Hay mas premios ademas del mayor?",
-    a: "Si. En cada sorteo se registran numeros bendecidos premiados aleatorios con recompensas menores.",
+    q: "Hay más premios además del mayor?",
+    a: "Sí. En cada sorteo se registran números bendecidos premiados aleatorios con recompensas menores.",
   },
 ];
 
@@ -68,7 +68,7 @@ export function CompactInfoSection() {
             {entradas.map((gradient, index) => (
               <div key={gradient} className="aspect-[4/3] overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.04] p-2">
                 <div className={`relative h-full rounded-[6px] bg-gradient-to-br ${gradient}`}>
-                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.04),rgba(0,0,0,0.38)),repeating-linear-gradient(90deg,rgba(255,255,255,0.12)_0_1px,transparent_1px_24px)]" />
+                  <div className="absolute inset-0 bg-[línear-gradient(135deg,rgba(0,0,0,0.04),rgba(0,0,0,0.38)),repeating-línear-gradient(90deg,rgba(255,255,255,0.12)_0_1px,transparent_1px_24px)]" />
                   <div className="absolute bottom-2 left-2 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
                     Drop {String(index + 1).padStart(2, "0")}
                   </div>

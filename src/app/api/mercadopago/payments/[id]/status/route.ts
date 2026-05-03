@@ -86,7 +86,7 @@ export async function GET(_request: Request, context: RouteContext) {
       statusDetail: payment.status_detail,
       message: final
         ? "Mercado Pago no aprobo el pago."
-        : "El pago fue creado pero aun no esta aprobado.",
+        : "El pago fue creado pero aún no esta aprobado.",
     });
   } catch (error: any) {
     return NextResponse.json(

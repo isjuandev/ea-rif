@@ -57,9 +57,9 @@ export function PackagesSection() {
   const drawDateIso = status.drawDate ?? new Date(Date.now() + 1000).toISOString();
   const drawDate = status.drawDate
     ? new Intl.DateTimeFormat("es-CO", {
-        dateStyle: "full",
-        timeStyle: "short",
-      }).format(new Date(status.drawDate))
+      dateStyle: "full",
+      timeStyle: "short",
+    }).format(new Date(status.drawDate))
     : "Cargando sorteo";
   const soldPercentage = Math.min((status.soldTickets / status.totalTickets) * 100, 100);
   const roundedSoldPercentage = Math.round(soldPercentage);
@@ -67,7 +67,7 @@ export function PackagesSection() {
 
   return (
     <section id="paquetes" className="relative isolate overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(170,255,0,0.16),transparent_28%),linear-gradient(135deg,#0A0A0A_0%,#15110d_48%,#080808_100%)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(170,255,0,0.16),transparent_28%),línear-gradient(135deg,#0A0A0A_0%,#15110d_48%,#080808_100%)]" />
       <div className="mx-auto grid max-w-7xl gap-8 py-8 sm:py-10 lg:min-h-[88vh] lg:content-center lg:py-12">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end">
           <div className="min-w-0">
@@ -109,9 +109,9 @@ export function PackagesSection() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Paquetes</p>
               <h2 className="mt-1 font-heading text-2xl font-bold text-white sm:text-3xl">Entrega inmediata</h2>
             </div>
-            <p className="text-sm font-bold text-white/55">Elige tu paquete y paga en linea.</p>
+            <p className="text-sm font-bold text-white/55">Elige tu paquete y paga en línea.</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             {rifaConfig.packages.map((pack) => (
               <div key={pack.id} className="min-w-0">
                 <PackageCard
@@ -163,16 +163,26 @@ export function PackagesSection() {
           </div>
 
           {rifaConfig.blessedPrizes && rifaConfig.blessedPrizes.length > 0 && (
-            <div className="mt-6 rounded-[8px] border border-amber-300/35 bg-amber-300/10 p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Numeros bendecidos</p>
-              <p className="mt-1 text-sm font-bold text-white">Premio por numero: {formatCOP(rifaConfig.blessedPrizes[0].prizeCop || 0)}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {rifaConfig.blessedPrizes.map((item) => (
-                  <span key={item.number} className="rounded-[6px] border border-amber-200/45 bg-black/25 px-3 py-1 text-sm font-bold text-amber-100">
-                    {item.number}
-                  </span>
-                ))}
-              </div>
+            <div className="mx-auto mt-6 grid w-full max-w-5xl gap-4 md:grid-cols-3">
+              <article className="rounded-[8px] border border-amber-300/35 bg-amber-300/10 p-4 text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Numeros bendecidos</p>
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  {rifaConfig.blessedPrizes.map((item) => (
+                    <span key={item.number} className="rounded-[6px] border border-amber-200/45 bg-black/25 px-3 py-1 text-sm font-bold text-amber-100">
+                      {item.number}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-2 text-sm font-bold text-white">Premio por número: <span className="text-amber-200">{formatCOP(rifaConfig.blessedPrizes[0].prizeCop || 0)}</span></p>
+              </article>
+              <article className="rounded-[8px] border border-amber-300/35 bg-amber-300/10 p-4 text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Numero invertido</p>
+                <p className="mt-2 font-heading text-3xl font-extrabold text-amber-100">{formatCOP(rifaConfig.invertedWinnerPrizeCop || 0)}</p>
+              </article>
+              <article className="rounded-[8px] border border-amber-300/35 bg-amber-300/10 p-4 text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Si compra más de {rifaConfig.bulkPrizeThreshold} entradas</p>
+                <p className="mt-2 font-heading text-3xl font-extrabold text-amber-100">{formatCOP(rifaConfig.bulkPrizeCop || 0)}</p>
+              </article>
             </div>
           )}
         </div>

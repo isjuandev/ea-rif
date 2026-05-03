@@ -19,6 +19,6 @@ export async function PUT(request: Request) {
     const config = await saveEditableRifaConfig(payload?.config ?? payload);
     return NextResponse.json({ config, configured: true });
   } catch (error: any) {
-    return NextResponse.json({ error: error?.message || "No se pudo guardar la configuracion." }, { status: 500 });
+    return NextResponse.json({ error: error?.message || "No se pudo guardar la configuración." }, { status: 500 });
   }
 }
