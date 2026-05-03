@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { PackageCard } from "@/components/PackageCard";
 import { useRifaConfig } from "@/components/use-rifa-config";
 import { formatCOP } from "@/components/utils";
+import khalifaDesktopImage from "@/public/images/khalifaD.png";
+import khalifaMobileImage from "@/public/images/khalifaM.jpeg";
 import { rifaConfig as fallbackRifaConfig } from "@/config/rifa";
 import { type RifaPackage } from "@/config/rifa";
 
@@ -67,7 +70,25 @@ export function PackagesSection() {
 
   return (
     <section id="paquetes" className="relative isolate overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(170,255,0,0.16),transparent_28%),línear-gradient(135deg,#0A0A0A_0%,#15110d_48%,#080808_100%)]" />
+      <Image
+        src={khalifaMobileImage}
+        alt=""
+        fill
+        priority
+        sizes="(min-width: 1024px) 0vw, 100vw"
+        className="absolute inset-0 -z-20 object-cover object-[52%_55%] lg:hidden"
+        aria-hidden="true"
+      />
+      <Image
+        src={khalifaDesktopImage}
+        alt=""
+        fill
+        priority
+        sizes="(min-width: 1024px) 100vw, 0vw"
+        className="absolute inset-0 -z-20 hidden object-cover object-center lg:block"
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(170,255,0,0.14),transparent_28%),linear-gradient(90deg,rgba(10,10,10,0.88)_0%,rgba(10,10,10,0.68)_42%,rgba(10,10,10,0.48)_100%),linear-gradient(180deg,rgba(10,10,10,0.46)_0%,rgba(10,10,10,0.88)_88%)]" />
       <div className="mx-auto grid max-w-7xl gap-8 py-8 sm:py-10 lg:min-h-[88vh] lg:content-center lg:py-12">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end">
           <div className="min-w-0">
