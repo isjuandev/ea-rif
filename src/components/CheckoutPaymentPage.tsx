@@ -7,7 +7,8 @@ import { loadMercadoPago } from "@mercadopago/sdk-js";
 import { PhoneInput, defaultCountries, type CountryIso2 } from "react-international-phone";
 import "react-international-phone/style.css";
 import { Banknote, CheckCircle2, CreditCard, Loader2 } from "lucide-react";
-import { useRifaConfig } from "@/components/use-rifa-config";
+import { Skeleton } from "@/components/LoadingSkeleton";
+import { useRifaConfigState } from "@/components/use-rifa-config";
 import { formatCOP } from "@/components/utils";
 import { isValidColombianCellphone } from "@/lib/phone";
 
@@ -77,6 +78,11 @@ const CARD_BRAND_LABELS: Record<CardBrand, string> = {
 
 function countLetters(value: string) {
   return (value.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) ?? []).length;
+}
+
+function hasFullBuyerName(value: string) {
+  const trimmed = value.trim();
+  return countLetters(trimmed) >= 4 && trimmed.split(/\s+/).filter(Boolean).length >= 2;
 }
 
 function isValidEmail(value: string) {
@@ -164,7 +170,7 @@ export function CheckoutPaymentPage() {
   const searchParams = useSearchParams();
   const packageId = searchParams.get("package");
   const requestedQuantity = Number(searchParams.get("quantity"));
-  const rifaConfig = useRifaConfig();
+  const { config: rifaConfig, loading: configLoading } = useRifaConfigState();
   const [buyer, setBuyer] = useState<CheckoutBuyer>(initialBuyer);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -486,7 +492,7 @@ export function CheckoutPaymentPage() {
     };
   }, [buyer.cellphone, buyer.email, buyer.name, paymentMethodMode, paymentReady, selectedPackage, resolvedAmount, resolvedTicketCount]);
 
-  const validName = countLetters(buyer.name) >= 4;
+  const validName = hasFullBuyerName(buyer.name);
   const validCellphone = isValidColombianCellphone(buyer.cellphone);
   const validEmail = isValidEmail(buyer.email);
   const validAddress =
@@ -540,6 +546,10 @@ export function CheckoutPaymentPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (configLoading) {
+      setFormError(`Estamos cargando la información de ${rifaConfig.eventName}. Intenta de nuevo en unos segundos.`);
+      return;
+    }
     if (!selectedPackage && !isCustomPurchase) {
       setFormError("Selecciona un paquete antes de pagar.");
       return;
@@ -549,7 +559,7 @@ export function CheckoutPaymentPage() {
       return;
     }
     if (!validBuyer) {
-      setFormError("Revisa tus datos: nombre mínimo 4 letras, celular colombiano válido con indicativo +57, correo válido, departamento, ciudad y direccion.");
+      setFormError("Revisa tus datos: nombre(s) y apellido, celular colombiano válido con indicativo +57, correo válido, departamento, ciudad y direccion.");
       return;
     }
 
@@ -561,7 +571,7 @@ export function CheckoutPaymentPage() {
 
   async function handlePseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if ((!selectedPackage && !isCustomPurchase) || !validBuyer || !validPsePayment) {
+    if (configLoading || (!selectedPackage && !isCustomPurchase) || !validBuyer || !validPsePayment) {
       setPaymentError("Completa los datos de PSE antes de pagar.");
       return;
     }
@@ -640,7 +650,13 @@ export function CheckoutPaymentPage() {
             <h1 className="mt-2 font-heading text-3xl font-bold">Pasarela de pago</h1>
           </div>
 
-          {(selectedPackage || isCustomPurchase) ? (
+          {configLoading ? (
+            <div className="mt-6 rounded-md border border-white/12 bg-black/25 p-4">
+              <Skeleton className="h-8 w-36" />
+              <Skeleton className="mt-3 h-4 w-24" />
+              <Skeleton className="mt-5 h-9 w-32 bg-lime-300/20" />
+            </div>
+          ) : (selectedPackage || isCustomPurchase) ? (
             <div className="mt-6 rounded-md border border-white/12 bg-black/25 p-4">
               <p className="font-heading text-2xl font-bold">{resolvedTicketCount} Entradas</p>
               <p className="mt-1 text-sm text-white/60">
@@ -669,14 +685,14 @@ export function CheckoutPaymentPage() {
                   </p>
                 )}
                 <label className="block sm:col-span-2">
-                  <span className="text-sm font-bold text-white/80">Nombre completo</span>
+                  <span className="text-sm font-bold text-white/80">Nombre(s) y apellido</span>
                   <input
                     required
                     minLength={4}
                     value={buyer.name}
                     onChange={(event) => updateBuyer({ name: event.target.value })}
                     className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
-                    placeholder="Tu nombre"
+                    placeholder="Juan García"
                   />
                 </label>
                 <label className="block">
@@ -752,7 +768,7 @@ export function CheckoutPaymentPage() {
                   />
                 </label>
                 <button
-                  disabled={(!selectedPackage && !isCustomPurchase) || !validBuyer}
+                  disabled={configLoading || (!selectedPackage && !isCustomPurchase) || !validBuyer}
                   className="sm:col-span-2 mt-2 flex w-full items-center justify-center gap-3 rounded-md bg-lime-300 px-5 py-3 text-sm font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:text-base"
                 >
                   <CreditCard className="size-5" />

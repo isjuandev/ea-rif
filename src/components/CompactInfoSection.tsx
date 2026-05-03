@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { Skeleton } from "@/components/LoadingSkeleton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const entradas = [
@@ -46,12 +47,14 @@ type Winner = {
 export function CompactInfoSection() {
   const [winnersOpen, setWinnersOpen] = useState(true);
   const [winners, setWinners] = useState<Winner[]>([]);
+  const [winnersLoading, setWinnersLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/rifa/winners")
       .then((response) => response.json())
       .then((data) => setWinners(data.winners ?? []))
-      .catch(() => setWinners([]));
+      .catch(() => setWinners([]))
+      .finally(() => setWinnersLoading(false));
   }, []);
 
   return (
@@ -89,9 +92,21 @@ export function CompactInfoSection() {
             </button>
             {winnersOpen && (
               <div className="border-t border-white/10 px-4 py-3">
-                {winners.length === 0 && <p className="text-sm leading-6 text-white/55">Aun no hay ganadores registrados.</p>}
+                {winnersLoading && (
+                  <div className="grid gap-3">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div key={index} className="rounded-md border border-white/8 bg-black/20 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-8 w-16 bg-lime-300/20" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!winnersLoading && winners.length === 0 && <p className="text-sm leading-6 text-white/55">Aun no hay ganadores registrados.</p>}
                 <div className="grid gap-3">
-                  {winners.slice(0, 4).map((winner) => (
+                  {!winnersLoading && winners.slice(0, 4).map((winner) => (
                     <div key={`${winner.draw_date}-${winner.major_number}`} className="rounded-md border border-white/8 bg-black/20 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{winner.draw_date}</p>

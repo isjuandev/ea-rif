@@ -59,12 +59,17 @@ function splitName(fullName: string) {
   const trimmed = fullName.trim();
   const parts = trimmed.split(/\s+/).filter(Boolean);
   if (parts.length <= 1) {
-    return { firstName: trimmed || "Cliente", lastName: "Rifa" };
+    throw new Error("Ingresa nombre(s) y apellido del comprador.");
   }
   return {
     firstName: parts[0],
     lastName: parts.slice(1).join(" "),
   };
+}
+
+function hasFullBuyerName(value: string) {
+  const trimmed = value.trim();
+  return countLetters(trimmed) >= 4 && trimmed.split(/\s+/).filter(Boolean).length >= 2;
 }
 
 function normalizeEntityType(value?: string) {
@@ -303,13 +308,13 @@ export async function POST(request: Request) {
 
     if (
       !payload.formData ||
-      countLetters(payload.buyerName || "") < 4 ||
+      !hasFullBuyerName(payload.buyerName || "") ||
       !isValidColombianCellphone(buyerContactPhone) ||
       !isValidEmail(payload.buyerEmail || "")
     ) {
       return validationError(
         "Datos del comprador incompletos.",
-        "Verifica que el nombre tenga al menos 4 letras, el celular colombiano tenga indicativo +57 y el correo sea válido.",
+        "Verifica que el comprador tenga nombre(s) y apellido, el celular colombiano tenga indicativo +57 y el correo sea válido.",
       );
     }
 

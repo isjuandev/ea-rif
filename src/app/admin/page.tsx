@@ -5,6 +5,7 @@ import { LogOut, Plus, Save, Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { rifaConfig, type RifaConfig, type RifaPackage } from "@/config/rifa";
 import { getLotteryOption, lotteryOptions } from "@/lib/lottery-results";
+import { Skeleton } from "@/components/LoadingSkeleton";
 import { formatCOP } from "@/components/utils";
 
 function emptyPackage(index: number): RifaPackage {
@@ -26,9 +27,38 @@ function toDateTimeLocalValue(isoDate: string | null | undefined) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function AdminSettingsSkeleton() {
+  return (
+    <>
+      <section className="grid gap-4 py-6 lg:grid-cols-3">
+        {Array.from({ length: 12 }).map((_, index) => (
+          <div key={index} className={index === 6 || index === 7 ? "lg:col-span-2" : ""}>
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="mt-2 h-12 w-full rounded-md" />
+          </div>
+        ))}
+      </section>
+      <section className="grid gap-4 pb-4 lg:grid-cols-2">
+        <Skeleton className="h-24 rounded-md" />
+        <Skeleton className="h-24 rounded-md" />
+      </section>
+      <section className="py-4">
+        <Skeleton className="h-4 w-24 bg-lime-300/20" />
+        <Skeleton className="mt-3 h-9 w-64" />
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-72 rounded-md" />
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
 export default function AdminRifaSettingsPage() {
   const router = useRouter();
   const [config, setConfig] = useState<RifaConfig>(rifaConfig);
+  const [configLoading, setConfigLoading] = useState(true);
   const [status, setStatus] = useState("Cargando configuración...");
   const [saving, setSaving] = useState(false);
   const [blessedNumbersInput, setBlessedNumbersInput] = useState("");
@@ -50,7 +80,8 @@ export default function AdminRifaSettingsPage() {
         }
         setStatus(data?.configured ? "Configuracion cargada desde Supabase." : "Usando configuración base. Guarda para persistir cambios.");
       })
-      .catch(() => setStatus("No se pudo leer la configuración. Revisa Supabase."));
+      .catch(() => setStatus("No se pudo leer la configuración. Revisa Supabase."))
+      .finally(() => setConfigLoading(false));
   }, []);
 
   useEffect(() => {
@@ -150,7 +181,7 @@ export default function AdminRifaSettingsPage() {
               Salir
             </button>
             <button
-              disabled={saving}
+              disabled={saving || configLoading}
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-lime-300 px-5 py-3 font-extrabold uppercase text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="size-5" />
@@ -159,6 +190,10 @@ export default function AdminRifaSettingsPage() {
           </div>
         </header>
 
+        {configLoading ? (
+          <AdminSettingsSkeleton />
+        ) : (
+          <>
         <section className="grid gap-4 py-6 lg:grid-cols-3">
           <label className="block">
             <span className="text-sm font-bold text-white/76">Nombre de la rifa</span>
@@ -373,6 +408,8 @@ export default function AdminRifaSettingsPage() {
             ))}
           </div>
         </section>
+          </>
+        )}
       </form>
     </main>
   );

@@ -27,9 +27,10 @@ export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp?: 
   const buyerCellphone = normalizeColombianCellphone(input.buyerCellphone || input.buyerWhatsapp || "");
   const buyerWhatsapp = buyerCellphone;
   const buyerEmail = input.buyerEmail?.trim() ?? "";
+  const nameParts = buyerName.split(/\s+/).filter(Boolean);
 
-  if (buyerName.length < 4 || buyerName.length > 120) {
-    throw new Error("El nombre debe tener entre 4 y 120 caracteres.");
+  if (buyerName.length < 4 || buyerName.length > 120 || nameParts.length < 2) {
+    throw new Error("Ingresa nombre(s) y apellido del comprador.");
   }
 
   if (!buyerWhatsapp) {

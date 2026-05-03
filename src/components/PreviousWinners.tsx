@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { Skeleton } from "@/components/LoadingSkeleton";
 
 type Winner = {
   draw_date: string;
@@ -14,12 +15,14 @@ type Winner = {
 export function PreviousWinners() {
   const [open, setOpen] = useState(false);
   const [winners, setWinners] = useState<Winner[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/rifa/winners")
       .then((response) => response.json())
       .then((data) => setWinners(data.winners ?? []))
-      .catch(() => setWinners([]));
+      .catch(() => setWinners([]))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -39,12 +42,20 @@ export function PreviousWinners() {
                 </tr>
               </thead>
               <tbody>
-                {winners.length === 0 && (
+                {loading && (
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <tr key={index} className="border-t border-white/8">
+                      <td className="px-5 py-3"><Skeleton className="h-4 w-28" /></td>
+                      <td className="px-5 py-3"><Skeleton className="h-7 w-16 bg-lime-300/20" /></td>
+                    </tr>
+                  ))
+                )}
+                {!loading && winners.length === 0 && (
                   <tr className="border-t border-white/8">
                     <td className="px-5 py-3 text-white/55" colSpan={2}>Aun no hay ganadores registrados en Supabase.</td>
                   </tr>
                 )}
-                {winners.map((winner) => (
+                {!loading && winners.map((winner) => (
                   <tr key={`${winner.draw_date}-${winner.major_number}`} className="border-t border-white/8">
                     <td className="px-5 py-3 text-white/70">{winner.draw_date}</td>
                     <td className="px-5 py-3">

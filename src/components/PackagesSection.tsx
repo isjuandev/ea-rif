@@ -5,12 +5,12 @@ import { CalendarDays } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { PackageCardSkeleton, Skeleton, TextSkeleton } from "@/components/LoadingSkeleton";
 import { PackageCard } from "@/components/PackageCard";
-import { useRifaConfig } from "@/components/use-rifa-config";
+import { useRifaConfigState } from "@/components/use-rifa-config";
 import { formatCOP } from "@/components/utils";
 import khalifaDesktopImage from "@/public/images/khalifaD.png";
 import khalifaMobileImage from "@/public/images/khalifaM.jpeg";
-import { rifaConfig as fallbackRifaConfig } from "@/config/rifa";
 import { type RifaPackage } from "@/config/rifa";
 
 type RifaStatus = {
@@ -23,13 +23,9 @@ type RifaStatus = {
 
 export function PackagesSection() {
   const router = useRouter();
-  const [status, setStatus] = useState<RifaStatus>({
-    totalTickets: fallbackRifaConfig.totalTickets,
-    soldTickets: fallbackRifaConfig.fallbackSoldTickets,
-    availableTickets: fallbackRifaConfig.totalTickets,
-    configured: false,
-  });
-  const rifaConfig = useRifaConfig();
+  const [status, setStatus] = useState<RifaStatus | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+  const { config: rifaConfig, loading: configLoading } = useRifaConfigState();
   const [customTickets, setCustomTickets] = useState(5);
   const [customError, setCustomError] = useState("");
 
@@ -39,11 +35,12 @@ export function PackagesSection() {
     fetch("/api/rifa/status")
       .then((response) => response.json())
       .then((data) => setStatus(data))
-      .catch(() => undefined);
+      .catch(() => setStatus(null))
+      .finally(() => setStatusLoading(false));
   }, []);
 
   function handleBuy(pack: RifaPackage) {
-    if (pack.rifas > status.availableTickets) return;
+    if (!status || pack.rifas > status.availableTickets) return;
     router.push(`/pago/checkout?package=${encodeURIComponent(pack.id)}`);
   }
 
@@ -53,20 +50,21 @@ export function PackagesSection() {
       return;
     }
     setCustomError("");
-    if (boundedCustomTickets > status.availableTickets) return;
+    if (!status || boundedCustomTickets > status.availableTickets) return;
     router.push(`/pago/checkout?package=custom&quantity=${encodeURIComponent(String(boundedCustomTickets))}`);
   }
 
-  const drawDateIso = status.drawDate ?? new Date(Date.now() + 1000).toISOString();
-  const drawDate = status.drawDate
+  const drawDateIso = status?.drawDate ?? new Date(Date.now() + 1000).toISOString();
+  const drawDate = status?.drawDate
     ? new Intl.DateTimeFormat("es-CO", {
       dateStyle: "full",
       timeStyle: "short",
     }).format(new Date(status.drawDate))
     : "Cargando sorteo";
-  const soldPercentage = Math.min((status.soldTickets / status.totalTickets) * 100, 100);
+  const soldPercentage = status ? Math.min((status.soldTickets / status.totalTickets) * 100, 100) : 0;
   const roundedSoldPercentage = Math.round(soldPercentage);
   const roundedAvailablePercentage = Math.round(Math.max(100 - soldPercentage, 0));
+  const loading = configLoading || statusLoading || !status;
 
   return (
     <section id="paquetes" className="relative isolate overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
@@ -93,11 +91,11 @@ export function PackagesSection() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end">
           <div className="min-w-0">
             <h1 className="font-heading text-[clamp(2.7rem,8vw,5.8rem)] font-extrabold uppercase leading-[0.9] tracking-normal text-foreground">
-              {rifaConfig.eventName}
+              {configLoading ? <Skeleton className="h-[0.9em] w-full max-w-[720px]" /> : rifaConfig.eventName}
             </h1>
             <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200 sm:text-xs sm:tracking-[0.2em]">
               <CalendarDays className="size-4" />
-              <span className="truncate">{drawDate}</span>
+              {statusLoading ? <Skeleton className="h-4 w-56 bg-amber-200/20" /> : <span className="truncate">{drawDate}</span>}
             </div>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
               Compra tus entradas digitales, recíbelos enumerados en tu correo.
@@ -105,14 +103,22 @@ export function PackagesSection() {
           </div>
 
           <div className="panel grid gap-3 p-4 lg:mb-2">
-            <CountdownTimer drawDate={drawDateIso} />
+            {statusLoading ? (
+              <div className="grid grid-cols-4 gap-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} className="h-20 rounded-md" />
+                ))}
+              </div>
+            ) : (
+              <CountdownTimer drawDate={drawDateIso} />
+            )}
             <div>
               <div className="mb-2 flex items-end justify-between gap-3">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-lime-300">Avance</p>
-                  <p className="mt-1 font-heading text-2xl font-bold text-foreground">{roundedSoldPercentage}% reservado</p>
+                  {statusLoading ? <Skeleton className="mt-2 h-7 w-40" /> : <p className="mt-1 font-heading text-2xl font-bold text-foreground">{roundedSoldPercentage}% reservado</p>}
                 </div>
-                <p className="text-sm font-bold text-white/55">{roundedAvailablePercentage}% disponible</p>
+                {statusLoading ? <Skeleton className="h-4 w-24" /> : <p className="text-sm font-bold text-white/55">{roundedAvailablePercentage}% disponible</p>}
               </div>
               <div className="h-3 overflow-hidden rounded-full bg-white/10">
                 <div
@@ -135,19 +141,31 @@ export function PackagesSection() {
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,4fr)_minmax(220px,1fr)] xl:items-stretch">
             <div className="min-w-0">
               <div className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {rifaConfig.packages.map((pack) => (
-                  <div key={pack.id} className="min-w-0">
-                    <PackageCard
-                      pack={pack}
-                      disabled={pack.rifas > status.availableTickets}
-                      disabledReason="Sin cupos"
-                      onBuy={handleBuy}
-                    />
-                  </div>
-                ))}
+                {configLoading
+                  ? Array.from({ length: 4 }).map((_, index) => <PackageCardSkeleton key={index} />)
+                  : rifaConfig.packages.map((pack) => (
+                    <div key={pack.id} className="min-w-0">
+                      <PackageCard
+                        pack={pack}
+                        disabled={loading || pack.rifas > (status?.availableTickets ?? 0)}
+                        disabledReason="Sin cupos"
+                        onBuy={handleBuy}
+                      />
+                    </div>
+                  ))}
               </div>
 
-              {rifaConfig.blessedPrizes && rifaConfig.blessedPrizes.length > 0 && (
+              {configLoading ? (
+                <div className="mt-5 grid w-full gap-4 md:grid-cols-3">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <article key={index} className="card border-amber-300/25 bg-amber-300/10 p-4">
+                      <Skeleton className="mx-auto h-4 w-44 bg-amber-200/20" />
+                      <Skeleton className="mx-auto mt-4 h-8 w-36 bg-amber-200/20" />
+                      <TextSkeleton className="mx-auto mt-3 w-48 bg-amber-200/20" />
+                    </article>
+                  ))}
+                </div>
+              ) : rifaConfig.blessedPrizes && rifaConfig.blessedPrizes.length > 0 && (
                 <div className="mt-5 grid w-full gap-4 md:grid-cols-3">
                   <article className="card border-amber-300/35 bg-amber-300/10 p-4 text-center">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Numeros bendecidos</p>
@@ -176,7 +194,7 @@ export function PackagesSection() {
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h3 className="font-heading text-2xl font-bold leading-tight text-foreground">{boundedCustomTickets} Entradas</h3>
               </div>
-              <p className="font-heading text-3xl font-bold text-primary">{formatCOP(boundedCustomTickets * rifaConfig.ticketPrice)}</p>
+              {configLoading ? <Skeleton className="h-9 w-36 bg-primary/20" /> : <p className="font-heading text-3xl font-bold text-primary">{formatCOP(boundedCustomTickets * rifaConfig.ticketPrice)}</p>}
               <div className="mt-4 space-y-2 text-sm text-muted">
                 <p>Compra entre 5 y 500 entradas</p>
               </div>
@@ -205,7 +223,7 @@ export function PackagesSection() {
                 <button
                   type="button"
                   onClick={handleBuyCustom}
-                  disabled={boundedCustomTickets > status.availableTickets}
+                  disabled={loading || boundedCustomTickets > (status?.availableTickets ?? 0)}
                   className="btn btn-primary mt-5 w-full bg-white group-hover:bg-primary disabled:bg-white/18 disabled:text-white/45"
                 >
                   Comprar

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { rifaConfig } from "@/config/rifa";
+import { Skeleton } from "@/components/LoadingSkeleton";
 
 type RifaStatus = {
   totalTickets: number;
@@ -11,21 +11,18 @@ type RifaStatus = {
 };
 
 export function ProgressBar() {
-  const [status, setStatus] = useState<RifaStatus>({
-    totalTickets: rifaConfig.totalTickets,
-    soldTickets: rifaConfig.fallbackSoldTickets,
-    availableTickets: rifaConfig.totalTickets,
-    configured: false,
-  });
+  const [status, setStatus] = useState<RifaStatus | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/rifa/status")
       .then((response) => response.json())
       .then((data) => setStatus(data))
-      .catch(() => undefined);
+      .catch(() => setStatus(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const soldPercentage = Math.min((status.soldTickets / status.totalTickets) * 100, 100);
+  const soldPercentage = status ? Math.min((status.soldTickets / status.totalTickets) * 100, 100) : 0;
   const availablePercentage = Math.max(100 - soldPercentage, 0);
   const roundedSoldPercentage = Math.round(soldPercentage);
   const roundedAvailablePercentage = Math.round(availablePercentage);
@@ -36,12 +33,12 @@ export function ProgressBar() {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Avance de rifas</p>
-            <h2 className="mt-2 font-heading text-2xl font-bold text-foreground sm:text-4xl">
+            {loading ? <Skeleton className="mt-3 h-9 w-full max-w-md" /> : <h2 className="mt-2 font-heading text-2xl font-bold text-foreground sm:text-4xl">
               {roundedSoldPercentage}% de la rifa ya esta reservado
-            </h2>
-            <p className="mt-2 text-sm text-white/55">{roundedAvailablePercentage}% disponible para nuevas compras</p>
+            </h2>}
+            {loading ? <Skeleton className="mt-3 h-4 w-56" /> : <p className="mt-2 text-sm text-white/55">{roundedAvailablePercentage}% disponible para nuevas compras</p>}
           </div>
-          <p className="font-heading text-3xl font-bold text-foreground">{roundedSoldPercentage}%</p>
+          {loading ? <Skeleton className="h-9 w-16" /> : <p className="font-heading text-3xl font-bold text-foreground">{roundedSoldPercentage}%</p>}
         </div>
         <div className="h-4 overflow-hidden rounded-full bg-white/10">
           <div

@@ -3,17 +3,20 @@
 import { useEffect, useState } from "react";
 import { ArrowDown, CalendarDays } from "lucide-react";
 import { CountdownTimer } from "@/components/CountdownTimer";
-import { useRifaConfig } from "@/components/use-rifa-config";
+import { Skeleton } from "@/components/LoadingSkeleton";
+import { useRifaConfigState } from "@/components/use-rifa-config";
 
 export function Hero() {
   const [drawDateIso, setDrawDateIso] = useState<string | null>(null);
-  const rifaConfig = useRifaConfig();
+  const [drawDateLoading, setDrawDateLoading] = useState(true);
+  const { config: rifaConfig, loading: configLoading } = useRifaConfigState();
 
   useEffect(() => {
     fetch("/api/rifa/status")
       .then((response) => response.json())
       .then((data) => setDrawDateIso(data.drawDate))
-      .catch(() => setDrawDateIso(null));
+      .catch(() => setDrawDateIso(null))
+      .finally(() => setDrawDateLoading(false));
   }, []);
 
   const countdownDate = drawDateIso ?? new Date(Date.now() + 1000).toISOString();
@@ -31,10 +34,10 @@ export function Hero() {
         <div className="max-w-5xl">
           <div className="mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-lime-300/40 bg-lime-300/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-lime-300 sm:text-xs sm:tracking-[0.2em]">
             <CalendarDays className="size-4" />
-            <span className="truncate">{drawDate}</span>
+            {drawDateLoading ? <Skeleton className="h-4 w-44 bg-lime-300/20" /> : <span className="truncate">{drawDate}</span>}
           </div>
           <h1 className="font-heading text-[clamp(2.35rem,12vw,4rem)] font-extrabold uppercase leading-[0.92] tracking-normal text-foreground sm:text-7xl lg:text-8xl">
-            {rifaConfig.eventName}
+            {configLoading ? <Skeleton className="h-[0.92em] w-full max-w-[760px]" /> : rifaConfig.eventName}
             <span className="block text-lime-300">7 De Mayo</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
@@ -43,7 +46,7 @@ export function Hero() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,760px)_1fr] lg:items-end">
-          <CountdownTimer drawDate={countdownDate} />
+          {drawDateLoading ? <Skeleton className="h-24 w-full rounded-md" /> : <CountdownTimer drawDate={countdownDate} />}
           <a
             href="#paquetes"
             className="group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-md bg-lime-300 px-7 py-4 text-base font-extrabold uppercase text-primary-foreground shadow-glow transition hover:-translate-y-0.5 hover:shadow-glow sm:w-auto"
