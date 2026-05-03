@@ -33,9 +33,11 @@ export default function AdminRifaSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [blessedNumbersInput, setBlessedNumbersInput] = useState("");
   const [blessedPrizeValueInput, setBlessedPrizeValueInput] = useState("");
-  const [soldNumbers, setSoldNumbers] = useState<Array<{ number: string; buyer_name: string | null; buyer_whatsapp: string | null; sold_at: string | null; purchase_id: string | null }>>([]);
+  const [soldNumbers, setSoldNumbers] = useState<Array<{ number: string; buyer_name: string | null; buyer_whatsapp: string | null; buyer_email: string | null; sold_at: string | null; purchase_id: string | null }>>([]);
   const [soldCount, setSoldCount] = useState(0);
   const [soldPercentage, setSoldPercentage] = useState(0);
+  const [salesPage, setSalesPage] = useState(1);
+  const [salesTotalPages, setSalesTotalPages] = useState(0);
 
   useEffect(() => {
     fetch("/api/rifa/config", { cache: "no-store" })
@@ -52,15 +54,16 @@ export default function AdminRifaSettingsPage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/admin/sales", { cache: "no-store" })
+    fetch(`/api/admin/sales?page=${salesPage}`, { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => {
         setSoldNumbers(data?.soldNumbers ?? []);
         setSoldCount(data?.soldCount ?? 0);
         setSoldPercentage(data?.soldPercentage ?? 0);
+        setSalesTotalPages(data?.totalPages ?? 0);
       })
       .catch(() => undefined);
-  }, []);
+  }, [salesPage]);
 
   function updatePackage(index: number, patch: Partial<RifaPackage>) {
     setConfig((current) => ({
@@ -271,6 +274,7 @@ export default function AdminRifaSettingsPage() {
                 <tr>
                   <th className="px-3 py-2 text-left">Numero</th>
                   <th className="px-3 py-2 text-left">Comprador</th>
+                  <th className="px-3 py-2 text-left">Correo</th>
                   <th className="px-3 py-2 text-left">WhatsApp</th>
                   <th className="px-3 py-2 text-left">Fecha</th>
                 </tr>
@@ -280,12 +284,35 @@ export default function AdminRifaSettingsPage() {
                   <tr key={`${item.purchase_id}-${item.number}`} className="border-t border-white/10">
                     <td className="px-3 py-2 font-bold text-lime-300">{item.number}</td>
                     <td className="px-3 py-2">{item.buyer_name || "-"}</td>
+                    <td className="px-3 py-2">{item.buyer_email || "-"}</td>
                     <td className="px-3 py-2">{item.buyer_whatsapp || "-"}</td>
                     <td className="px-3 py-2">{item.sold_at ? new Date(item.sold_at).toLocaleString("es-CO") : "-"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-xs text-white/60">Mostrando 10 compras por página.</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSalesPage((current) => Math.max(1, current - 1))}
+                disabled={salesPage <= 1}
+                className="rounded-md border border-white/14 px-3 py-1 text-sm font-bold text-foreground transition hover:border-lime-300 hover:text-lime-300 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Anterior
+              </button>
+              <p className="text-sm text-white/75">Página {salesPage}{salesTotalPages > 0 ? ` de ${salesTotalPages}` : ""}</p>
+              <button
+                type="button"
+                onClick={() => setSalesPage((current) => (salesTotalPages > 0 ? Math.min(salesTotalPages, current + 1) : current + 1))}
+                disabled={salesTotalPages > 0 ? salesPage >= salesTotalPages : soldNumbers.length < 10}
+                className="rounded-md border border-white/14 px-3 py-1 text-sm font-bold text-foreground transition hover:border-lime-300 hover:text-lime-300 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         </section>
 
