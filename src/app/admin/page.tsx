@@ -11,7 +11,7 @@ function emptyPackage(index: number): RifaPackage {
   return {
     id: `paquete-${index + 1}`,
     name: `Paquete ${index + 1}`,
-    wallpapers: 5,
+    entradas: 5,
     rifas: 5,
     price: 2500,
     featured: false,
@@ -246,7 +246,7 @@ export default function AdminRifaSettingsPage() {
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <p className="font-heading text-2xl font-bold text-lime-300">{formatCOP(pack.price || 0)}</p>
-                    <p className="mt-1 text-sm text-white/55">{pack.rifas} numeros</p>
+                    <p className="mt-1 text-sm text-white/55">{pack.rifas} números</p>
                   </div>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => markFeatured(index)} className={`grid size-10 place-items-center rounded-[8px] border transition ${pack.featured ? "border-lime-300 bg-lime-300 text-black" : "border-white/12 text-white/65 hover:text-lime-300"}`} title="Marcar popular">
@@ -269,7 +269,7 @@ export default function AdminRifaSettingsPage() {
                   <div className="grid grid-cols-3 gap-2">
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Entradas</span>
-                      <input type="number" min={1} value={pack.wallpapers} onChange={(event) => updatePackage(index, { wallpapers: Number(event.target.value) })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
+                      <input type="number" min={1} value={pack.entradas} onChange={(event) => updatePackage(index, { entradas: Number(event.target.value) })} className="mt-1 w-full rounded-[8px] border border-white/12 bg-black/30 px-3 py-2 text-white outline-none focus:border-lime-300" />
                     </label>
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/48">Rifas</span>

@@ -36,7 +36,7 @@ export function PackageCard({
       </div>
       <p className="font-heading text-3xl font-bold text-lime-300">{formatCOP(pack.price)}</p>
       <div className="mt-5 space-y-2 text-sm text-white/72">
-        <p>{pack.wallpapers} wallpaper{pack.wallpapers > 1 ? "s" : ""} digital{pack.wallpapers > 1 ? "es" : ""}</p>
+        <p>{pack.entradas} entrada{pack.entradas > 1 ? "s" : ""} digital{pack.entradas > 1 ? "es" : ""}</p>
       </div>
       <button
         disabled={disabled}

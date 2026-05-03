@@ -38,7 +38,7 @@ export function Hero() {
             <span className="block text-lime-300">7 De Mayo</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
-          Cada compra que realices viene con los mejores wallpapers digitales.
+          Cada compra que realices viene con las mejores entradas digitales.
           </p>
         </div>
 

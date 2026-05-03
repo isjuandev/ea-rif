@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-const wallpapers = [
+const entradas = [
   "from-lime-300 via-cyan-300 to-fuchsia-500",
   "from-orange-300 via-lime-300 to-emerald-500",
   "from-white via-lime-200 to-yellow-300",
@@ -15,16 +15,16 @@ const wallpapers = [
 
 const questions = [
   {
-    q: "Como recibo mis wallpapers?",
-    a: "Al registrar la compra, el sistema asigna wallpapers aleatorios disponibles del 0000 al 9999 y los envia al correo registrado.",
+    q: "Como recibo mis entradas?",
+    a: "Al registrar la compra, el sistema asigna entradas aleatorias disponibles del 0000 al 9999 y las envia al correo registrado.",
   },
   {
     q: "Que estoy comprando exactamente?",
-    a: "Cada wallpaper cuesta $500 COP e incluye un wallpaper digital. Puedes comprar paquetes de 5, 10, 20 o 50 wallpapers.",
+    a: "Cada entrada cuesta $1000 COP e incluye una entrada digital. Puedes comprar paquetes de 5, 10, 20 o 50 entradas.",
   },
   {
-    q: "Puedo elegir mis wallpapers?",
-    a: "No. Para mantener el proceso transparente, los wallpapers se asignan aleatoriamente segun la cantidad incluida en tu paquete.",
+    q: "Puedo elegir mis entradas?",
+    a: "No. Para mantener el proceso transparente, las entradas se asignan aleatoriamente segun la cantidad incluida en tu paquete.",
   },
   {
     q: "Como se anuncia el ganador?",
@@ -32,7 +32,7 @@ const questions = [
   },
   {
     q: "Hay mas premios ademas del mayor?",
-    a: "Si. En cada sorteo se registran 10 wallpapers premiados aleatorios con recompensas menores.",
+    a: "Si. En cada sorteo se registran numeros bendecidos premiados aleatorios con recompensas menores.",
   },
 ];
 
@@ -59,13 +59,13 @@ export function CompactInfoSection() {
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
         <div className="min-w-0">
           <div className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Wallpapers incluidos</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Entradas incluidas</p>
             <h2 className="mt-2 max-w-2xl font-heading text-3xl font-bold leading-tight text-white sm:text-4xl">
               Previews listos para desbloquear
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {wallpapers.map((gradient, index) => (
+            {entradas.map((gradient, index) => (
               <div key={gradient} className="aspect-[4/3] overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.04] p-2">
                 <div className={`relative h-full rounded-[6px] bg-gradient-to-br ${gradient}`}>
                   <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.04),rgba(0,0,0,0.38)),repeating-linear-gradient(90deg,rgba(255,255,255,0.12)_0_1px,transparent_1px_24px)]" />
@@ -97,9 +97,6 @@ export function CompactInfoSection() {
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{winner.draw_date}</p>
                         <p className="font-heading text-2xl font-bold text-lime-300">{winner.major_number ?? "Pendiente"}</p>
                       </div>
-                      {winner.minor_numbers.length > 0 && (
-                        <p className="mt-2 text-xs leading-5 text-white/48">Premios menores: {winner.minor_numbers.join(", ")}</p>
-                      )}
                     </div>
                   ))}
                 </div>

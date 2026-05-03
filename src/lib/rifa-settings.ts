@@ -26,7 +26,7 @@ function normalizePackage(pack: Partial<RifaPackage>, index: number): RifaPackag
   return {
     id: String(pack.id || `paquete-${index + 1}`).trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
     name: String(pack.name || `Paquete ${index + 1}`).trim(),
-    wallpapers: toPositiveInteger(pack.wallpapers, rifas),
+    entradas: toPositiveInteger(pack.entradas, rifas),
     rifas,
     price: toNonNegativeInteger(pack.price, rifas * rifaConfig.ticketPrice),
     featured: Boolean(pack.featured),

@@ -2,16 +2,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const questions = [
   {
-    q: "Como recibo mis wallpapers?",
-    a: "Al registrar la compra, el sistema asigna wallpapers aleatorios disponibles del 0000 al 9999 y los envía al correo registrado.",
+    q: "Como recibo mis entradas?",
+    a: "Al registrar la compra, el sistema asigna entradas aleatorias disponibles del 0000 al 9999 y las envía al correo registrado.",
   },
   {
     q: "Que estoy comprando exactamente?",
-    a: "Cada wallpaper cuesta $500 COP e incluye un wallpaper digital. Puedes comprar paquetes de 5, 10, 20 o 50 wallpapers.",
+    a: "Cada entrada cuesta $1000 COP e incluye una entrada digital. Puedes comprar paquetes de 5, 10, 20 o 50 entradas.",
   },
   {
-    q: "Puedo elegir mis wallpapers?",
-    a: "No. Para mantener el proceso transparente, los wallpapers se asignan aleatoriamente según la cantidad de rifas incluidas en tu paquete.",
+    q: "Puedo elegir mis entradas?",
+    a: "No. Para mantener el proceso transparente, las entradas se asignan aleatoriamente según la cantidad de rifas incluidas en tu paquete.",
   },
   {
     q: "Como se anuncia el ganador?",
@@ -19,7 +19,7 @@ const questions = [
   },
   {
     q: "Hay mas premios ademas del mayor?",
-    a: "Si. En cada sorteo se registran 10 wallpapers premiados aleatorios con recompensas menores.",
+    a: "Si. En cada sorteo se registran 10 entradas premiados aleatorios con recompensas menores.",
   },
 ];
 

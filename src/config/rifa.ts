@@ -1,7 +1,7 @@
 export type RifaPackage = {
   id: string;
   name: string;
-  wallpapers: number;
+  entradas: number;
   rifas: number;
   price: number;
   featured?: boolean;
@@ -32,29 +32,29 @@ export type RifaConfig = {
 };
 
 export const rifaConfig: RifaConfig = {
-  eventName: "WALLPAPERS 2M",
+  eventName: "Entradas XX",
   ticketDigits: 4,
   ticketStart: 0,
   ticketEnd: 9999,
   totalTickets: 10000,
-  ticketPrice: 500,
+  ticketPrice: 1000,
   minorPrizeCount: 10,
-  lotterySlug: "boyaca",
-  lotteryName: "Loteria de Boyaca",
+  lotterySlug: "boyacá",
+  lotteryName: "Loteria de Boyacá",
   drawWeekday: 6,
   drawHour: 22,
   drawMinute: 30,
-  sellerName: "Rifas Wallpapers",
+  sellerName: "Entradas Digitales - Club Élite",
   packages: [
-    { id: "starter", name: "XX Entradas", wallpapers: 10, rifas: 10, price: 5000 },
-    { id: "popular", name: "XX Entradas", wallpapers: 20, rifas: 20, price: 5000 },
-    { id: "pro", name: "XX Entradas", wallpapers: 40, rifas: 40, price: 5000, featured: true },
-    { id: "max", name: "XX Entradas", wallpapers: 100, rifas: 100, price: 5000 },
+    { id: "starter", name: "XX Entradas", entradas: 10, rifas: 10, price: 5000 },
+    { id: "popular", name: "XX Entradas", entradas: 20, rifas: 20, price: 5000 },
+    { id: "pro", name: "XX Entradas", entradas: 40, rifas: 40, price: 5000, featured: true },
+    { id: "max", name: "XX Entradas", entradas: 100, rifas: 100, price: 5000 },
   ],
   fallbackSoldTickets: 0,
   socialLinks: {
-    instagram: "https://instagram.com/tucuenta",
-    whatsapp: "https://wa.me/573001234567",
+    instagram: "https://instagram.com/Serna_fc",
+    whatsapp: "https://wa.me/971508446750?text=Hola%2C%20necesito%20soporte%20con%20mi%20compra%20de%20entradas.",
   },
   previousWinners: [],
   blessedNumbers: [],

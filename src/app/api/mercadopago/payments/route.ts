@@ -470,7 +470,7 @@ export async function POST(request: Request) {
             token: payload.formData.token,
             issuer_id: payload.formData.issuer_id ? Number(payload.formData.issuer_id) : undefined,
             installments: payload.formData.installments ? Number(payload.formData.installments) : 1,
-            statement_descriptor: "RIFAS WALLPAPERS",
+            statement_descriptor: "Entradas Rifa",
             additional_info: {
               ip_address: buyerIpAddress ?? undefined,
               items: [

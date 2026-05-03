@@ -49,9 +49,6 @@ export function PreviousWinners() {
                     <td className="px-5 py-3 text-white/70">{winner.draw_date}</td>
                     <td className="px-5 py-3">
                       <span className="font-heading text-xl font-bold text-lime-300">{winner.major_number ?? "Pendiente"}</span>
-                      {winner.minor_numbers.length > 0 && (
-                        <span className="mt-1 block text-xs text-white/48">Premios menores: {winner.minor_numbers.join(", ")}</span>
-                      )}
                     </td>
                   </tr>
                 ))}

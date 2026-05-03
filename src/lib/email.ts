@@ -20,7 +20,7 @@ export async function sendTicketEmail({
   if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacio." };
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const from = process.env.RESEND_FROM || "Rifas Wallpapers <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM || "Entradas Elite Club <onboarding@resend.dev>";
 
   const html = `
     <div style="font-family:Arial,sans-serif;background:#000000;color:#1a1a1a;padding:24px">
@@ -82,7 +82,7 @@ export async function sendBlessedNumberAlertEmail({
   if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacio." };
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const from = process.env.RESEND_FROM || "Rifas Wallpapers <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM || "Entradas Elite Club <onboarding@resend.dev>";
 
   const html = `
     <div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#fff;padding:20px">
