@@ -9,9 +9,11 @@ import "react-international-phone/style.css";
 import { Banknote, CheckCircle2, CreditCard, Loader2 } from "lucide-react";
 import { useRifaConfig } from "@/components/use-rifa-config";
 import { formatCOP } from "@/components/utils";
+import { isValidColombianCellphone } from "@/lib/phone";
 
 type CheckoutBuyer = {
   name: string;
+  cellphone: string;
   whatsapp: string;
   email: string;
   zipCode: string;
@@ -61,7 +63,7 @@ const NATURAL_DOC_TYPES = [
 ];
 const COMPANY_DOC_TYPES = [{ label: "NIT", value: "NIT" }];
 const CARD_SECURE_FIELD_CLASS = "checkout-secure-field flex h-12 items-center overflow-hidden rounded-md border border-white/12 bg-black/30 text-foreground transition focus-within:border-lime-300/70";
-const CARD_SECURE_FIELD_INNER_CLASS = "min-w-0 flex-1 px-4 [&>iframe]:block [&>iframe]:h-12 [&>iframe]:w-full";
+const CARD_SECURE_FIELD_INNER_CLASS = "min-w-0 flex-1 px-4 [&>iframe]:block [&>iframe]:h-12 [&>iframe]:w-full [&>iframe]:invert";
 const CHECKOUT_INPUT_CLASS = "checkout-input mt-2 h-12 w-full rounded-md border border-white/12 bg-black/30 px-4 text-foreground outline-none transition placeholder:text-white/30 focus:border-transparent focus:ring-2 focus:ring-primary";
 
 const CARD_BRAND_LABELS: Record<CardBrand, string> = {
@@ -81,15 +83,32 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-
 function normalizeCardBrand(paymentMethodId?: string): CardBrand {
   const normalized = (paymentMethodId || "").toLowerCase();
   if (normalized.includes("visa")) return "visa";
-  if (normalized.includes("máster")) return "mástercard";
+  if (normalized.includes("master") || normalized.includes("mástercard")) return "mástercard";
   if (normalized.includes("amex") || normalized.includes("american")) return "amex";
   if (normalized.includes("diners")) return "diners";
   if (normalized.includes("discover")) return "discover";
   return "unknown";
+}
+
+function extractPaymentMethodId(paymentMethods: any): string | undefined {
+  if (!paymentMethods) return undefined;
+  if (typeof paymentMethods === "string") return paymentMethods;
+  if (Array.isArray(paymentMethods)) {
+    return paymentMethods.map(extractPaymentMethodId).find(Boolean);
+  }
+
+  return (
+    paymentMethods.paymentMethodId ||
+    paymentMethods.payment_method_id ||
+    paymentMethods.id ||
+    paymentMethods?.paymentMethod?.id ||
+    paymentMethods?.payment_method?.id ||
+    paymentMethods?.results?.[0]?.id ||
+    paymentMethods?.data?.[0]?.id
+  );
 }
 
 function CardBrandBadge({ brand }: { brand: CardBrand }) {
@@ -123,6 +142,7 @@ function CardBrandBadge({ brand }: { brand: CardBrand }) {
 
 const initialBuyer: CheckoutBuyer = {
   name: "",
+  cellphone: "+57 ",
   whatsapp: "+57 ",
   email: "",
   zipCode: "",
@@ -180,7 +200,7 @@ export function CheckoutPaymentPage() {
   const resolvedTicketCount = isCustomPurchase ? customTicketCount : (selectedPackage?.rifas ?? 0);
   const resolvedAmount = isCustomPurchase ? resolvedTicketCount * rifaConfig.ticketPrice : (selectedPackage?.price ?? 0);
 
-  const paymentBuyer: CheckoutBuyer = { ...buyer };
+  const paymentBuyer: CheckoutBuyer = { ...buyer, whatsapp: buyer.cellphone };
 
   useEffect(() => {
     let active = true;
@@ -314,12 +334,21 @@ export function CheckoutPaymentPage() {
             input: {
               color: "#F5F5F5",
               fontSize: "16px",
+              "font-size": "16px",
               fontWeight: "700",
+              "font-weight": "700",
               backgroundColor: "transparent",
+              "background-color": "transparent",
               caretColor: "#AAFF00",
+              "caret-color": "#AAFF00",
             },
             "::placeholder": {
               color: "rgba(245, 245, 245, 0.42)",
+            },
+            "input:-webkit-autofill": {
+              color: "#F5F5F5",
+              "-webkit-text-fill-color": "#F5F5F5",
+              "box-shadow": "0 0 0 1000px #050505 inset",
             },
           },
           form: {
@@ -395,6 +424,7 @@ export function CheckoutPaymentPage() {
                     packageId: selectedPackage?.id || "custom",
                     ticketCount: resolvedTicketCount,
                     buyerName: buyer.name,
+                    buyerCellphone: paymentBuyer.cellphone,
                     buyerWhatsapp: paymentBuyer.whatsapp,
                     buyerEmail: buyer.email,
                     formData: {
@@ -439,7 +469,7 @@ export function CheckoutPaymentPage() {
             },
             onPaymentMethodsReceived: (error: any, paymentMethods: any) => {
               if (!active || error) return;
-              const paymentMethodId = paymentMethods?.paymentMethodId || paymentMethods?.payment_method_id || paymentMethods?.id || paymentMethods?.[0]?.id;
+              const paymentMethodId = extractPaymentMethodId(paymentMethods);
               setCardBrand(normalizeCardBrand(paymentMethodId));
             },
           },
@@ -454,10 +484,10 @@ export function CheckoutPaymentPage() {
     return () => {
       active = false;
     };
-  }, [buyer.email, buyer.name, paymentBuyer.whatsapp, paymentMethodMode, paymentReady, selectedPackage, resolvedAmount, resolvedTicketCount]);
+  }, [buyer.cellphone, buyer.email, buyer.name, paymentMethodMode, paymentReady, selectedPackage, resolvedAmount, resolvedTicketCount]);
 
   const validName = countLetters(buyer.name) >= 4;
-  const validWhatsapp = buyer.whatsapp.replace(/\D/g, "").length >= 8;
+  const validCellphone = isValidColombianCellphone(buyer.cellphone);
   const validEmail = isValidEmail(buyer.email);
   const validAddress =
     buyer.streetName.trim().length >= 1 &&
@@ -466,7 +496,7 @@ export function CheckoutPaymentPage() {
     buyer.city.trim().length <= 18 &&
     buyer.federalUnit.trim().length >= 1 &&
     buyer.federalUnit.trim().length <= 18;
-  const validBuyer = validName && validWhatsapp && validEmail && validAddress;
+  const validBuyer = validName && validCellphone && validEmail && validAddress;
   const documentOptions = psePaymentForm.entityType === "individual" ? NATURAL_DOC_TYPES : COMPANY_DOC_TYPES;
   const validPsePayment =
     Boolean(psePaymentForm.financialInstitution) &&
@@ -519,7 +549,7 @@ export function CheckoutPaymentPage() {
       return;
     }
     if (!validBuyer) {
-      setFormError("Revisa tus datos: nombre mínimo 4 letras, WhatsApp válido para el pais seleccionado, correo válido, departamento, ciudad y direccion.");
+      setFormError("Revisa tus datos: nombre mínimo 4 letras, celular colombiano válido con indicativo +57, correo válido, departamento, ciudad y direccion.");
       return;
     }
 
@@ -546,8 +576,9 @@ export function CheckoutPaymentPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           packageId: selectedPackage?.id || "custom",
-                    ticketCount: resolvedTicketCount,
+          ticketCount: resolvedTicketCount,
           buyerName: buyer.name,
+          buyerCellphone: paymentBuyer.cellphone,
           buyerWhatsapp: paymentBuyer.whatsapp,
           buyerEmail: buyer.email,
           buyerAddress: {
@@ -649,14 +680,14 @@ export function CheckoutPaymentPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="text-sm font-bold text-white/80">WhatsApp</span>
+                  <span className="text-sm font-bold text-white/80">Celular</span>
                   <div className="phone-field mt-2 rounded-md border border-white/12 bg-black/30 p-1">
                     <PhoneInput
                       defaultCountry={"co" as CountryIso2}
-                      countries={defaultCountries}
-                      value={buyer.whatsapp}
-                      onChange={(value) => updateBuyer({ whatsapp: value })}
-                      inputProps={{ required: true, name: "whatsapp", autoComplete: "tel" }}
+                      countries={defaultCountries.filter((country) => country[1] === "co")}
+                      value={buyer.cellphone}
+                      onChange={(value) => updateBuyer({ cellphone: value, whatsapp: value })}
+                      inputProps={{ required: true, name: "cellphone", autoComplete: "tel" }}
                       className="phone-field__input"
                       style={{ width: "100%", background: "transparent" }}
                       inputStyle={{ width: "100%", background: "transparent", border: "none", color: "white", height: "40px" }}

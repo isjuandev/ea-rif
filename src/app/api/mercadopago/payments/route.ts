@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getMercadoPagoPayment, getMercadoPagoPaymentMethod, shouldSendMercadoPagoTestToken } from "@/lib/mercadopago";
 import { fulfillApprovedMercadoPagoPayment } from "@/lib/mercadopago-fulfillment";
 import { logMercadoPagoEvent, upsertMercadoPagoPaymentRecord } from "@/lib/payment-tracking";
+import { getColombianNationalPhoneDigits, isValidColombianCellphone, normalizeColombianCellphone } from "@/lib/phone";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { assertPackageAvailability, normalizeWhatsApp, validateBuyerFields } from "@/lib/tickets";
 
@@ -14,7 +15,8 @@ type MercadoPagoPaymentPayload = {
   packageId: string;
   ticketCount?: number;
   buyerName: string;
-  buyerWhatsapp: string;
+  buyerCellphone?: string;
+  buyerWhatsapp?: string;
   buyerEmail: string;
   buyerAddress?: {
     zipCode?: string;
@@ -261,10 +263,10 @@ function getPseAddress(address: MercadoPagoPaymentPayload["buyerAddress"]) {
   };
 }
 
-function getPsePhone(whatsapp: string) {
-  const normalized = normalizeWhatsApp(whatsapp);
-  const digits = normalized.replace(/\D/g, "");
-  const localNumber = digits.startsWith("57") ? digits.slice(2, 12) : digits.slice(-10);
+function getMercadoPagoPhone(cellphone: string) {
+  const localNumber = getColombianNationalPhoneDigits(cellphone);
+  if (!localNumber) return null;
+
   return {
     area_code: localNumber.slice(0, 3),
     number: localNumber.slice(3, 10),
@@ -291,6 +293,7 @@ export async function POST(request: Request) {
 
     const expectedAmount = isCustomPurchase ? requestedTicketCount * rifaConfig.ticketPrice : selectedPackage!.price;
     const packageName = isCustomPurchase ? `Compra personalizada (${requestedTicketCount} entradas)` : selectedPackage!.name;
+    const buyerContactPhone = payload.buyerCellphone || payload.buyerWhatsapp || "";
 
     try {
       await assertPackageAvailability(requestedTicketCount);
@@ -298,24 +301,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error?.message || "No hay suficientes números disponibles para este paquete." }, { status: 409 });
     }
 
-    const normalizedBuyerWhatsapp = normalizeWhatsApp(payload.buyerWhatsapp);
-    const localBuyerWhatsapp = normalizedBuyerWhatsapp.replace(/\D/g, "");
-
     if (
       !payload.formData ||
       countLetters(payload.buyerName || "") < 4 ||
-      localBuyerWhatsapp.length !== 10 ||
+      !isValidColombianCellphone(buyerContactPhone) ||
       !isValidEmail(payload.buyerEmail || "")
     ) {
       return validationError(
         "Datos del comprador incompletos.",
-        "Verifica que el nombre tenga al menos 4 letras, el WhatsApp sea válido con indicativo internacional y el correo sea válido.",
+        "Verifica que el nombre tenga al menos 4 letras, el celular colombiano tenga indicativo +57 y el correo sea válido.",
       );
     }
 
     try {
       validateBuyerFields({
         buyerName: payload.buyerName,
+        buyerCellphone: payload.buyerCellphone,
         buyerWhatsapp: payload.buyerWhatsapp,
         buyerEmail: payload.buyerEmail,
       });
@@ -348,7 +349,7 @@ export async function POST(request: Request) {
     const financialInstitution = extractFinancialInstitution(payload.formData);
     const buyerIpAddress = pse ? getBuyerIpAddress(request, payload.formData) : null;
     const pseAddress = pse ? getPseAddress(payload.buyerAddress) : null;
-    const psePhone = pse ? getPsePhone(payload.buyerWhatsapp) : null;
+    const mercadoPagoPhone = getMercadoPagoPhone(buyerContactPhone);
 
     if (pse) {
       const hasEntityType = Boolean(entityTypeRaw);
@@ -362,7 +363,7 @@ export async function POST(request: Request) {
         Boolean(pseAddress.neighborhood) &&
         Boolean(pseAddress.city) &&
         Boolean(pseAddress.federal_unit);
-      const hasPhone = psePhone?.area_code.length === 3 && Boolean(psePhone.number) && psePhone.number.length <= 7;
+      const hasPhone = mercadoPagoPhone?.area_code.length === 3 && Boolean(mercadoPagoPhone.number) && mercadoPagoPhone.number.length <= 7;
 
       if (!hasEntityType) {
         return validationError("Faltan datos para pagar por PSE.", "Selecciona el tipo de persona: individual o association.");
@@ -390,7 +391,7 @@ export async function POST(request: Request) {
         );
       }
       if (!hasPhone) {
-        return validationError("Faltan datos para pagar por PSE.", "Ingresa un WhatsApp válido para contacto.");
+        return validationError("Faltan datos para pagar por PSE.", "Ingresa un celular colombiano válido con indicativo +57.");
       }
     }
 
@@ -435,7 +436,8 @@ export async function POST(request: Request) {
         package_price: expectedAmount,
         ticket_count: requestedTicketCount,
         buyer_name: payload.buyerName,
-        buyer_whatsapp: normalizeWhatsApp(payload.buyerWhatsapp),
+        buyer_cellphone: normalizeColombianCellphone(buyerContactPhone),
+        buyer_whatsapp: normalizeWhatsApp(buyerContactPhone),
         buyer_email: payload.buyerEmail,
       },
       payer: {
@@ -451,9 +453,9 @@ export async function POST(request: Request) {
         ...(pse
           ? {
               address: pseAddress ?? undefined,
-              phone: psePhone ?? undefined,
             }
           : {}),
+        phone: mercadoPagoPhone ?? undefined,
       },
       ...(pse
         ? {
@@ -523,7 +525,7 @@ export async function POST(request: Request) {
       buyer: {
         name: payload.buyerName,
         email: payload.buyerEmail,
-        whatsapp: normalizeWhatsApp(payload.buyerWhatsapp),
+        whatsapp: normalizeWhatsApp(buyerContactPhone),
       },
     });
 

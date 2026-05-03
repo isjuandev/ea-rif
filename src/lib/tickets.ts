@@ -1,4 +1,5 @@
 import { sendBlessedNumberAlertEmail, sendTicketEmail } from "@/lib/email";
+import { normalizeColombianCellphone } from "@/lib/phone";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -10,6 +11,7 @@ export type FulfillTicketPurchaseInput = {
   ticketCount?: number;
   amountCop?: number;
   buyerName: string;
+  buyerCellphone?: string;
   buyerWhatsapp: string;
   buyerEmail?: string;
   paymentMethod: PaymentMethod;
@@ -17,32 +19,28 @@ export type FulfillTicketPurchaseInput = {
 };
 
 export function normalizeWhatsApp(value: string) {
-  const trimmed = value.trim();
-  const hasPlus = trimmed.startsWith("+");
-  const digits = trimmed.replace(/\D/g, "");
-  if (!digits) return "";
-  return `${hasPlus ? "+" : "+"}${digits}`;
+  return normalizeColombianCellphone(value);
 }
 
-export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp: string; buyerEmail?: string }) {
+export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp?: string; buyerCellphone?: string; buyerEmail?: string }) {
   const buyerName = input.buyerName.trim();
-  const buyerWhatsapp = normalizeWhatsApp(input.buyerWhatsapp);
+  const buyerCellphone = normalizeColombianCellphone(input.buyerCellphone || input.buyerWhatsapp || "");
+  const buyerWhatsapp = buyerCellphone;
   const buyerEmail = input.buyerEmail?.trim() ?? "";
 
   if (buyerName.length < 4 || buyerName.length > 120) {
     throw new Error("El nombre debe tener entre 4 y 120 caracteres.");
   }
 
-  const whatsappDigits = buyerWhatsapp.replace(/\D/g, "");
-  if (whatsappDigits.length < 8 || whatsappDigits.length > 15) {
-    throw new Error("El WhatsApp debe tener entre 8 y 15 dígitos incluyendo indicativo internacional.");
+  if (!buyerWhatsapp) {
+    throw new Error("El celular debe ser colombiano válido e incluir indicativo +57.");
   }
 
   if (buyerEmail.length > 160) {
     throw new Error("El correo es demásiado largo.");
   }
 
-  return { buyerName, buyerWhatsapp, buyerEmail };
+  return { buyerName, buyerCellphone, buyerWhatsapp, buyerEmail };
 }
 
 export async function getAvailableTicketCount() {
@@ -96,6 +94,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
 
   const buyer = validateBuyerFields({
     buyerName: input.buyerName,
+    buyerCellphone: input.buyerCellphone,
     buyerWhatsapp: input.buyerWhatsapp,
     buyerEmail: input.buyerEmail,
   });
