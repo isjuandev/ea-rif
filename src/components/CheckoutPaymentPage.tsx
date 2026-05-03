@@ -310,6 +310,15 @@ export function CheckoutPaymentPage() {
         const cardForm = mp.cardForm({
           amount: String(resolvedAmount),
           iframe: true,
+          style: {
+            input: {
+              color: "#F5F5F5",
+              fontSize: "16px",
+            },
+            "::placeholder": {
+              color: "rgba(245, 245, 245, 0.45)",
+            },
+          },
           form: {
             id: "card-checkout-form",
             cardNumber: {
