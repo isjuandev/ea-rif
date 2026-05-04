@@ -199,6 +199,7 @@ export function CheckoutPaymentPage() {
   const [customTicketCount, setCustomTicketCount] = useState(5);
   const [ticketCountError, setTicketCountError] = useState("");
   const cardFormMountedRef = useRef(false);
+  const cardFormRef = useRef<any>(null);
 
   const selectedPackage = useMemo(() => {
     return rifaConfig.packages.find((pack) => pack.id === packageId) ?? null;
@@ -485,6 +486,8 @@ export function CheckoutPaymentPage() {
             },
           },
         });
+
+        cardFormRef.current = cardForm;
       })
       .catch((error: any) => {
         if (!active) return;
@@ -496,6 +499,17 @@ export function CheckoutPaymentPage() {
       active = false;
     };
   }, [buyer.cellphone, buyer.email, buyer.name, paymentMethodMode, paymentReady, selectedPackage, resolvedAmount, resolvedTicketCount]);
+
+  useEffect(() => {
+    if (paymentMethodMode === "card") return;
+    const cardFormInstance = cardFormRef.current;
+    if (cardFormInstance && typeof cardFormInstance.unmount === "function") {
+      cardFormInstance.unmount();
+    }
+    cardFormRef.current = null;
+    cardFormMountedRef.current = false;
+    setCardFormReady(false);
+  }, [paymentMethodMode]);
 
   const validName = hasFullBuyerName(buyer.name);
   const validCellphone = isValidColombianCellphone(buyer.cellphone);
@@ -531,6 +545,18 @@ export function CheckoutPaymentPage() {
     setPaymentError("");
     setPendingMessage("");
     setPsePaymentForm((current) => ({ ...current, ...nextForm }));
+  }
+
+  function handlePaymentMethodChange(nextMode: PaymentMethodMode) {
+    if (nextMode === paymentMethodMode) return;
+    setPaymentError("");
+    setPendingMessage("");
+    if (nextMode === "card") {
+      cardFormMountedRef.current = false;
+      setCardFormReady(false);
+      setCardFormError("");
+    }
+    setPaymentMethodMode(nextMode);
   }
 
   function handleDepartmentChange(nextDepartmentId: string) {
@@ -866,7 +892,7 @@ export function CheckoutPaymentPage() {
                   <div className="grid grid-cols-2 gap-2 rounded-md border border-white/12 bg-black/20 p-1">
                     <button
                       type="button"
-                      onClick={() => setPaymentMethodMode("card")}
+                      onClick={() => handlePaymentMethodChange("card")}
                       className={`flex items-center justify-center gap-2 rounded-[6px] px-3 py-3 text-sm font-extrabold uppercase transition ${
                         paymentMethodMode === "card" ? "bg-lime-300 text-primary-foreground" : "text-white/70 hover:bg-white/8"
                       }`}
@@ -876,7 +902,7 @@ export function CheckoutPaymentPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPaymentMethodMode("pse")}
+                      onClick={() => handlePaymentMethodChange("pse")}
                       className={`flex items-center justify-center gap-2 rounded-[6px] px-3 py-3 text-sm font-extrabold uppercase transition ${
                         paymentMethodMode === "pse" ? "bg-lime-300 text-primary-foreground" : "text-white/70 hover:bg-white/8"
                       }`}
