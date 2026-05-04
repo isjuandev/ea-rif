@@ -26,12 +26,12 @@ function buildTicketNumberHtml(numbers: string[]) {
           ${row
             .map(
               (number) => `
-                <td align="center" style="padding:5px">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="80" style="border-collapse:separate;border-spacing:0;width:80px;background:#d4af37;background-image:linear-gradient(135deg,#d4af37,#f7e7a1,#caa12c);border:1px solid #b8962e;border-radius:10px">
+                <td align="center" bgcolor="#f5f2e9" style="padding:5px;background:#f5f2e9">
+                  <table class="ticket-card" role="presentation" cellpadding="0" cellspacing="0" border="0" width="80" bgcolor="#e4bd3d" style="border-collapse:separate;border-spacing:0;width:80px;background:#e4bd3d;background-image:linear-gradient(135deg,#c89919,#fff0a7 48%,#caa12c);border:1px solid #8d6a12;border-radius:10px">
                     <tr>
-                      <td align="center" style="padding:12px 5px;font-family:Arial,sans-serif">
-                        <div style="font-size:12px;line-height:14px;color:#6b4e16;margin-bottom:4px">&#9819;</div>
-                        <div style="font-size:18px;line-height:22px;font-weight:bold;color:#3a2a07">${escapeHtml(number)}</div>
+                      <td align="center" bgcolor="#e4bd3d" style="padding:12px 5px;font-family:Arial,sans-serif;background:#e4bd3d;background-image:linear-gradient(135deg,#c89919,#fff0a7 48%,#caa12c);border-radius:10px">
+                        <div class="ticket-crown" style="font-size:12px;line-height:14px;color:#3a2a07!important;-webkit-text-fill-color:#3a2a07;margin-bottom:4px">&#9819;</div>
+                        <div class="ticket-number" style="font-size:18px;line-height:22px;font-weight:900;color:#1a1a1a!important;-webkit-text-fill-color:#1a1a1a;text-shadow:0 1px 0 rgba(255,255,255,0.45),0 0 1px #1a1a1a">${escapeHtml(number)}</div>
                       </td>
                     </tr>
                   </table>
@@ -78,45 +78,74 @@ export async function sendTicketEmail({
     <html lang="es">
     <head>
       <meta charset="UTF-8">
+      <meta name="color-scheme" content="light">
+      <meta name="supported-color-schemes" content="light">
       <title>Club Elite</title>
+      <style>
+        :root { color-scheme: light; supported-color-schemes: light; }
+        .email-shell { background:#000000!important; }
+        .email-card { background:#f5f2e9!important; color:#1a1a1a!important; }
+        .email-title { color:#b8962e!important; }
+        .email-text { color:#1a1a1a!important; }
+        .email-footer { color:#444444!important; }
+        .ticket-card { background:#e4bd3d!important; background-image:linear-gradient(135deg,#c89919,#fff0a7 48%,#caa12c)!important; }
+        .ticket-number { color:#1a1a1a!important; -webkit-text-fill-color:#1a1a1a!important; }
+        .ticket-crown { color:#3a2a07!important; -webkit-text-fill-color:#3a2a07!important; }
+        @media (prefers-color-scheme: dark) {
+          .email-card { background:#f5f2e9!important; color:#1a1a1a!important; }
+          .email-text { color:#1a1a1a!important; }
+          .email-footer { color:#444444!important; }
+          .ticket-card { background:#e4bd3d!important; background-image:linear-gradient(135deg,#c89919,#fff0a7 48%,#caa12c)!important; }
+          .ticket-number { color:#1a1a1a!important; -webkit-text-fill-color:#1a1a1a!important; text-shadow:0 1px 0 rgba(255,255,255,0.45),0 0 1px #1a1a1a!important; }
+          .ticket-crown { color:#3a2a07!important; -webkit-text-fill-color:#3a2a07!important; }
+        }
+        [data-ogsc] * { color:#1a1a1a!important; }
+        [data-ogsc] .email-card { background:#f5f2e9!important; color:#1a1a1a!important; }
+        [data-ogsc] .email-title { color:#b8962e!important; }
+        [data-ogsc] .email-footer { color:#444444!important; }
+        [data-ogsc] .ticket-card { background:#e4bd3d!important; }
+        [data-ogsc] .ticket-number { color:#1a1a1a!important; -webkit-text-fill-color:#1a1a1a!important; }
+        [data-ogsc] .ticket-crown { color:#3a2a07!important; -webkit-text-fill-color:#3a2a07!important; }
+      </style>
     </head>
-    <body style="margin:0;padding:0;background:#000000;font-family:Arial,sans-serif">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background:#000000;margin:0;padding:20px 10px">
+    <body class="email-shell" style="margin:0;padding:0;background:#000000!important;font-family:Arial,sans-serif">
+    <div class="email-shell" style="background:#000000!important;margin:0;padding:0">
+    <table class="email-shell" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="border-collapse:collapse;background:#000000!important;margin:0;padding:20px 10px">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0;max-width:600px;background:#f5f2e9;border-radius:16px;border:2px solid #d4af37">
+          <table class="email-card" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f2e9" style="border-collapse:separate;border-spacing:0;max-width:600px;background:#f5f2e9!important;color:#1a1a1a!important;border-radius:16px;border:2px solid #d4af37">
             <tr>
-              <td align="center" style="padding:20px 20px 10px;font-family:Arial,sans-serif">
+              <td align="center" bgcolor="#f5f2e9" style="padding:20px 20px 10px;font-family:Arial,sans-serif;background:#f5f2e9!important">
                 <img src="${logoUrl}" width="120" style="display:block;width:120px;max-width:120px;height:auto;margin:0 auto 10px;border:0;outline:none;text-decoration:none" alt="Club Elite">
-                <h1 style="margin:0;font-size:28px;line-height:34px;color:#b8962e;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:800;text-transform:uppercase">
+                <h1 class="email-title" style="margin:0;font-size:28px;line-height:34px;color:#b8962e!important;letter-spacing:1px;font-family:Arial,sans-serif;font-weight:800;text-transform:uppercase">
                   ${safeEventName}
                 </h1>
               </td>
             </tr>
             <tr>
-              <td style="padding:10px 20px 0;color:#222222;font-size:16px;line-height:1.5;font-family:Arial,sans-serif">
+              <td class="email-text" bgcolor="#f5f2e9" style="padding:10px 20px 0;background:#f5f2e9!important;color:#1a1a1a!important;font-size:16px;line-height:1.5;font-family:Arial,sans-serif">
                 Hola <strong>${safeName}</strong>, tu compra del paquete <strong>${safePackageName}</strong> fue registrada.
               </td>
             </tr>
             <tr>
-              <td style="padding:10px 20px;color:#222222;font-size:16px;line-height:1.4;font-family:Arial,sans-serif">
+              <td class="email-text" bgcolor="#f5f2e9" style="padding:10px 20px;background:#f5f2e9!important;color:#1a1a1a!important;font-size:16px;line-height:1.4;font-family:Arial,sans-serif">
                 Valor: <strong>${formatCOP(price)}</strong>
               </td>
             </tr>
             <tr>
-              <td style="padding:10px 20px;color:#222222;font-size:16px;line-height:1.4;font-family:Arial,sans-serif">
+              <td class="email-text" bgcolor="#f5f2e9" style="padding:10px 20px;background:#f5f2e9!important;color:#1a1a1a!important;font-size:16px;line-height:1.4;font-family:Arial,sans-serif">
                 Tus números de rifa son:
               </td>
             </tr>
             <tr>
-              <td align="center" style="padding:10px 10px 20px">
+              <td align="center" bgcolor="#f5f2e9" style="padding:10px 10px 20px;background:#f5f2e9!important">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0">
                   ${ticketNumberHtml}
                 </table>
               </td>
             </tr>
             <tr>
-              <td style="padding:0 20px 20px;text-align:center;font-size:14px;line-height:1.45;color:#444444;font-family:Arial,sans-serif">
+              <td class="email-footer" bgcolor="#f5f2e9" style="padding:0 20px 20px;background:#f5f2e9!important;text-align:center;font-size:14px;line-height:1.45;color:#444444!important;font-family:Arial,sans-serif">
                 El sorteo juega con ${safeLotteryName}.<br>
                 La fecha se actualiza con el último resultado oficial publicado.
               </td>
@@ -125,6 +154,7 @@ export async function sendTicketEmail({
         </td>
       </tr>
     </table>
+    </div>
     </body>
     </html>
   `;
