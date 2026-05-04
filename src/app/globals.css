@@ -282,6 +282,16 @@
     max-width: 100%;
     color-scheme: dark;
   }
+
+  .admin-datetime-input {
+    color-scheme: dark;
+  }
+
+  .admin-datetime-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.85);
+    opacity: 0.85;
+    cursor: pointer;
+  }
 }
 
 @layer utilities {

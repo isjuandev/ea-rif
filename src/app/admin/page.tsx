@@ -239,7 +239,7 @@ export default function AdminRifaSettingsPage() {
                   const value = event.target.value;
                   setConfig({ ...config, nextDrawDateOverride: value ? new Date(value).toISOString() : null });
                 }}
-                className="w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                className="admin-datetime-input w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
               />
               <button
                 type="button"
