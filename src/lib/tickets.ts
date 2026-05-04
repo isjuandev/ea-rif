@@ -144,6 +144,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
         packageName: resolvedPackageName,
         price: resolvedAmountCop,
         numbers: ticketNumbers,
+        eventName: rifaConfig.eventName,
         lotteryName: rifaConfig.lotteryName,
       });
 
@@ -177,6 +178,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
           buyerWhatsapp: buyer.buyerWhatsapp,
           blessedNumbers: blessed,
           allNumbers: ticketNumbers,
+          eventName: rifaConfig.eventName,
         }).catch(() => undefined);
       }
     }
