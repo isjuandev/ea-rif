@@ -244,6 +244,12 @@
     @apply h-10 rounded-l-md border-0 border-r border-border bg-transparent px-2.5;
   }
 
+  .phone-field .react-international-phone-country-selector-button,
+  .phone-field .react-international-phone-country-selector-button * {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
   .phone-field .react-international-phone-input {
     @apply h-10 border-0 bg-transparent text-sm text-foreground;
   }
@@ -267,6 +273,69 @@
 
   .phone-field .react-international-phone-country-selector-dropdown__list-item--selected {
     @apply bg-primary/25 text-primary;
+  }
+
+  .whatsapp-country-selector__dropdown {
+    @apply mt-1 rounded-md p-1 shadow-2xl shadow-black/50;
+    background: #111111 !important;
+    border: 0 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    outline: none !important;
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+  }
+
+  .whatsapp-country-selector__dropdown::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+
+  .whatsapp-country-selector__dropdown::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .whatsapp-country-selector__dropdown::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/25;
+  }
+
+  .whatsapp-country-selector__dropdown-item {
+    @apply min-h-10 rounded-[4px] px-2 transition-colors;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px;
+  }
+
+  .whatsapp-country-selector__dropdown-item:hover,
+  .whatsapp-country-selector__dropdown-item--focused {
+    background: rgba(170, 255, 0, 0.15) !important;
+    color: var(--color-foreground) !important;
+  }
+
+  .whatsapp-country-selector__dropdown-item--selected {
+    background: rgba(170, 255, 0, 0.25) !important;
+    color: var(--color-primary) !important;
+  }
+
+  .whatsapp-country-selector__dropdown-flag {
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 !important;
+    flex: 0 0 22px;
+    transform: none !important;
+  }
+
+  .whatsapp-country-selector__dial-code {
+    margin-left: 0 !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  .whatsapp-country-selector__dropdown .react-international-phone-country-selector-dropdown__list-item-country-name {
+    margin-right: 0 !important;
+    color: inherit !important;
+    display: inline !important;
   }
 
   .checkout-input:-webkit-autofill,

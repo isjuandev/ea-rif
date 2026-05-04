@@ -18,6 +18,7 @@ type MercadoPagoPaymentPayload = {
   buyerCellphone?: string;
   buyerWhatsapp?: string;
   buyerEmail: string;
+  buyerEmailConfirmation?: string;
   buyerAddress?: {
     zipCode?: string;
     streetName?: string;
@@ -135,6 +136,10 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function emailsMatch(email?: string, confirmation?: string) {
+  return (email || "").trim().toLowerCase() === (confirmation || "").trim().toLowerCase();
+}
+
 function validationError(message: string, detail: string, status = 400) {
   return NextResponse.json({ error: `${message} ${detail}` }, { status });
 }
@@ -168,7 +173,7 @@ function formatMercadoPagoError(error: any) {
   }
 
   if (lowerCombined.includes("address") || lowerCombined.includes("zip_code") || lowerCombined.includes("street")) {
-    return "No pudimos iniciar el pago por PSE porque Mercado Pago no acepto la direccion. Usa código postal de 5 dígitos, calle de máximo 18 caracteres, número de máximo 5, barrio, ciudad y departamento.";
+    return "No pudimos iniciar el pago por PSE porque Mercado Pago no acepto la direccion. Usa código postal de 5 dígitos, calle de máximo 50 caracteres, número de máximo 5, barrio, ciudad y departamento.";
   }
 
   if (lowerCombined.includes("internal_error")) {
@@ -260,7 +265,7 @@ function trimLength(value: string | undefined, maxLength: number) {
 function getPseAddress(address: MercadoPagoPaymentPayload["buyerAddress"]) {
   return {
     zip_code: trimLength(address?.zipCode?.replace(/\D/g, ""), 5) || "00000",
-    street_name: trimLength(address?.streetName, 18),
+    street_name: trimLength(address?.streetName, 50),
     street_number: trimLength(address?.streetNumber, 5) || "1",
     neighborhood: trimLength(address?.neighborhood, 18) || "Centro",
     city: trimLength(address?.city, 18),
@@ -298,7 +303,8 @@ export async function POST(request: Request) {
 
     const expectedAmount = isCustomPurchase ? requestedTicketCount * rifaConfig.ticketPrice : selectedPackage!.price;
     const packageName = isCustomPurchase ? `Compra personalizada (${requestedTicketCount} entradas)` : selectedPackage!.name;
-    const buyerContactPhone = payload.buyerCellphone || payload.buyerWhatsapp || "";
+    const buyerCellphone = payload.buyerCellphone || "";
+    const buyerWhatsapp = payload.buyerWhatsapp || payload.buyerCellphone || "";
 
     try {
       await assertPackageAvailability(requestedTicketCount);
@@ -309,7 +315,7 @@ export async function POST(request: Request) {
     if (
       !payload.formData ||
       !hasFullBuyerName(payload.buyerName || "") ||
-      !isValidColombianCellphone(buyerContactPhone) ||
+      !isValidColombianCellphone(buyerCellphone) ||
       !isValidEmail(payload.buyerEmail || "")
     ) {
       return validationError(
@@ -318,11 +324,15 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!emailsMatch(payload.buyerEmail, payload.buyerEmailConfirmation)) {
+      return validationError("El correo no coincide.", "Revisa la confirmación del correo electrónico.");
+    }
+
     try {
       validateBuyerFields({
         buyerName: payload.buyerName,
         buyerCellphone: payload.buyerCellphone,
-        buyerWhatsapp: payload.buyerWhatsapp,
+        buyerWhatsapp,
         buyerEmail: payload.buyerEmail,
       });
     } catch (error: any) {
@@ -354,7 +364,9 @@ export async function POST(request: Request) {
     const financialInstitution = extractFinancialInstitution(payload.formData);
     const buyerIpAddress = pse ? getBuyerIpAddress(request, payload.formData) : null;
     const pseAddress = pse ? getPseAddress(payload.buyerAddress) : null;
-    const mercadoPagoPhone = getMercadoPagoPhone(buyerContactPhone);
+    const normalizedBuyerCellphone = normalizeColombianCellphone(buyerCellphone);
+    const normalizedBuyerWhatsapp = normalizeWhatsApp(buyerWhatsapp) || normalizedBuyerCellphone;
+    const mercadoPagoPhone = getMercadoPagoPhone(buyerCellphone);
 
     if (pse) {
       const hasEntityType = Boolean(entityTypeRaw);
@@ -441,8 +453,8 @@ export async function POST(request: Request) {
         package_price: expectedAmount,
         ticket_count: requestedTicketCount,
         buyer_name: payload.buyerName,
-        buyer_cellphone: normalizeColombianCellphone(buyerContactPhone),
-        buyer_whatsapp: normalizeWhatsApp(buyerContactPhone),
+        buyer_cellphone: normalizedBuyerCellphone,
+        buyer_whatsapp: normalizedBuyerWhatsapp,
         buyer_email: payload.buyerEmail,
       },
       payer: {
@@ -530,7 +542,7 @@ export async function POST(request: Request) {
       buyer: {
         name: payload.buyerName,
         email: payload.buyerEmail,
-        whatsapp: normalizeWhatsApp(buyerContactPhone),
+        whatsapp: normalizedBuyerWhatsapp,
       },
     });
 

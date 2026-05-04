@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { loadMercadoPago } from "@mercadopago/sdk-js";
-import { PhoneInput, defaultCountries, type CountryIso2 } from "react-international-phone";
+import { CountrySelector, defaultCountries, type CountryIso2 } from "react-international-phone";
 import "react-international-phone/style.css";
 import { Banknote, CheckCircle2, CreditCard, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/LoadingSkeleton";
@@ -17,6 +17,7 @@ type CheckoutBuyer = {
   cellphone: string;
   whatsapp: string;
   email: string;
+  emailConfirmation: string;
   zipCode: string;
   streetName: string;
   streetNumber: string;
@@ -148,9 +149,10 @@ function CardBrandBadge({ brand }: { brand: CardBrand }) {
 
 const initialBuyer: CheckoutBuyer = {
   name: "",
-  cellphone: "+57 ",
-  whatsapp: "+57 ",
+  cellphone: "",
+  whatsapp: "",
   email: "",
+  emailConfirmation: "",
   zipCode: "",
   streetName: "",
   streetNumber: "1",
@@ -192,6 +194,8 @@ export function CheckoutPaymentPage() {
   const [cardFormReady, setCardFormReady] = useState(false);
   const [cardFormError, setCardFormError] = useState("");
   const [cardBrand, setCardBrand] = useState<CardBrand>("unknown");
+  const [whatsappCountry, setWhatsappCountry] = useState<CountryIso2>("co");
+  const [whatsappDialCode, setWhatsappDialCode] = useState("57");
   const [customTicketCount, setCustomTicketCount] = useState(5);
   const [ticketCountError, setTicketCountError] = useState("");
   const cardFormMountedRef = useRef(false);
@@ -206,7 +210,7 @@ export function CheckoutPaymentPage() {
   const resolvedTicketCount = isCustomPurchase ? customTicketCount : (selectedPackage?.rifas ?? 0);
   const resolvedAmount = isCustomPurchase ? resolvedTicketCount * rifaConfig.ticketPrice : (selectedPackage?.price ?? 0);
 
-  const paymentBuyer: CheckoutBuyer = { ...buyer, whatsapp: buyer.cellphone };
+  const paymentBuyer: CheckoutBuyer = { ...buyer };
 
   useEffect(() => {
     let active = true;
@@ -433,6 +437,7 @@ export function CheckoutPaymentPage() {
                     buyerCellphone: paymentBuyer.cellphone,
                     buyerWhatsapp: paymentBuyer.whatsapp,
                     buyerEmail: buyer.email,
+                    buyerEmailConfirmation: buyer.emailConfirmation,
                     formData: {
                       token,
                       issuer_id,
@@ -495,14 +500,15 @@ export function CheckoutPaymentPage() {
   const validName = hasFullBuyerName(buyer.name);
   const validCellphone = isValidColombianCellphone(buyer.cellphone);
   const validEmail = isValidEmail(buyer.email);
+  const emailMatches = buyer.email.trim().toLowerCase() === buyer.emailConfirmation.trim().toLowerCase();
   const validAddress =
     buyer.streetName.trim().length >= 1 &&
-    buyer.streetName.trim().length <= 18 &&
+    buyer.streetName.trim().length <= 50 &&
     buyer.city.trim().length >= 1 &&
     buyer.city.trim().length <= 18 &&
     buyer.federalUnit.trim().length >= 1 &&
     buyer.federalUnit.trim().length <= 18;
-  const validBuyer = validName && validCellphone && validEmail && validAddress;
+  const validBuyer = validName && validCellphone && validEmail && emailMatches && validAddress;
   const documentOptions = psePaymentForm.entityType === "individual" ? NATURAL_DOC_TYPES : COMPANY_DOC_TYPES;
   const validPsePayment =
     Boolean(psePaymentForm.financialInstitution) &&
@@ -559,7 +565,7 @@ export function CheckoutPaymentPage() {
       return;
     }
     if (!validBuyer) {
-      setFormError("Revisa tus datos: nombre(s) y apellido, celular colombiano válido con indicativo +57, correo válido, departamento, ciudad y direccion.");
+      setFormError("Revisa tus datos: nombre(s) y apellido, celular colombiano válido con indicativo +57, correo válido y confirmado, departamento, ciudad y direccion.");
       return;
     }
 
@@ -591,6 +597,7 @@ export function CheckoutPaymentPage() {
           buyerCellphone: paymentBuyer.cellphone,
           buyerWhatsapp: paymentBuyer.whatsapp,
           buyerEmail: buyer.email,
+          buyerEmailConfirmation: buyer.emailConfirmation,
           buyerAddress: {
             zipCode: buyer.zipCode,
             streetName: buyer.streetName,
@@ -692,22 +699,85 @@ export function CheckoutPaymentPage() {
                     value={buyer.name}
                     onChange={(event) => updateBuyer({ name: event.target.value })}
                     className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
-                    placeholder="Juan García"
+                    placeholder="Tu nombre completo"
                   />
                 </label>
                 <label className="block">
                   <span className="text-sm font-bold text-white/80">Celular</span>
-                  <div className="phone-field mt-2 rounded-md border border-white/12 bg-black/30 p-1">
-                    <PhoneInput
-                      defaultCountry={"co" as CountryIso2}
-                      countries={defaultCountries.filter((country) => country[1] === "co")}
-                      value={buyer.cellphone}
-                      onChange={(value) => updateBuyer({ cellphone: value, whatsapp: value })}
-                      inputProps={{ required: true, name: "cellphone", autoComplete: "tel" }}
-                      className="phone-field__input"
-                      style={{ width: "100%", background: "transparent" }}
-                      inputStyle={{ width: "100%", background: "transparent", border: "none", color: "white", height: "40px" }}
-                      countrySelectorStyleProps={{ buttonStyle: { background: "transparent", border: "none" }, dropdownArrowStyle: { color: "rgba(255,255,255,0.7)" } }}
+                  <div className="phone-field mt-2 flex rounded-md border border-white/12 bg-black/30">
+                    <span className="inline-flex items-center border-r border-white/12 px-3 text-sm font-bold text-white/75">+57</span>
+                    <input
+                      type="tel"
+                      required
+                      name="cellphone"
+                      autoComplete="tel"
+                      inputMode="numeric"
+                      value={buyer.cellphone.replace(/^\+57/, "")}
+                      onChange={(event) => {
+                        const digits = event.target.value.replace(/\D/g, "").slice(0, 10);
+                        updateBuyer({ cellphone: `+57${digits}` });
+                      }}
+                      className="h-12 w-full bg-transparent px-4 text-foreground outline-none placeholder:text-white/30"
+                      placeholder="3001234567"
+                    />
+                  </div>
+                </label>
+                <label className="block">
+                  <span className="text-sm font-bold text-white/80">WhatsApp</span>
+                  <div className="mt-2 flex rounded-md border border-white/12 bg-black/30">
+                    <CountrySelector
+                      selectedCountry={whatsappCountry}
+                      countries={defaultCountries}
+                      onSelect={(country) => {
+                        if (!country?.dialCode) return;
+                        const digits = buyer.whatsapp
+                          .replace(new RegExp(`^\\+?${whatsappDialCode}`), "")
+                          .replace(/\D/g, "")
+                          .slice(0, 10);
+                        setWhatsappCountry(country.iso2);
+                        setWhatsappDialCode(country.dialCode);
+                        updateBuyer({ whatsapp: `+${country.dialCode}${digits}` });
+                      }}
+                      className="whatsapp-country-selector"
+                      buttonStyle={{ background: "transparent", border: "none", padding: 0, display: "inline-flex", alignItems: "center" }}
+                      buttonContentWrapperStyle={{ gap: "6px" }}
+                      flagClassName="!h-9 !w-9"
+                      flagStyle={{ background: "transparent", border: "none", boxShadow: "none", transform: "scale(1.35)", transformOrigin: "center" }}
+                      dropdownArrowStyle={{ display: "none" }}
+                      dropdownStyleProps={{
+                        className: "whatsapp-country-selector__dropdown",
+                        listItemClassName: "whatsapp-country-selector__dropdown-item",
+                        listItemSelectedClassName: "whatsapp-country-selector__dropdown-item--selected",
+                        listItemFocusedClassName: "whatsapp-country-selector__dropdown-item--focused",
+                        listItemFlagClassName: "whatsapp-country-selector__dropdown-flag",
+                        listItemDialCodeClassName: "whatsapp-country-selector__dial-code",
+                      }}
+                      renderButtonWrapper={({ children, rootProps }) => (
+                        <button
+                          type="button"
+                          {...rootProps}
+                          className="inline-flex h-12 items-center gap-2 border-r border-white/12 px-3 text-sm font-bold text-white/75 outline-none transition hover:text-white focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                          {children}
+                          <span>+{whatsappDialCode}</span>
+                          <span className="text-white/70" aria-hidden="true">
+                            ▾
+                          </span>
+                        </button>
+                      )}
+                    />
+                    <input
+                      type="tel"
+                      name="whatsapp"
+                      autoComplete="tel"
+                      inputMode="numeric"
+                      value={buyer.whatsapp.replace(new RegExp(`^\\+?${whatsappDialCode}`), "")}
+                      onChange={(event) => {
+                        const digits = event.target.value.replace(/\D/g, "").slice(0, 10);
+                        updateBuyer({ whatsapp: `+${whatsappDialCode}${digits}` });
+                      }}
+                      className="h-12 w-full bg-transparent px-4 text-foreground outline-none placeholder:text-white/30"
+                      placeholder="3001234567"
                     />
                   </div>
                 </label>
@@ -718,6 +788,17 @@ export function CheckoutPaymentPage() {
                     required
                     value={buyer.email}
                     onChange={(event) => updateBuyer({ email: event.target.value })}
+                    className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
+                    placeholder="correo@ejemplo.com"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-bold text-white/80">Confirmar email</span>
+                  <input
+                    type="email"
+                    required
+                    value={buyer.emailConfirmation}
+                    onChange={(event) => updateBuyer({ emailConfirmation: event.target.value })}
                     className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
                     placeholder="correo@ejemplo.com"
                   />
@@ -757,12 +838,12 @@ export function CheckoutPaymentPage() {
                   </select>
                 </label>
                 <label className="block sm:col-span-2">
-                  <span className="text-sm font-bold text-white/80">Direccion</span>
+                  <span className="text-sm font-bold text-white/80">Dirección</span>
                   <input
                     required
-                    maxLength={18}
+                    maxLength={50}
                     value={buyer.streetName}
-                    onChange={(event) => updateBuyer({ streetName: event.target.value.slice(0, 18) })}
+                    onChange={(event) => updateBuyer({ streetName: event.target.value.slice(0, 50) })}
                     className="mt-2 w-full rounded-md border border-white/12 bg-black/30 px-4 py-3 text-foreground outline-none transition placeholder:text-white/30"
                     placeholder="Calle 10"
                   />

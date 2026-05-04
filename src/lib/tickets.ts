@@ -1,5 +1,5 @@
 import { sendBlessedNumberAlertEmail, sendTicketEmail } from "@/lib/email";
-import { normalizeColombianCellphone } from "@/lib/phone";
+import { normalizeColombianCellphone, normalizeInternationalPhone } from "@/lib/phone";
 import { getEditableRifaConfig } from "@/lib/rifa-settings";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -19,13 +19,13 @@ export type FulfillTicketPurchaseInput = {
 };
 
 export function normalizeWhatsApp(value: string) {
-  return normalizeColombianCellphone(value);
+  return normalizeInternationalPhone(value);
 }
 
 export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp?: string; buyerCellphone?: string; buyerEmail?: string }) {
   const buyerName = input.buyerName.trim();
   const buyerCellphone = normalizeColombianCellphone(input.buyerCellphone || input.buyerWhatsapp || "");
-  const buyerWhatsapp = buyerCellphone;
+  const buyerWhatsapp = normalizeWhatsApp(input.buyerWhatsapp || "") || buyerCellphone;
   const buyerEmail = input.buyerEmail?.trim() ?? "";
   const nameParts = buyerName.split(/\s+/).filter(Boolean);
 
