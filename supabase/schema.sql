@@ -8,7 +8,7 @@ create table if not exists public.rifa_settings (
 );
 
 create table if not exists public.rifa_tickets (
-  number text primary key check (number ~ '^[0-9]{4}$'),
+  number text primary key check (number ~ '^[0-9]{1,6}$'),
   status text not null default 'available' check (status in ('available', 'reserved', 'sold')),
   purchase_id uuid,
   buyer_name text,
@@ -49,7 +49,7 @@ create table if not exists public.rifa_winners (
   id uuid primary key default gen_random_uuid(),
   draw_date date not null,
   lottery_name text not null default 'Loteria del Quindio',
-  major_number text check (major_number ~ '^[0-9]{4}$'),
+  major_number text check (major_number ~ '^[0-9]{1,6}$'),
   minor_numbers text[] not null default '{}',
   source text,
   created_at timestamptz not null default now()
@@ -96,6 +96,34 @@ create index if not exists idx_mercado_pago_payment_events_source on public.merc
 insert into public.rifa_tickets (number)
 select lpad(generate_series(0, 9999)::text, 4, '0')
 on conflict (number) do nothing;
+
+create or replace function public.regenerate_rifa_tickets_for_digits(
+  p_total_cifras integer
+)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_total integer;
+begin
+  if p_total_cifras < 1 or p_total_cifras > 6 then
+    raise exception 'totalCifras must be between 1 and 6';
+  end if;
+
+  if exists(select 1 from public.rifa_tickets where status = 'sold') then
+    raise exception 'cannot regenerate tickets while there are sold tickets';
+  end if;
+
+  v_total := power(10, p_total_cifras)::integer;
+
+  delete from public.rifa_tickets;
+
+  insert into public.rifa_tickets (number)
+  select lpad(gs::text, p_total_cifras, '0')
+  from generate_series(0, v_total - 1) as gs;
+end;
+$$;
 
 create or replace function public.sell_random_rifa_tickets(
   p_buyer_name text,

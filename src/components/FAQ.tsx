@@ -3,7 +3,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 const questions = [
   {
     q: "Como recibo mis entradas?",
-    a: "Al registrar la compra, el sistema asigna entradas aleatorias disponibles del 0000 al 9999 y las envía al correo registrado.",
+    a: "Al registrar la compra, el sistema asigna entradas aleatorias disponibles dentro del rango configurado para esta rifa y las envía al correo registrado.",
   },
   {
     q: "Que estoy comprando exactamente?",

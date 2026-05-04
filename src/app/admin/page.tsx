@@ -133,7 +133,10 @@ export default function AdminRifaSettingsPage() {
       .filter(Boolean);
 
     const blessedPrizeValue = Number(blessedPrizeValueInput || 0);
-    const blessedPrizes = normalizedBlessedNumbers.map((number) => ({ number: number.replace(/\D/g, "").padStart(4, "0").slice(-4), prizeCop: Number.isFinite(blessedPrizeValue) ? Math.max(0, Math.round(blessedPrizeValue)) : 0 }));
+    const blessedPrizes = normalizedBlessedNumbers.map((number) => ({
+      number: number.replace(/\D/g, "").padStart(config.totalCifras, "0").slice(-config.totalCifras),
+      prizeCop: Number.isFinite(blessedPrizeValue) ? Math.max(0, Math.round(blessedPrizeValue)) : 0,
+    }));
 
     const response = await fetch("/api/rifa/config", {
       method: "PUT",
@@ -214,8 +217,9 @@ export default function AdminRifaSettingsPage() {
             </select>
           </label>
           <label className="block">
-            <span className="text-sm font-bold text-white/76">Total números</span>
-            <input type="number" min={1} value={config.totalTickets} onChange={(event) => setConfig({ ...config, totalTickets: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
+            <span className="text-sm font-bold text-white/76">Total cifras</span>
+            <input type="number" min={1} max={6} value={config.totalCifras} onChange={(event) => setConfig({ ...config, totalCifras: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
+            <p className="mt-1 text-xs text-white/60">Total tickets se calcula automáticamente: {(10 ** Math.min(6, Math.max(1, Number(config.totalCifras) || 1))).toLocaleString("es-CO")}.</p>
           </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Precio base por número</span>

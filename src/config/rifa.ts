@@ -9,6 +9,7 @@ export type RifaPackage = {
 
 export type RifaConfig = {
   eventName: string;
+  totalCifras: number;
   ticketDigits: number;
   ticketStart: number;
   ticketEnd: number;
@@ -38,6 +39,7 @@ export type RifaConfig = {
 
 export const rifaConfig: RifaConfig = {
   eventName: "Entradas XX",
+  totalCifras: 4,
   ticketDigits: 4,
   ticketStart: 0,
   ticketEnd: 9999,

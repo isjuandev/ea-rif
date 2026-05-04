@@ -20,6 +20,14 @@ function toNonNegativeInteger(value: unknown, fallback: number) {
   return Number.isFinite(number) && number >= 0 ? Math.round(number) : fallback;
 }
 
+function toCifras(value: unknown, fallback: number) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  const rounded = Math.round(number);
+  if (rounded < 1 || rounded > 6) return fallback;
+  return rounded;
+}
+
 function normalizeOptionalFutureIsoDate(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -48,14 +56,21 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
   const featuredIndex = packages.findIndex((pack) => pack.featured);
   const lottery = getLotteryOption(input.lotterySlug || input.lotteryName || rifaConfig.lotterySlug);
 
+  const totalCifras = toCifras(input.totalCifras ?? input.ticketDigits, rifaConfig.totalCifras);
+  const totalTickets = 10 ** totalCifras;
+  const ticketStart = 0;
+  const ticketEnd = totalTickets - 1;
+  const blessedRegex = new RegExp(`^\\d{${totalCifras}}$`);
+
   return {
     ...rifaConfig,
     ...input,
     eventName: String(input.eventName || rifaConfig.eventName).trim(),
-    ticketDigits: toPositiveInteger(input.ticketDigits, rifaConfig.ticketDigits),
-    ticketStart: toNonNegativeInteger(input.ticketStart, rifaConfig.ticketStart),
-    ticketEnd: toPositiveInteger(input.ticketEnd, rifaConfig.ticketEnd),
-    totalTickets: toPositiveInteger(input.totalTickets, rifaConfig.totalTickets),
+    totalCifras,
+    ticketDigits: totalCifras,
+    ticketStart,
+    ticketEnd,
+    totalTickets,
     ticketPrice: toNonNegativeInteger(input.ticketPrice, rifaConfig.ticketPrice),
     minorPrizeCount: toNonNegativeInteger(input.minorPrizeCount, rifaConfig.minorPrizeCount),
     lotterySlug: lottery.slug,
@@ -74,16 +89,16 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
     previousWinners: Array.isArray(input.previousWinners) ? input.previousWinners : rifaConfig.previousWinners,
     blessedNumbers: Array.isArray(input.blessedNumbers)
       ? input.blessedNumbers
-          .map((value) => String(value).replace(/\D/g, "").padStart(4, "0").slice(-4))
-          .filter((value, index, arr) => /^\d{4}$/.test(value) && arr.indexOf(value) === index)
+          .map((value) => String(value).replace(/\D/g, "").padStart(totalCifras, "0").slice(-totalCifras))
+          .filter((value, index, arr) => blessedRegex.test(value) && arr.indexOf(value) === index)
       : rifaConfig.blessedNumbers,
     blessedPrizes: Array.isArray(input.blessedPrizes)
       ? input.blessedPrizes
           .map((item) => ({
-            number: String((item as any)?.number ?? "").replace(/\D/g, "").padStart(4, "0").slice(-4),
+            number: String((item as any)?.number ?? "").replace(/\D/g, "").padStart(totalCifras, "0").slice(-totalCifras),
             prizeCop: toNonNegativeInteger((item as any)?.prizeCop, 0),
           }))
-          .filter((item, index, arr) => /^\d{4}$/.test(item.number) && arr.findIndex((x) => x.number === item.number) === index)
+          .filter((item, index, arr) => blessedRegex.test(item.number) && arr.findIndex((x) => x.number === item.number) === index)
       : rifaConfig.blessedPrizes,
     invertedWinnerPrizeCop: toNonNegativeInteger(input.invertedWinnerPrizeCop, rifaConfig.invertedWinnerPrizeCop),
     bulkPrizeThreshold: toPositiveInteger(input.bulkPrizeThreshold, rifaConfig.bulkPrizeThreshold),
@@ -120,7 +135,23 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
     throw new Error("Supabase no esta configurado en el servidor.");
   }
 
+  const { config: currentConfig } = await getEditableRifaConfig();
   const config = normalizeRifaConfig(input);
+
+  if (config.totalCifras !== currentConfig.totalCifras) {
+    const { count, error } = await supabase
+      .from("rifa_tickets")
+      .select("number", { count: "exact", head: true })
+      .eq("status", "sold");
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if ((count ?? 0) > 0) {
+      throw new Error("No se puede cambiar Total cifras mientras haya ventas en la rifa actual.");
+    }
+  }
   const { error } = await supabase.from("rifa_settings").upsert({
     id: SETTINGS_ID,
     config,
