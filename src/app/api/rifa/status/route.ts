@@ -10,7 +10,7 @@ export async function GET() {
   const { config: rifaConfig } = await getEditableRifaConfig();
   const automaticDrawDate = await getNextLotteryDrawDate(rifaConfig.lotterySlug).catch(() => null);
   const overrideDate = rifaConfig.nextDrawDateOverride ? new Date(rifaConfig.nextDrawDateOverride) : null;
-  const validOverride = overrideDate && !Number.isNaN(overrideDate.getTime()) && overrideDate.getTime() > Date.now();
+  const validOverride = overrideDate && !Number.isNaN(overrideDate.getTime());
   const drawDate = validOverride ? overrideDate.toISOString() : automaticDrawDate;
 
   if (!supabase) {
