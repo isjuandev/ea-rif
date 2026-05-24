@@ -241,6 +241,40 @@ export default function AdminRifaSettingsPage() {
             <input value={config.sellerName} onChange={(event) => setConfig({ ...config, sellerName: event.target.value })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
           <label className="block">
+            <span className="text-sm font-bold text-white/76">Instagram</span>
+            <input
+              value={config.socialLinks.instagram}
+              onChange={(event) =>
+                setConfig({
+                  ...config,
+                  socialLinks: {
+                    ...config.socialLinks,
+                    instagram: event.target.value,
+                  },
+                })
+              }
+              className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+              placeholder="https://www.instagram.com/eliteclubcol_"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-bold text-white/76">WhatsApp soporte</span>
+            <input
+              value={config.socialLinks.whatsapp}
+              onChange={(event) =>
+                setConfig({
+                  ...config,
+                  socialLinks: {
+                    ...config.socialLinks,
+                    whatsapp: event.target.value,
+                  },
+                })
+              }
+              className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+              placeholder="https://wa.me/57..."
+            />
+          </label>
+          <label className="block">
             <span className="text-sm font-bold text-white/76">Lotería</span>
             <select value={config.lotterySlug} onChange={(event) => updateLottery(event.target.value)} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary">
               {lotteryOptions.map((lottery) => (
