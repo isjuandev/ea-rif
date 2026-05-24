@@ -25,12 +25,17 @@
     "lucide-react": "^1.11.0",
     "mercadopago": "^2.12.0",
     "next": "^15.5.15",
+    "pdfkit": "^0.18.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-international-phone": "^4.8.0",
     "resend": "^6.12.2",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/pdfkit": "^0.17.6"
   }
 }

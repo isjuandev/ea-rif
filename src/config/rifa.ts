@@ -9,6 +9,9 @@ export type RifaPackage = {
 
 export type RifaConfig = {
   activityClosed: boolean;
+  currentCycleId: string;
+  currentCycleReportDownloads: number;
+  lastReportDownloadAt: string | null;
   eventName: string;
   totalCifras: number;
   ticketDigits: number;
@@ -40,6 +43,9 @@ export type RifaConfig = {
 
 export const rifaConfig: RifaConfig = {
   activityClosed: false,
+  currentCycleId: "cycle-initial",
+  currentCycleReportDownloads: 0,
+  lastReportDownloadAt: null,
   eventName: "Entradas XX",
   totalCifras: 4,
   ticketDigits: 4,

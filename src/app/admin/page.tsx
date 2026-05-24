@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { LogOut, Plus, Save, Star, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, LogOut, Plus, RotateCcw, Save, Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { rifaConfig, type RifaConfig, type RifaPackage } from "@/config/rifa";
 import { getLotteryOption, lotteryOptions } from "@/lib/lottery-results";
@@ -202,6 +203,42 @@ export default function AdminRifaSettingsPage() {
     router.refresh();
   }
 
+  async function resetRifa() {
+    const confirmed = window.confirm(
+      "Esta acción reinicia toda la rifa (ventas, ganadores y configuración base). Debes haber descargado al menos un reporte del ciclo actual. ¿Deseas continuar?",
+    );
+    if (!confirmed) return;
+
+    setStatus("Reiniciando rifa...");
+    const response = await fetch("/api/admin/rifa/reset", { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      setStatus(data?.error || "No se pudo reiniciar la rifa.");
+      return;
+    }
+
+    setStatus("Rifa reiniciada. Configura nuevamente para iniciar el nuevo ciclo.");
+    if (data?.config) {
+      setConfig(data.config);
+      setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
+      setBlessedPrizeValueInput(String(data.config.blessedPrizes?.[0]?.prizeCop ?? ""));
+    }
+    setSoldNumbers([]);
+    setSoldCount(0);
+    setSoldPercentage(0);
+    setSalesPage(1);
+    setSalesTotalPages(0);
+    setReportTotals({
+      soldNumbersCount: 0,
+      transactionsCount: 0,
+      grossCop: 0,
+      feeCop: 0,
+      netCop: 0,
+    });
+    setReportByDay([]);
+  }
+
   return (
     <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <form onSubmit={save} className="mx-auto max-w-7xl">
@@ -214,6 +251,21 @@ export default function AdminRifaSettingsPage() {
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">{status}</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/admin/reportes"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-cyan-300/45 px-5 py-3 font-extrabold uppercase text-cyan-200 transition hover:bg-cyan-300 hover:text-primary-foreground"
+            >
+              <BarChart3 className="size-5" />
+              Reportes
+            </Link>
+            <button
+              type="button"
+              onClick={resetRifa}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-orange-300/45 px-5 py-3 font-extrabold uppercase text-orange-200 transition hover:bg-orange-300 hover:text-primary-foreground"
+            >
+              <RotateCcw className="size-5" />
+              Reiniciar rifa
+            </button>
             <button
               type="button"
               onClick={logout}
