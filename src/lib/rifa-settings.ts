@@ -65,6 +65,7 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
   return {
     ...rifaConfig,
     ...input,
+    activityClosed: Boolean(input.activityClosed),
     eventName: String(input.eventName || rifaConfig.eventName).trim(),
     totalCifras,
     ticketDigits: totalCifras,

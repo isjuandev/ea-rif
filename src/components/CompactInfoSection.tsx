@@ -106,7 +106,7 @@ export function CompactInfoSection() {
                 )}
                 {!winnersLoading && winners.length === 0 && <p className="text-sm leading-6 text-white/55">Aun no hay ganadores registrados.</p>}
                 <div className="grid gap-3">
-                  {!winnersLoading && winners.slice(0, 4).map((winner) => (
+                  {!winnersLoading && winners.slice(0, 1).map((winner) => (
                     <div key={`${winner.draw_date}-${winner.major_number}`} className="rounded-md border border-white/8 bg-black/20 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{winner.draw_date}</p>

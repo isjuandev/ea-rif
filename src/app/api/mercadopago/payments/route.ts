@@ -185,6 +185,32 @@ function formatMercadoPagoError(error: any) {
     : "Mercado Pago rechazó la solicitud de pago. Revisa los datos del comprador y vuelve a intentarlo.";
 }
 
+function sanitizeMercadoPagoErrorForLog(error: any) {
+  const rawCause = error?.cause;
+  const rawDetails = Array.isArray(rawCause) ? rawCause : rawCause?.cause;
+  const firstDetail = Array.isArray(rawDetails) ? rawDetails[0] : null;
+
+  const message =
+    rawCause?.message ||
+    rawCause?.error ||
+    error?.message ||
+    (typeof firstDetail?.description === "string" ? firstDetail.description : null) ||
+    null;
+  const code = firstDetail?.code ?? rawCause?.code ?? error?.code ?? null;
+  const type = rawCause?.type ?? error?.type ?? null;
+  const status =
+    (typeof error?.status === "number" ? error.status : null) ??
+    (typeof rawCause?.status === "number" ? rawCause.status : null) ??
+    (typeof error?.statusCode === "number" ? error.statusCode : null);
+
+  return {
+    message: typeof message === "string" ? message.slice(0, 500) : null,
+    code: code ? String(code).slice(0, 120) : null,
+    type: type ? String(type).slice(0, 120) : null,
+    status,
+  };
+}
+
 function normalizePublicBaseUrl(value?: string | null) {
   if (!value) return null;
 
@@ -284,6 +310,7 @@ function getMercadoPagoPhone(cellphone: string) {
 }
 
 export async function POST(request: Request) {
+  const requestId = randomUUID();
   try {
     const paymentClient = getMercadoPagoPayment();
 
@@ -489,7 +516,7 @@ export async function POST(request: Request) {
             token: payload.formData.token,
             issuer_id: payload.formData.issuer_id ? Number(payload.formData.issuer_id) : undefined,
             installments: payload.formData.installments ? Number(payload.formData.installments) : 1,
-            statement_descriptor: "Entradas Rifa",
+            statement_descriptor: "Elite Club 2.5M Entradas",
             additional_info: {
               ip_address: buyerIpAddress ?? undefined,
               items: [
@@ -497,6 +524,7 @@ export async function POST(request: Request) {
                   id: selectedPackage?.id || "custom",
                   title: `${rifaConfig.eventName} - ${packageName}`,
                   description: `${requestedTicketCount} números de rifa`,
+                  category_id: "Dinamica Elite Club",
                   quantity: 1,
                   unit_price: expectedAmount,
                 },
@@ -531,7 +559,8 @@ export async function POST(request: Request) {
             financialInstitution,
             testTokenEnabled,
             accessTokenMode: process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith("TEST-") ? "test" : "production_or_missing",
-            error: error?.cause ?? error?.message ?? error,
+            requestId,
+            error: sanitizeMercadoPagoErrorForLog(error),
           },
         });
         throw error;
@@ -586,7 +615,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: formatMercadoPagoError(error),
-        details: error?.cause ?? null,
+        requestId,
       },
       { status: 500 },
     );

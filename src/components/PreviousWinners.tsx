@@ -55,7 +55,7 @@ export function PreviousWinners() {
                     <td className="px-5 py-3 text-white/55" colSpan={2}>Aun no hay ganadores registrados en Supabase.</td>
                   </tr>
                 )}
-                {!loading && winners.map((winner) => (
+                {!loading && winners.slice(0, 1).map((winner) => (
                   <tr key={`${winner.draw_date}-${winner.major_number}`} className="border-t border-white/8">
                     <td className="px-5 py-3 text-white/70">{winner.draw_date}</td>
                     <td className="px-5 py-3">

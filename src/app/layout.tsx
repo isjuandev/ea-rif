@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Syne } from "next/font/google";
+import PublicActivityOverlay from "@/components/PublicActivityOverlay";
 import "./globals.css";
 
 const syne = Syne({
@@ -21,7 +22,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body className={`${syne.variable} ${dmSans.variable}`}>{children}</body>
+      <body className={`${syne.variable} ${dmSans.variable}`}>
+        <PublicActivityOverlay>{children}</PublicActivityOverlay>
+      </body>
     </html>
   );
 }

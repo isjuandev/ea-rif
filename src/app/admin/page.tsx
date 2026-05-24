@@ -198,6 +198,18 @@ export default function AdminRifaSettingsPage() {
         ) : (
           <>
         <section className="grid gap-4 py-6 lg:grid-cols-3">
+          <label className="block rounded-md border border-white/12 bg-white/[0.03] p-4 lg:col-span-3">
+            <span className="text-sm font-bold text-white/90">Actividad finalizada (bloquear sitio público)</span>
+            <div className="mt-3 flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={config.activityClosed}
+                onChange={(event) => setConfig({ ...config, activityClosed: event.target.checked })}
+                className="size-5 rounded border border-white/25 bg-black/30 accent-lime-300"
+              />
+              <p className="text-sm text-white/70">Si está activo, el público verá “esta actividad finalizo” y no podrá interactuar.</p>
+            </div>
+          </label>
           <label className="block">
             <span className="text-sm font-bold text-white/76">Nombre de la rifa</span>
             <input value={config.eventName} onChange={(event) => setConfig({ ...config, eventName: event.target.value })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />

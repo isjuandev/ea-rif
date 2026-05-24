@@ -84,7 +84,7 @@ export async function GET() {
     .from("rifa_winners")
     .select("draw_date, lottery_name, major_number, minor_numbers, source")
     .order("draw_date", { ascending: false })
-    .limit(12);
+    .limit(1);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

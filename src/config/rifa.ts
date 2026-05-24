@@ -8,6 +8,7 @@ export type RifaPackage = {
 };
 
 export type RifaConfig = {
+  activityClosed: boolean;
   eventName: string;
   totalCifras: number;
   ticketDigits: number;
@@ -38,6 +39,7 @@ export type RifaConfig = {
 };
 
 export const rifaConfig: RifaConfig = {
+  activityClosed: false,
   eventName: "Entradas XX",
   totalCifras: 4,
   ticketDigits: 4,
