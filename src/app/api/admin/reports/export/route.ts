@@ -1,5 +1,5 @@
-import PDFDocument from "pdfkit";
 import * as XLSX from "xlsx";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { NextResponse } from "next/server";
 import { isAdminSessionAuthorized } from "@/lib/admin-auth";
 import { getAdminReportSummary, registerReportDownload } from "@/lib/admin-reports";
@@ -29,41 +29,58 @@ function buildExcel(summary: Awaited<ReturnType<typeof getAdminReportSummary>>) 
 }
 
 async function buildPdf(summary: Awaited<ReturnType<typeof getAdminReportSummary>>) {
-  const doc = new PDFDocument({ margin: 36, size: "A4" });
-  const chunks: Buffer[] = [];
+  const pdf = await PDFDocument.create();
+  let page = pdf.addPage([595.28, 841.89]); // A4
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
 
-  return new Promise<Buffer>((resolve, reject) => {
-    doc.on("data", (chunk) => chunks.push(chunk as Buffer));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
+  const marginX = 36;
+  const pageTop = 805;
+  const lineHeight = 14;
+  let y = pageTop;
 
-    doc.fontSize(18).text("Reporte financiero", { align: "left" });
-    doc.moveDown(0.4);
-    doc.fontSize(10).text(`Ciclo: ${summary.cycleId}`);
-    doc.text(`Descargas del ciclo: ${summary.cycleReportDownloads}`);
-    if (summary.lastReportDownloadAt) doc.text(`Ultima descarga: ${new Date(summary.lastReportDownloadAt).toLocaleString("es-CO")}`);
-
-    doc.moveDown(0.8);
-    doc.fontSize(12).text("Resumen");
-    doc.fontSize(10);
-    doc.text(`Numeros vendidos: ${summary.reportTotals.soldNumbersCount.toLocaleString("es-CO")}`);
-    doc.text(`Transacciones: ${summary.reportTotals.transactionsCount.toLocaleString("es-CO")}`);
-    doc.text(`Bruto: ${formatCOP(summary.reportTotals.grossCop)}`);
-    doc.text(`Comision: ${formatCOP(summary.reportTotals.feeCop)}`);
-    doc.text(`Neto: ${formatCOP(summary.reportTotals.netCop)}`);
-
-    doc.moveDown(0.8);
-    doc.fontSize(12).text("Detalle diario");
-    doc.moveDown(0.4);
-    doc.fontSize(9);
-
-    for (const row of summary.reportByDay) {
-      const line = `${row.date} | Vendidos ${row.soldNumbersCount} | Trans ${row.transactionsCount} | Bruto ${formatCOP(row.grossCop)} | Comisión ${formatCOP(row.feeCop)} | Neto ${formatCOP(row.netCop)}`;
-      doc.text(line, { lineGap: 2 });
+  const drawLine = (text: string, size = 10, isTitle = false) => {
+    if (y < 50) {
+      page = pdf.addPage([595.28, 841.89]);
+      y = pageTop;
     }
+    page.drawText(text, {
+      x: marginX,
+      y,
+      size,
+      font,
+      color: isTitle ? rgb(0.1, 0.1, 0.1) : rgb(0, 0, 0),
+    });
+    y -= size + (size >= 16 ? 8 : lineHeight - 10);
+  };
 
-    doc.end();
-  });
+  drawLine("Reporte financiero", 18, true);
+  drawLine(`Ciclo: ${summary.cycleId}`);
+  drawLine(`Descargas del ciclo: ${summary.cycleReportDownloads}`);
+  if (summary.lastReportDownloadAt) {
+    drawLine(`Ultima descarga: ${new Date(summary.lastReportDownloadAt).toLocaleString("es-CO")}`);
+  }
+  y -= 6;
+  drawLine("Resumen", 12, true);
+  drawLine(`Numeros vendidos: ${summary.reportTotals.soldNumbersCount.toLocaleString("es-CO")}`);
+  drawLine(`Transacciones: ${summary.reportTotals.transactionsCount.toLocaleString("es-CO")}`);
+  drawLine(`Bruto: ${formatCOP(summary.reportTotals.grossCop)}`);
+  drawLine(`Comision: ${formatCOP(summary.reportTotals.feeCop)}`);
+  drawLine(`Neto: ${formatCOP(summary.reportTotals.netCop)}`);
+  y -= 6;
+  drawLine("Detalle diario", 12, true);
+
+  if (summary.reportByDay.length === 0) {
+    drawLine("Sin ventas registradas.");
+  } else {
+    for (const row of summary.reportByDay) {
+      drawLine(
+        `${row.date} | Vendidos ${row.soldNumbersCount} | Trans ${row.transactionsCount} | Bruto ${formatCOP(row.grossCop)} | Comision ${formatCOP(row.feeCop)} | Neto ${formatCOP(row.netCop)}`,
+        9,
+      );
+    }
+  }
+
+  return Buffer.from(await pdf.save());
 }
 
 export async function GET(request: Request) {
