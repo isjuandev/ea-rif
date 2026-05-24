@@ -142,7 +142,9 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
   const { config: currentConfig } = await getEditableRifaConfig();
   const config = normalizeRifaConfig(input);
 
-  if (config.totalCifras !== currentConfig.totalCifras) {
+  const totalCifrasChanged = config.totalCifras !== currentConfig.totalCifras;
+
+  if (totalCifrasChanged) {
     const { count, error } = await supabase
       .from("rifa_tickets")
       .select("number", { count: "exact", head: true })
@@ -168,6 +170,16 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
     }
 
     throw new Error(error.message);
+  }
+
+  if (totalCifrasChanged) {
+    const { error: regenerateError } = await supabase.rpc("regenerate_rifa_tickets_for_digits", {
+      p_total_cifras: config.totalCifras,
+    });
+
+    if (regenerateError) {
+      throw new Error(regenerateError.message);
+    }
   }
 
   return config;
