@@ -10,8 +10,9 @@ async function runDeleteAll(
   supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
   table: string,
   whereColumn: string,
+  whereValue: string,
 ) {
-  const { error } = await supabase.from(table).delete().not(whereColumn, "is", null);
+  const { error } = await supabase.from(table).delete().neq(whereColumn, whereValue);
   if (error) throw new Error(error.message);
 }
 
@@ -35,10 +36,11 @@ export async function POST(request: Request) {
       );
     }
 
-    await runDeleteAll(supabase, "mercado_pago_payment_events", "mp_payment_id");
-    await runDeleteAll(supabase, "mercado_pago_payments", "mp_payment_id");
-    await runDeleteAll(supabase, "rifa_winners", "draw_date");
-    await runDeleteAll(supabase, "rifa_purchases", "buyer_name");
+    const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
+    await runDeleteAll(supabase, "mercado_pago_payment_events", "id", ZERO_UUID);
+    await runDeleteAll(supabase, "mercado_pago_payments", "id", ZERO_UUID);
+    await runDeleteAll(supabase, "rifa_winners", "id", ZERO_UUID);
+    await runDeleteAll(supabase, "rifa_purchases", "id", ZERO_UUID);
 
     const { error: resetTicketsError } = await supabase
       .from("rifa_tickets")
