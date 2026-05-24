@@ -9,23 +9,6 @@ import { getLotteryOption, lotteryOptions } from "@/lib/lottery-results";
 import { Skeleton } from "@/components/LoadingSkeleton";
 import { formatCOP } from "@/components/utils";
 
-type ReportTotals = {
-  soldNumbersCount: number;
-  transactionsCount: number;
-  grossCop: number;
-  feeCop: number;
-  netCop: number;
-};
-
-type ReportByDayItem = {
-  date: string;
-  soldNumbersCount: number;
-  transactionsCount: number;
-  grossCop: number;
-  feeCop: number;
-  netCop: number;
-};
-
 function emptyPackage(index: number): RifaPackage {
   return {
     id: `paquete-${index + 1}`,
@@ -86,14 +69,6 @@ export default function AdminRifaSettingsPage() {
   const [soldPercentage, setSoldPercentage] = useState(0);
   const [salesPage, setSalesPage] = useState(1);
   const [salesTotalPages, setSalesTotalPages] = useState(0);
-  const [reportTotals, setReportTotals] = useState<ReportTotals>({
-    soldNumbersCount: 0,
-    transactionsCount: 0,
-    grossCop: 0,
-    feeCop: 0,
-    netCop: 0,
-  });
-  const [reportByDay, setReportByDay] = useState<ReportByDayItem[]>([]);
 
   useEffect(() => {
     fetch("/api/rifa/config", { cache: "no-store" })
@@ -118,23 +93,9 @@ export default function AdminRifaSettingsPage() {
         setSoldCount(data?.soldCount ?? 0);
         setSoldPercentage(data?.soldPercentage ?? 0);
         setSalesTotalPages(data?.totalPages ?? 0);
-        setReportTotals(
-          data?.reportTotals ?? {
-            soldNumbersCount: 0,
-            transactionsCount: 0,
-            grossCop: 0,
-            feeCop: 0,
-            netCop: 0,
-          },
-        );
-        setReportByDay(data?.reportByDay ?? []);
       })
       .catch(() => undefined);
   }, [salesPage]);
-
-  const maxTotalValue = Math.max(reportTotals.grossCop, reportTotals.feeCop, reportTotals.netCop, 1);
-  const maxDailySold = Math.max(...reportByDay.map((item) => item.soldNumbersCount), 1);
-  const maxDailyNet = Math.max(...reportByDay.map((item) => item.netCop), 1);
 
   function updatePackage(index: number, patch: Partial<RifaPackage>) {
     setConfig((current) => ({
@@ -229,14 +190,6 @@ export default function AdminRifaSettingsPage() {
     setSoldPercentage(0);
     setSalesPage(1);
     setSalesTotalPages(0);
-    setReportTotals({
-      soldNumbersCount: 0,
-      transactionsCount: 0,
-      grossCop: 0,
-      feeCop: 0,
-      netCop: 0,
-    });
-    setReportByDay([]);
   }
 
   return (
@@ -403,95 +356,6 @@ export default function AdminRifaSettingsPage() {
               <div className="h-full rounded-full bg-yellow-300" style={{ width: `${Math.min(config.totalTickets > 0 ? Math.round((soldCount / config.totalTickets) * 100) : 0, 100)}%` }} />
             </div>
           </article>
-        </section>
-
-        <section className="pb-8">
-          <div className="mb-3">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Reportes</p>
-            <h2 className="mt-1 font-heading text-2xl font-bold">Resumen financiero</h2>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/55">Números vendidos</p>
-              <p className="mt-2 font-heading text-3xl font-bold text-lime-300">{reportTotals.soldNumbersCount.toLocaleString("es-CO")}</p>
-            </article>
-            <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/55">Transacciones</p>
-              <p className="mt-2 font-heading text-3xl font-bold text-cyan-300">{reportTotals.transactionsCount.toLocaleString("es-CO")}</p>
-            </article>
-            <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/55">Total bruto</p>
-              <p className="mt-2 font-heading text-3xl font-bold text-yellow-300">{formatCOP(reportTotals.grossCop)}</p>
-            </article>
-            <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/55">Total neto</p>
-              <p className="mt-2 font-heading text-3xl font-bold text-emerald-300">{formatCOP(reportTotals.netCop)}</p>
-            </article>
-          </div>
-
-          <div className="mt-4 grid gap-4 xl:grid-cols-2">
-            <article className="rounded-md border border-white/12 bg-white/[0.035] p-4">
-              <p className="text-sm font-bold text-white/85">Acumulado total</p>
-              <p className="mt-1 text-xs text-white/60">Bruto, comisión (3.29% + 800 por transacción) y neto.</p>
-              <div className="mt-4 space-y-4">
-                {[
-                  { label: "Bruto", value: reportTotals.grossCop, tone: "bg-yellow-300" },
-                  { label: "Comisión", value: reportTotals.feeCop, tone: "bg-rose-300" },
-                  { label: "Neto", value: reportTotals.netCop, tone: "bg-emerald-300" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="mb-1 flex items-center justify-between text-sm">
-                      <p className="font-bold text-white/80">{item.label}</p>
-                      <p className="font-bold text-white/90">{formatCOP(item.value)}</p>
-                    </div>
-                    <div className="h-3 overflow-hidden rounded-full bg-white/10">
-                      <div className={`h-full ${item.tone}`} style={{ width: `${Math.max((item.value / maxTotalValue) * 100, 2)}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-            <article className="rounded-md border border-white/12 bg-white/[0.035] p-4">
-              <p className="text-sm font-bold text-white/85">Evolución diaria</p>
-              <p className="mt-1 text-xs text-white/60">Barras de números vendidos + línea de neto por día.</p>
-              {reportByDay.length === 0 ? (
-                <p className="mt-6 text-sm text-white/60">No hay compras vendidas todavía.</p>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  {reportByDay.map((day) => (
-                    <div key={day.date} className="rounded-md border border-white/10 bg-black/20 p-3">
-                      <div className="mb-2 flex items-center justify-between gap-3">
-                        <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/60">{day.date}</p>
-                        <p className="text-xs font-bold text-white/70">{day.soldNumbersCount} números • {day.transactionsCount} transacciones</p>
-                      </div>
-                      <div className="space-y-2">
-                        <div>
-                          <div className="mb-1 flex items-center justify-between text-xs text-white/65">
-                            <span>Vendidos</span>
-                            <span>{day.soldNumbersCount.toLocaleString("es-CO")}</span>
-                          </div>
-                          <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                            <div className="h-full bg-cyan-300" style={{ width: `${Math.max((day.soldNumbersCount / maxDailySold) * 100, 3)}%` }} />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="mb-1 flex items-center justify-between text-xs text-white/65">
-                            <span>Neto</span>
-                            <span>{formatCOP(day.netCop)}</span>
-                          </div>
-                          <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                            <div className="h-full bg-emerald-300" style={{ width: `${Math.max((day.netCop / maxDailyNet) * 100, 3)}%` }} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </article>
-          </div>
         </section>
 
         <section className="pb-8">
