@@ -6,8 +6,12 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
-async function runDeleteAll(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>, table: string) {
-  const { error } = await supabase.from(table).delete().not("id", "is", null);
+async function runDeleteAll(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  table: string,
+  whereColumn: string,
+) {
+  const { error } = await supabase.from(table).delete().not(whereColumn, "is", null);
   if (error) throw new Error(error.message);
 }
 
@@ -31,10 +35,10 @@ export async function POST(request: Request) {
       );
     }
 
-    await runDeleteAll(supabase, "mercado_pago_payment_events");
-    await runDeleteAll(supabase, "mercado_pago_payments");
-    await runDeleteAll(supabase, "rifa_winners");
-    await runDeleteAll(supabase, "rifa_purchases");
+    await runDeleteAll(supabase, "mercado_pago_payment_events", "mp_payment_id");
+    await runDeleteAll(supabase, "mercado_pago_payments", "mp_payment_id");
+    await runDeleteAll(supabase, "rifa_winners", "draw_date");
+    await runDeleteAll(supabase, "rifa_purchases", "buyer_name");
 
     const { error: resetTicketsError } = await supabase
       .from("rifa_tickets")
