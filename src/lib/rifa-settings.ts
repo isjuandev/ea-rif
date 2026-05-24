@@ -50,6 +50,32 @@ function normalizePackage(pack: Partial<RifaPackage>, index: number): RifaPackag
   };
 }
 
+async function regenerateTicketsWithWhere(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  totalCifras: number,
+) {
+  const total = 10 ** totalCifras;
+  const batchSize = 5000;
+
+  const { error: deleteError } = await supabase.from("rifa_tickets").delete().neq("number", "");
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  for (let start = 0; start < total; start += batchSize) {
+    const end = Math.min(start + batchSize, total);
+    const rows = Array.from({ length: end - start }, (_, i) => ({
+      number: String(start + i).padStart(totalCifras, "0"),
+      status: "available",
+    }));
+
+    const { error: insertError } = await supabase.from("rifa_tickets").insert(rows);
+    if (insertError) {
+      throw new Error(insertError.message);
+    }
+  }
+}
+
 export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
   const packagesInput = Array.isArray(input.packages) && input.packages.length > 0 ? input.packages : rifaConfig.packages;
   const packages = packagesInput.map(normalizePackage);
@@ -178,13 +204,7 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
   }
 
   if (totalCifrasChanged || ticketsOutOfSync) {
-    const { error: regenerateError } = await supabase.rpc("regenerate_rifa_tickets_for_digits", {
-      p_total_cifras: config.totalCifras,
-    });
-
-    if (regenerateError) {
-      throw new Error(regenerateError.message);
-    }
+    await regenerateTicketsWithWhere(supabase, config.totalCifras);
   }
 
   const { error } = await supabase.from("rifa_settings").upsert({

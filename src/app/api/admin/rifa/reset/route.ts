@@ -16,6 +16,28 @@ async function runDeleteAll(
   if (error) throw new Error(error.message);
 }
 
+async function regenerateTicketsWithWhere(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  totalCifras: number,
+) {
+  const total = 10 ** totalCifras;
+  const batchSize = 5000;
+
+  const { error: deleteError } = await supabase.from("rifa_tickets").delete().neq("number", "");
+  if (deleteError) throw new Error(deleteError.message);
+
+  for (let start = 0; start < total; start += batchSize) {
+    const end = Math.min(start + batchSize, total);
+    const rows = Array.from({ length: end - start }, (_, i) => ({
+      number: String(start + i).padStart(totalCifras, "0"),
+      status: "available",
+    }));
+
+    const { error: insertError } = await supabase.from("rifa_tickets").insert(rows);
+    if (insertError) throw new Error(insertError.message);
+  }
+}
+
 export async function POST(request: Request) {
   if (!(await isAdminSessionAuthorized(request.headers.get("cookie")))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
@@ -58,13 +80,7 @@ export async function POST(request: Request) {
       throw new Error(resetTicketsError.message);
     }
 
-    const { error: regenerateError } = await supabase.rpc("regenerate_rifa_tickets_for_digits", {
-      p_total_cifras: rifaConfig.totalCifras,
-    });
-
-    if (regenerateError) {
-      throw new Error(regenerateError.message);
-    }
+    await regenerateTicketsWithWhere(supabase, rifaConfig.totalCifras);
 
     const nextCycleId = crypto.randomUUID();
     const nextConfig = await saveEditableRifaConfig({
