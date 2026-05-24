@@ -69,7 +69,7 @@ export const rifaConfig: RifaConfig = {
   ],
   fallbackSoldTickets: 0,
   socialLinks: {
-    instagram: "https://instagram.com/Serna_fc",
+    instagram: "https://instagram.com/eliteclubcol_",
     whatsapp: "https://wa.me/971508446750?text=Hola%2C%20necesito%20soporte%20con%20mi%20compra%20de%20entradas.",
   },
   previousWinners: [],
