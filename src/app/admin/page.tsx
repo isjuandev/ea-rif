@@ -64,11 +64,6 @@ export default function AdminRifaSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [blessedNumbersInput, setBlessedNumbersInput] = useState("");
   const [blessedPrizeValueInput, setBlessedPrizeValueInput] = useState("");
-  const [soldNumbers, setSoldNumbers] = useState<Array<{ number: string; buyer_name: string | null; buyer_whatsapp: string | null; buyer_email: string | null; sold_at: string | null; purchase_id: string | null }>>([]);
-  const [soldCount, setSoldCount] = useState(0);
-  const [soldPercentage, setSoldPercentage] = useState(0);
-  const [salesPage, setSalesPage] = useState(1);
-  const [salesTotalPages, setSalesTotalPages] = useState(0);
 
   useEffect(() => {
     fetch("/api/rifa/config", { cache: "no-store" })
@@ -84,18 +79,6 @@ export default function AdminRifaSettingsPage() {
       .catch(() => setStatus("No se pudo leer la configuración. Revisa Supabase."))
       .finally(() => setConfigLoading(false));
   }, []);
-
-  useEffect(() => {
-    fetch(`/api/admin/sales?page=${salesPage}`, { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => {
-        setSoldNumbers(data?.soldNumbers ?? []);
-        setSoldCount(data?.soldCount ?? 0);
-        setSoldPercentage(data?.soldPercentage ?? 0);
-        setSalesTotalPages(data?.totalPages ?? 0);
-      })
-      .catch(() => undefined);
-  }, [salesPage]);
 
   function updatePackage(index: number, patch: Partial<RifaPackage>) {
     setConfig((current) => ({
@@ -185,11 +168,6 @@ export default function AdminRifaSettingsPage() {
       setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
       setBlessedPrizeValueInput(String(data.config.blessedPrizes?.[0]?.prizeCop ?? ""));
     }
-    setSoldNumbers([]);
-    setSoldCount(0);
-    setSoldPercentage(0);
-    setSalesPage(1);
-    setSalesTotalPages(0);
   }
 
   return (
@@ -341,74 +319,6 @@ export default function AdminRifaSettingsPage() {
             <span className="text-sm font-bold text-white/76">Valor condición compra (COP)</span>
             <input type="number" min={0} value={config.bulkPrizeCop} onChange={(event) => setConfig({ ...config, bulkPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>
-        </section>
-
-        <section className="grid gap-4 pb-4 lg:grid-cols-2">
-          <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
-            <p className="text-sm font-bold text-white/80">Se ha vendido el {soldPercentage}%</p>
-            <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full rounded-full bg-lime-300" style={{ width: `${Math.min(soldPercentage, 100)}%` }} />
-            </div>
-          </article>
-          <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
-            <p className="text-sm font-bold text-white/80">Se han vendido {soldCount} Numeros</p>
-            <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full rounded-full bg-yellow-300" style={{ width: `${Math.min(config.totalTickets > 0 ? Math.round((soldCount / config.totalTickets) * 100) : 0, 100)}%` }} />
-            </div>
-          </article>
-        </section>
-
-        <section className="pb-8">
-          <div className="mb-3">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Ventas</p>
-            <h2 className="mt-1 font-heading text-2xl font-bold">Numeros vendidos</h2>
-          </div>
-          <div className="overflow-x-auto rounded-md border border-white/12 bg-white/[0.03]">
-            <table className="min-w-full text-sm">
-              <thead className="bg-white/5 text-white/70">
-                <tr>
-                  <th className="px-3 py-2 text-left">Numero</th>
-                  <th className="px-3 py-2 text-left">Comprador</th>
-                  <th className="px-3 py-2 text-left">Correo</th>
-                  <th className="px-3 py-2 text-left">WhatsApp</th>
-                  <th className="px-3 py-2 text-left">Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                {soldNumbers.map((item) => (
-                  <tr key={`${item.purchase_id}-${item.number}`} className="border-t border-white/10">
-                    <td className="px-3 py-2 font-bold text-lime-300">{item.number}</td>
-                    <td className="px-3 py-2">{item.buyer_name || "-"}</td>
-                    <td className="px-3 py-2">{item.buyer_email || "-"}</td>
-                    <td className="px-3 py-2">{item.buyer_whatsapp || "-"}</td>
-                    <td className="px-3 py-2">{item.sold_at ? new Date(item.sold_at).toLocaleString("es-CO") : "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-white/60">Mostrando 10 compras por página.</p>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSalesPage((current) => Math.max(1, current - 1))}
-                disabled={salesPage <= 1}
-                className="rounded-md border border-white/14 px-3 py-1 text-sm font-bold text-foreground transition hover:border-lime-300 hover:text-lime-300 disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                Anterior
-              </button>
-              <p className="text-sm text-white/75">Página {salesPage}{salesTotalPages > 0 ? ` de ${salesTotalPages}` : ""}</p>
-              <button
-                type="button"
-                onClick={() => setSalesPage((current) => (salesTotalPages > 0 ? Math.min(salesTotalPages, current + 1) : current + 1))}
-                disabled={salesTotalPages > 0 ? salesPage >= salesTotalPages : soldNumbers.length < 10}
-                className="rounded-md border border-white/14 px-3 py-1 text-sm font-bold text-foreground transition hover:border-lime-300 hover:text-lime-300 disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
         </section>
 
         <section className="py-4">
