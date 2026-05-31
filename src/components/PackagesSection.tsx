@@ -28,6 +28,7 @@ export function PackagesSection() {
   const { config: rifaConfig, loading: configLoading } = useRifaConfigState();
   const [customTickets, setCustomTickets] = useState(20);
   const [customError, setCustomError] = useState("");
+  const [soldBlessedNumbers, setSoldBlessedNumbers] = useState<Set<string>>(new Set());
 
   const boundedCustomTickets = useMemo(() => Math.max(20, Math.min(500, customTickets)), [customTickets]);
 
@@ -38,6 +39,18 @@ export function PackagesSection() {
       .catch(() => setStatus(null))
       .finally(() => setStatusLoading(false));
   }, []);
+
+  useEffect(() => {
+    const blessedNumbers = rifaConfig.blessedPrizes.map((p) => p.number);
+    if (blessedNumbers.length === 0) return;
+
+    fetch(`/api/rifa/blessed-status?numbers=${blessedNumbers.join(",")}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.soldNumbers) setSoldBlessedNumbers(new Set(data.soldNumbers));
+      })
+      .catch(() => undefined);
+  }, [rifaConfig.blessedPrizes]);
 
   function handleBuy(pack: RifaPackage) {
     if (!status || pack.rifas > status.availableTickets) return;
@@ -183,11 +196,21 @@ export function PackagesSection() {
                     <article className="card flex flex-col items-center justify-center gap-2 border-amber-300/35 bg-amber-300/10 p-4 text-center">
                       <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Números bendecidos</p>
                       <div className="flex flex-wrap justify-center gap-1.5">
-                        {rifaConfig.blessedPrizes.map((item) => (
-                          <span key={item.number} className="rounded-[6px] border border-amber-200/45 bg-black/25 px-2 py-1 text-xs font-bold text-amber-100">
-                            {item.number}
-                          </span>
-                        ))}
+                        {rifaConfig.blessedPrizes.map((item) => {
+                          const sold = soldBlessedNumbers.has(item.number);
+                          return (
+                            <span
+                              key={item.number}
+                              className={`rounded-[6px] border px-2 py-1 text-xs font-bold ${
+                                sold
+                                  ? "border-red-400/50 bg-red-900/30 text-red-300 line-through"
+                                  : "border-amber-200/45 bg-black/25 text-amber-100"
+                              }`}
+                            >
+                              {item.number}
+                            </span>
+                          );
+                        })}
                       </div>
                       <p className="text-sm font-bold text-foreground">Premio por número: <span className="text-amber-200">{formatCOP(rifaConfig.blessedPrizes[0].prizeCop || 0)}</span></p>
                     </article>
