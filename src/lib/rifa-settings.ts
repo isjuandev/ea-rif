@@ -136,6 +136,7 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
     showBlessedCard: Boolean(input.showBlessedCard ?? rifaConfig.showBlessedCard),
     showInvertedCard: Boolean(input.showInvertedCard ?? rifaConfig.showInvertedCard),
     showBulkCard: Boolean(input.showBulkCard ?? rifaConfig.showBulkCard),
+    blessedReleaseThreshold: toNonNegativeInteger(input.blessedReleaseThreshold, rifaConfig.blessedReleaseThreshold),
   };
 }
 
@@ -208,6 +209,33 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
 
   if (totalCifrasChanged || ticketsOutOfSync) {
     await regenerateTicketsWithWhere(supabase, config.totalCifras);
+  }
+
+  // Sync rifa_blessed_releases table with blessedPrizes
+  if (Array.isArray(config.blessedPrizes) && config.blessedPrizes.length > 0) {
+    const { data: existingReleases } = await supabase
+      .from("rifa_blessed_releases")
+      .select("number, sold_at");
+
+    const existingMap = new Map((existingReleases ?? []).map((r: any) => [r.number, r]));
+    const currentNumbers = new Set(config.blessedPrizes.map((p) => p.number));
+
+    // Delete entries removed from config that haven't been sold
+    for (const [num, record] of existingMap) {
+      if (!currentNumbers.has(num) && !record.sold_at) {
+        await supabase.from("rifa_blessed_releases").delete().eq("number", num);
+      }
+    }
+
+    // Insert new entries not yet in the table
+    for (const prize of config.blessedPrizes) {
+      if (!existingMap.has(prize.number)) {
+        await supabase.from("rifa_blessed_releases").insert({
+          number: prize.number,
+          prize_cop: prize.prizeCop,
+        });
+      }
+    }
   }
 
   const { error } = await supabase.from("rifa_settings").upsert({

@@ -342,6 +342,18 @@ export default function AdminRifaSettingsPage() {
             />
           </label>
           <label className="block lg:col-span-1">
+            <span className="text-sm font-bold text-white/76">Umbral liberación bendecidos</span>
+            <input
+              type="number"
+              min={0}
+              value={config.blessedReleaseThreshold}
+              onChange={(event) => setConfig({ ...config, blessedReleaseThreshold: Number(event.target.value) })}
+              className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+              placeholder="0"
+            />
+            <p className="mt-1 text-xs text-white/60">0 = desactivado. Cada N tickets vendidos se libera 1 número bendecido al azar.</p>
+          </label>
+          <label className="block lg:col-span-1">
             <span className="text-sm font-bold text-white/76">Valor número invertido (COP)</span>
             <input type="number" min={0} value={config.invertedWinnerPrizeCop} onChange={(event) => setConfig({ ...config, invertedWinnerPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
           </label>

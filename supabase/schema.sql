@@ -93,6 +93,15 @@ create table if not exists public.mercado_pago_payment_events (
 create index if not exists idx_mercado_pago_payment_events_payment on public.mercado_pago_payment_events(mp_payment_id, created_at desc);
 create index if not exists idx_mercado_pago_payment_events_source on public.mercado_pago_payment_events(event_source, created_at desc);
 
+create table if not exists public.rifa_blessed_releases (
+  number text primary key,
+  prize_cop integer not null default 0,
+  released_at timestamptz,
+  sold_at timestamptz,
+  purchase_id uuid references public.rifa_purchases(id),
+  created_at timestamptz not null default now()
+);
+
 insert into public.rifa_tickets (number)
 select lpad(generate_series(0, 9999)::text, 4, '0')
 on conflict (number) do nothing;
@@ -134,7 +143,8 @@ create or replace function public.sell_random_rifa_tickets(
   p_ticket_count integer,
   p_amount_cop integer,
   p_payment_method text,
-  p_mercado_pago_payment_id text default null
+  p_mercado_pago_payment_id text default null,
+  p_forced_numbers text[] default '{}'
 )
 returns table (purchase_id uuid, ticket_numbers text[])
 language plpgsql
@@ -143,6 +153,8 @@ as $$
 declare
   v_purchase_id uuid;
   v_numbers text[];
+  v_forced_count integer;
+  v_random_count integer;
 begin
   if p_mercado_pago_payment_id is not null then
     select rp.id, rp.ticket_numbers
@@ -160,19 +172,42 @@ begin
     raise exception 'ticket_count must be between 5 and 500';
   end if;
 
-  select array_agg(selected.number)
-  into v_numbers
-  from (
-    select rt.number
-    from public.rifa_tickets rt
-    where rt.status = 'available'
-    order by random()
-    limit p_ticket_count
-    for update skip locked
-  ) selected;
+  v_forced_count := coalesce(array_length(p_forced_numbers, 1), 0);
+
+  if v_forced_count > 0 then
+    if (select count(*) from public.rifa_tickets where number = any(p_forced_numbers) and status = 'available') <> v_forced_count then
+      raise exception 'not all forced numbers are available';
+    end if;
+  end if;
+
+  v_random_count := p_ticket_count - v_forced_count;
+
+  if v_random_count < 0 then
+    raise exception 'ticket_count cannot be less than forced numbers count';
+  end if;
+
+  if v_random_count > 0 then
+    select array_agg(selected.number)
+    into v_numbers
+    from (
+      select rt.number
+      from public.rifa_tickets rt
+      where rt.status = 'available'
+        and not (coalesce(array_length(p_forced_numbers, 1), 0) > 0 and rt.number = any(p_forced_numbers))
+      order by random()
+      limit v_random_count
+      for update skip locked
+    ) selected;
+
+    if coalesce(array_length(v_numbers, 1), 0) <> v_random_count then
+      raise exception 'not enough available tickets';
+    end if;
+  end if;
+
+  v_numbers := coalesce(p_forced_numbers, '{}') || coalesce(v_numbers, '{}');
 
   if coalesce(array_length(v_numbers, 1), 0) <> p_ticket_count then
-    raise exception 'not enough available tickets';
+    raise exception 'unexpected ticket count mismatch';
   end if;
 
   insert into public.rifa_purchases (

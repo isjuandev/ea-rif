@@ -102,6 +102,53 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
 
   await assertPackageAvailability(resolvedTicketCount);
 
+  let forcedNumbers: string[] = [];
+
+  if (rifaConfig.blessedReleaseThreshold > 0) {
+    const { count: currentSoldCount } = await supabase
+      .from("rifa_tickets")
+      .select("number", { count: "exact", head: true })
+      .eq("status", "sold");
+
+    const soldBefore = currentSoldCount ?? 0;
+    const soldAfter = soldBefore + resolvedTicketCount;
+
+    const expectedBefore = Math.floor(soldBefore / rifaConfig.blessedReleaseThreshold);
+    const expectedAfter = Math.floor(soldAfter / rifaConfig.blessedReleaseThreshold);
+
+    if (expectedAfter > expectedBefore) {
+      const toReleaseCount = expectedAfter - expectedBefore;
+
+      const { data: unreleased } = await supabase
+        .from("rifa_blessed_releases")
+        .select("number")
+        .is("released_at", null);
+
+      if (unreleased && unreleased.length > 0) {
+        const shuffled = [...unreleased].sort(() => Math.random() - 0.5);
+        const toRelease = shuffled.slice(0, toReleaseCount).map((r) => r.number);
+
+        if (toRelease.length > 0) {
+          // Only force numbers that are still available in rifa_tickets
+          const { data: availableForced } = await supabase
+            .from("rifa_tickets")
+            .select("number")
+            .in("number", toRelease)
+            .eq("status", "available");
+
+          forcedNumbers = (availableForced ?? []).map((r) => r.number);
+
+          if (forcedNumbers.length > 0) {
+            await supabase
+              .from("rifa_blessed_releases")
+              .update({ released_at: new Date().toISOString() })
+              .in("number", forcedNumbers);
+          }
+        }
+      }
+    }
+  }
+
   const { data, error } = await supabase.rpc("sell_random_rifa_tickets", {
     p_buyer_name: buyer.buyerName,
     p_buyer_whatsapp: buyer.buyerWhatsapp,
@@ -112,6 +159,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
     p_amount_cop: resolvedAmountCop,
     p_payment_method: input.paymentMethod,
     p_mercado_pago_payment_id: input.mercadoPagoPaymentId ?? null,
+    p_forced_numbers: forcedNumbers,
   });
 
   if (error) {
@@ -121,6 +169,13 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   const purchase = Array.isArray(data) ? data[0] : data;
   const ticketNumbers = purchase?.ticket_numbers ?? [];
   const purchaseId = purchase?.purchase_id;
+
+  if (forcedNumbers.length > 0 && purchaseId) {
+    await supabase
+      .from("rifa_blessed_releases")
+      .update({ sold_at: new Date().toISOString(), purchase_id: purchaseId })
+      .in("number", forcedNumbers);
+  }
 
   if (buyer.buyerEmail && ticketNumbers.length > 0 && purchaseId) {
     try {

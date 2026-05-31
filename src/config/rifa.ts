@@ -42,6 +42,7 @@ export type RifaConfig = {
   showBlessedCard: boolean;
   showInvertedCard: boolean;
   showBulkCard: boolean;
+  blessedReleaseThreshold: number;
 };
 
 export const rifaConfig: RifaConfig = {
@@ -84,4 +85,5 @@ export const rifaConfig: RifaConfig = {
   showBlessedCard: true,
   showInvertedCard: true,
   showBulkCard: true,
+  blessedReleaseThreshold: 0,
 };

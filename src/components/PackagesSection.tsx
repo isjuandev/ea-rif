@@ -29,6 +29,7 @@ export function PackagesSection() {
   const [customTickets, setCustomTickets] = useState(20);
   const [customError, setCustomError] = useState("");
   const [soldBlessedNumbers, setSoldBlessedNumbers] = useState<Set<string>>(new Set());
+  const [releasedBlessedNumbers, setReleasedBlessedNumbers] = useState<Set<string> | null>(null);
 
   const boundedCustomTickets = useMemo(() => Math.max(20, Math.min(500, customTickets)), [customTickets]);
 
@@ -48,6 +49,7 @@ export function PackagesSection() {
       .then((res) => res.json())
       .then((data) => {
         if (data?.soldNumbers) setSoldBlessedNumbers(new Set(data.soldNumbers));
+        if (data?.releasedNumbers) setReleasedBlessedNumbers(new Set(data.releasedNumbers));
       })
       .catch(() => undefined);
   }, [rifaConfig.blessedPrizes]);
@@ -192,11 +194,13 @@ export function PackagesSection() {
                 </div>
               ) : (rifaConfig.showBlessedCard || rifaConfig.showInvertedCard || rifaConfig.showBulkCard) && (
                 <div className={`mt-5 grid w-full gap-4 ${gridCols}`}>
-                  {rifaConfig.showBlessedCard && rifaConfig.blessedPrizes.length > 0 && (
+                  {rifaConfig.showBlessedCard && rifaConfig.blessedPrizes.length > 0 && (releasedBlessedNumbers === null || rifaConfig.blessedPrizes.some((p) => releasedBlessedNumbers.has(p.number))) && (
                     <article className="card flex flex-col items-center justify-center gap-2 border-amber-300/35 bg-amber-300/10 p-4 text-center">
                       <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Números bendecidos</p>
                       <div className="flex flex-wrap justify-center gap-1.5">
-                        {rifaConfig.blessedPrizes.map((item) => {
+                        {rifaConfig.blessedPrizes
+                          .filter((item) => releasedBlessedNumbers === null || releasedBlessedNumbers.has(item.number))
+                          .map((item) => {
                           const sold = soldBlessedNumbers.has(item.number);
                           return (
                             <span
