@@ -64,6 +64,18 @@ export function PackagesSection() {
   const soldPercentage = status ? Math.min((status.soldTickets / status.totalTickets) * 100, 100) : 0;
   const roundedSoldPercentage = Math.round(soldPercentage);
   const roundedAvailablePercentage = Math.round(Math.max(100 - soldPercentage, 0));
+  const visibleCardsCount = [
+    rifaConfig.showBlessedCard && rifaConfig.blessedPrizes.length > 0,
+    rifaConfig.showInvertedCard,
+    rifaConfig.showBulkCard,
+  ].filter(Boolean).length;
+  const gridCols =
+    visibleCardsCount === 3
+      ? "md:grid-cols-[2fr_1fr_1fr]"
+      : visibleCardsCount === 2
+        ? "md:grid-cols-2"
+        : "md:grid-cols-1";
+
   const loading = configLoading || statusLoading || !status;
 
   return (
@@ -156,7 +168,7 @@ export function PackagesSection() {
               </div>
 
               {configLoading ? (
-                <div className="mt-5 grid w-full gap-4 md:grid-cols-3">
+                <div className={`mt-5 grid w-full gap-4 ${gridCols}`}>
                   {Array.from({ length: 3 }).map((_, index) => (
                     <article key={index} className="card border-amber-300/25 bg-amber-300/10 p-4">
                       <Skeleton className="mx-auto h-4 w-44 bg-amber-200/20" />
@@ -166,7 +178,7 @@ export function PackagesSection() {
                   ))}
                 </div>
               ) : (rifaConfig.showBlessedCard || rifaConfig.showInvertedCard || rifaConfig.showBulkCard) && (
-                <div className="mt-5 grid w-full gap-4 md:grid-cols-[2fr_1fr_1fr]">
+                <div className={`mt-5 grid w-full gap-4 ${gridCols}`}>
                   {rifaConfig.showBlessedCard && rifaConfig.blessedPrizes.length > 0 && (
                     <article className="card flex flex-col items-center justify-center gap-2 border-amber-300/35 bg-amber-300/10 p-4 text-center">
                       <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Números bendecidos</p>
