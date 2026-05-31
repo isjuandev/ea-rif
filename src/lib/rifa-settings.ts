@@ -215,7 +215,7 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
   if (Array.isArray(config.blessedPrizes) && config.blessedPrizes.length > 0) {
     const { data: existingReleases } = await supabase
       .from("rifa_blessed_releases")
-      .select("number, sold_at");
+      .select("number, sold_at, released_at");
 
     const existingMap = new Map((existingReleases ?? []).map((r: any) => [r.number, r]));
     const currentNumbers = new Set(config.blessedPrizes.map((p) => p.number));
@@ -227,12 +227,24 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
       }
     }
 
+    // Set released_at = now() for existing entries that don't have it yet
+    for (const prize of config.blessedPrizes) {
+      const existing = existingMap.get(prize.number);
+      if (existing && !existing.released_at) {
+        await supabase
+          .from("rifa_blessed_releases")
+          .update({ released_at: new Date().toISOString() })
+          .eq("number", prize.number);
+      }
+    }
+
     // Insert new entries not yet in the table
     for (const prize of config.blessedPrizes) {
       if (!existingMap.has(prize.number)) {
         await supabase.from("rifa_blessed_releases").insert({
           number: prize.number,
           prize_cop: prize.prizeCop,
+          released_at: new Date().toISOString(),
         });
       }
     }

@@ -194,7 +194,7 @@ export function PackagesSection() {
                 </div>
               ) : (rifaConfig.showBlessedCard || rifaConfig.showInvertedCard || rifaConfig.showBulkCard) && (
                 <div className={`mt-5 grid w-full gap-4 ${gridCols}`}>
-                  {rifaConfig.showBlessedCard && rifaConfig.blessedPrizes.length > 0 && (releasedBlessedNumbers === null || rifaConfig.blessedPrizes.some((p) => releasedBlessedNumbers.has(p.number))) && (
+                  {rifaConfig.showBlessedCard && rifaConfig.blessedPrizes.length > 0 && (
                     <article className="card flex flex-col items-center justify-center gap-2 border-amber-300/35 bg-amber-300/10 p-4 text-center">
                       <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Números bendecidos</p>
                       <div className="flex flex-wrap justify-center gap-1.5">

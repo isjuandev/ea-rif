@@ -15,14 +15,14 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Club Élite | 23 de Mayo",
-  description: "Compra entradas digitales, recibe números de 4 cifras y participa con la Lotería de Boyacá.",
+  title: "Club Élite | 27 de Junio",
+  description: "Compra entradas digitales, recibe números de 5 cifras y participa con la Lotería de Boyacá.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es">
-      <body className={`${syne.variable} ${dmSans.variable}`}>
+      <html lang="es" suppressHydrationWarning>
+        <body className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
         <PublicActivityOverlay>{children}</PublicActivityOverlay>
       </body>
     </html>

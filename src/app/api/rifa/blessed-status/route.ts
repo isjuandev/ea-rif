@@ -22,14 +22,36 @@ export async function GET(request: Request) {
   if (threshold > 0) {
     const blessedNumbers = numbersParam ? numbersParam.split(",").filter(Boolean) : [];
 
-    const { data: releases } = await supabase
-      .from("rifa_blessed_releases")
-      .select("number, released_at, sold_at")
-      .in("number", blessedNumbers.length > 0 ? blessedNumbers : [""]);
+    if (blessedNumbers.length > 0) {
+      try {
+        const { data: releases } = await supabase
+          .from("rifa_blessed_releases")
+          .select("number, released_at, sold_at")
+          .in("number", blessedNumbers);
 
-    if (releases) {
-      releasedNumbers = releases.filter((r) => r.released_at).map((r) => r.number);
-      soldNumbers = releases.filter((r) => r.sold_at).map((r) => r.number);
+        if (releases && releases.length > 0) {
+          releasedNumbers = releases.filter((r) => r.released_at).map((r) => r.number);
+          soldNumbers = releases.filter((r) => r.sold_at).map((r) => r.number);
+        } else {
+          // Table empty or doesn't exist → fallback: all numbers visible
+          releasedNumbers = blessedNumbers;
+          const { data } = await supabase
+            .from("rifa_tickets")
+            .select("number")
+            .in("number", blessedNumbers)
+            .eq("status", "sold");
+          soldNumbers = data?.map((t) => t.number) ?? [];
+        }
+      } catch {
+        // Query failed (table may not exist) → fallback: all numbers visible
+        releasedNumbers = blessedNumbers;
+        const { data } = await supabase
+          .from("rifa_tickets")
+          .select("number")
+          .in("number", blessedNumbers)
+          .eq("status", "sold");
+        soldNumbers = data?.map((t) => t.number) ?? [];
+      }
     }
   } else {
     // threshold = 0 → all blessed numbers are visible
