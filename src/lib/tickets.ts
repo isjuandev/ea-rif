@@ -38,7 +38,7 @@ export function validateBuyerFields(input: { buyerName: string; buyerWhatsapp?: 
   }
 
   if (buyerEmail.length > 160) {
-    throw new Error("El correo es demásiado largo.");
+    throw new Error("El correo es demasiado largo.");
   }
 
   return { buyerName, buyerCellphone, buyerWhatsapp, buyerEmail };
@@ -76,7 +76,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   const supabase = getSupabaseAdmin();
 
   if (!supabase) {
-    throw new Error("Supabase no esta configurado en el servidor.");
+    throw new Error("Supabase no está configurado en el servidor.");
   }
 
   const { config: rifaConfig } = await getEditableRifaConfig();
@@ -86,7 +86,7 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
   const resolvedAmountCop = input.amountCop ?? (resolvedTicketCount !== null ? resolvedTicketCount * rifaConfig.ticketPrice : null);
 
   if (resolvedTicketCount === null || !Number.isInteger(resolvedTicketCount) || resolvedTicketCount < 5 || resolvedTicketCount > 500) {
-    throw new Error("La cantidad de rifas es invalida. Debe estar entre 5 y 500.");
+    throw new Error("La cantidad de rifas es inválida. Debe estar entre 5 y 500.");
   }
 
   if (resolvedAmountCop === null || !Number.isInteger(resolvedAmountCop) || resolvedAmountCop < 0) {
@@ -151,14 +151,14 @@ export async function fulfillTicketPurchase(input: FulfillTicketPurchaseInput) {
       if (email.sent) {
         await supabase.from("rifa_purchases").update({ email_sent_at: new Date().toISOString() }).eq("id", purchaseId);
       } else {
-        console.error("Email no envíado", {
+        console.error("Email no enviado", {
           purchaseId,
           to: buyer.buyerEmail,
           reason: email.error || "Motivo desconocido",
         });
       }
     } catch (error: any) {
-      console.error("Error envíando email de compra", {
+      console.error("Error enviando email de compra", {
         purchaseId,
         to: buyer.buyerEmail,
         error: error?.message || error,

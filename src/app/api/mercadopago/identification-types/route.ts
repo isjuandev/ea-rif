@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const identificationTypeClient = getMercadoPagoIdentificationType();
     if (!identificationTypeClient) {
-      return NextResponse.json({ error: "Mercado Pago no esta configurado en el servidor." }, { status: 503 });
+      return NextResponse.json({ error: "Mercado Pago no está configurado en el servidor." }, { status: 503 });
     }
 
     const identificationTypes = await identificationTypeClient.list();

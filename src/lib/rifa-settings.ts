@@ -133,6 +133,9 @@ export function normalizeRifaConfig(input: Partial<RifaConfig>): RifaConfig {
     invertedWinnerPrizeCop: toNonNegativeInteger(input.invertedWinnerPrizeCop, rifaConfig.invertedWinnerPrizeCop),
     bulkPrizeThreshold: toPositiveInteger(input.bulkPrizeThreshold, rifaConfig.bulkPrizeThreshold),
     bulkPrizeCop: toNonNegativeInteger(input.bulkPrizeCop, rifaConfig.bulkPrizeCop),
+    showBlessedCard: Boolean(input.showBlessedCard ?? rifaConfig.showBlessedCard),
+    showInvertedCard: Boolean(input.showInvertedCard ?? rifaConfig.showInvertedCard),
+    showBulkCard: Boolean(input.showBulkCard ?? rifaConfig.showBulkCard),
   };
 }
 
@@ -162,7 +165,7 @@ export async function saveEditableRifaConfig(input: Partial<RifaConfig>) {
   const supabase = getSupabaseAdmin();
 
   if (!supabase) {
-    throw new Error("Supabase no esta configurado en el servidor.");
+    throw new Error("Supabase no está configurado en el servidor.");
   }
 
   const { config: currentConfig } = await getEditableRifaConfig();

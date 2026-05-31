@@ -14,7 +14,7 @@ const FINAL_DECLINED_STATUSES = new Set(["cancelled", "rejected", "refunded", "c
 const STATUS_CHECK_THROTTLE_MS = 60_000;
 const FINAL_FULFILLMENT_ERROR_PATTERNS = [
   "ticket_count must be between",
-  "la cantidad de rifas es invalida",
+  "la cantidad de rifas es inválida",
   "el pago aprobado no coincide con el paquete comprado",
   "el pago aprobado no trae metadata suficiente",
 ];
@@ -65,7 +65,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const paymentClient = getMercadoPagoPayment();
 
     if (!paymentClient) {
-      return NextResponse.json({ error: "Mercado Pago no esta configurado en el servidor." }, { status: 503 });
+      return NextResponse.json({ error: "Mercado Pago no está configurado en el servidor." }, { status: 503 });
     }
 
     const payment = await paymentClient.get({ id });
@@ -112,8 +112,8 @@ export async function GET(_request: Request, context: RouteContext) {
             status: payment.status,
             statusDetail: payment.status_detail,
             message: final
-              ? "El pago fue aprobado pero no se pudo asignar boletas por una validacion del sistema."
-              : "El pago fue aprobado, pero estamos reintentando la asignacion de boletas.",
+              ? "El pago fue aprobado pero no se pudo asignar boletas por una validación del sistema."
+              : "El pago fue aprobado, pero estamos reintentando la asignación de boletas.",
             error: fulfillmentError?.cause?.message || fulfillmentError?.message || "Error procesando compra aprobada.",
           },
           { status: 200 },
@@ -140,8 +140,8 @@ export async function GET(_request: Request, context: RouteContext) {
       status: payment.status,
       statusDetail: payment.status_detail,
       message: final
-        ? "Mercado Pago no aprobo el pago."
-        : "El pago fue creado pero aún no esta aprobado.",
+        ? "Mercado Pago no aprobó el pago."
+        : "El pago fue creado pero aún no está aprobado.",
     });
   } catch (error: any) {
     return NextResponse.json(

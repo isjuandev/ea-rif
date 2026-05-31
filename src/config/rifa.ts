@@ -39,6 +39,9 @@ export type RifaConfig = {
   invertedWinnerPrizeCop: number;
   bulkPrizeThreshold: number;
   bulkPrizeCop: number;
+  showBlessedCard: boolean;
+  showInvertedCard: boolean;
+  showBulkCard: boolean;
 };
 
 export const rifaConfig: RifaConfig = {
@@ -78,4 +81,7 @@ export const rifaConfig: RifaConfig = {
   invertedWinnerPrizeCop: 800000,
   bulkPrizeThreshold: 20,
   bulkPrizeCop: 3500000,
+  showBlessedCard: true,
+  showInvertedCard: true,
+  showBulkCard: true,
 };

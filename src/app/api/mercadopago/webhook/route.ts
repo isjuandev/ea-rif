@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       status: "error",
       payload: body,
     });
-    return NextResponse.json({ error: "Mercado Pago no esta configurado." }, { status: 503 });
+    return NextResponse.json({ error: "Mercado Pago no está configurado." }, { status: 503 });
   }
 
   if (topic !== "payment" || !paymentId) {

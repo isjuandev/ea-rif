@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const paymentMethodClient = getMercadoPagoPaymentMethod();
     if (!paymentMethodClient) {
-      return NextResponse.json({ error: "Mercado Pago no esta configurado en el servidor." }, { status: 503 });
+      return NextResponse.json({ error: "Mercado Pago no está configurado en el servidor." }, { status: 503 });
     }
 
     const methods = await paymentMethodClient.get({ requestOptions: { testToken: shouldSendMercadoPagoTestToken() } });

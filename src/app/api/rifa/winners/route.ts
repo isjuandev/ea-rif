@@ -104,7 +104,7 @@ export async function POST(request: Request) {
   const supabase = getSupabaseAdmin();
   const { config: rifaConfig } = await getEditableRifaConfig();
   if (!supabase) {
-    return NextResponse.json({ error: "Supabase no esta configurado." }, { status: 503 });
+    return NextResponse.json({ error: "Supabase no está configurado." }, { status: 503 });
   }
 
   const body = (await request.json()) as {

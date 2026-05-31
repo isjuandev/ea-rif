@@ -62,7 +62,7 @@ export async function sendTicketEmail({
   eventName?: string;
   lotteryName?: string;
 }) {
-  if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacio." };
+  if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacío." };
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = process.env.RESEND_FROM || "Entradas Elite Club <onboarding@resend.dev>";
@@ -167,7 +167,7 @@ export async function sendTicketEmail({
   });
 
   if (result.error) {
-    return { sent: false, error: result.error.message || "Resend rechazó el envio." };
+    return { sent: false, error: result.error.message || "Resend rechazó el envío." };
   }
 
   return { sent: true, messageId: result.data?.id || null };
@@ -188,18 +188,18 @@ export async function sendBlessedNumberAlertEmail({
   allNumbers: string[];
   eventName?: string;
 }) {
-  if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacio." };
+  if (!process.env.RESEND_API_KEY || !to) return { sent: false, error: "Resend no configurado o destinatario vacío." };
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = process.env.RESEND_FROM || "Entradas Elite Club <onboarding@resend.dev>";
 
   const html = `
     <div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#fff;padding:20px">
-      <h2 style="color:#D4AF37;margin:0 0 10px">Numero bendecido vendido</h2>
+      <h2 style="color:#D4AF37;margin:0 0 10px">Número bendecido vendido</h2>
       <p><strong>Comprador:</strong> ${escapeHtml(buyerName)}</p>
       <p><strong>WhatsApp:</strong> ${escapeHtml(buyerWhatsapp)}</p>
-      <p><strong>Numeros bendecidos:</strong> ${blessedNumbers.map(escapeHtml).join(", ")}</p>
-      <p><strong>Numeros de la compra:</strong> ${allNumbers.map(escapeHtml).join(", ")}</p>
+      <p><strong>Números bendecidos:</strong> ${blessedNumbers.map(escapeHtml).join(", ")}</p>
+      <p><strong>Números de la compra:</strong> ${allNumbers.map(escapeHtml).join(", ")}</p>
     </div>
   `;
 
@@ -210,6 +210,6 @@ export async function sendBlessedNumberAlertEmail({
     html,
   });
 
-  if (result.error) return { sent: false, error: result.error.message || "Resend rechazó el envio." };
+  if (result.error) return { sent: false, error: result.error.message || "Resend rechazó el envío." };
   return { sent: true, messageId: result.data?.id || null };
 }

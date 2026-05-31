@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   };
 
   if (!isAdminLoginValid(String(body.username ?? ""), String(body.password ?? ""))) {
-    return NextResponse.json({ error: "Usuario o contrasena incorrectos." }, { status: 401 });
+    return NextResponse.json({ error: "Usuario o contraseña incorrectos." }, { status: 401 });
   }
 
   const response = NextResponse.json({ ok: true });

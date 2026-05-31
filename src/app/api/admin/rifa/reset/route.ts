@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return NextResponse.json({ error: "Supabase no esta configurado en el servidor." }, { status: 503 });
+    return NextResponse.json({ error: "Supabase no está configurado en el servidor." }, { status: 503 });
   }
 
   try {

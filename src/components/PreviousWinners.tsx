@@ -29,7 +29,7 @@ export function PreviousWinners() {
     <section className="px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl rounded-md border border-white/12 bg-white/[0.035]">
         <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left font-heading text-xl font-bold text-foreground">
-          Numeros ganadores anteriores
+          Números ganadores anteriores
           <ChevronDown className={`size-5 transition ${open ? "rotate-180" : ""}`} />
         </button>
         {open && (
@@ -38,7 +38,7 @@ export function PreviousWinners() {
               <thead className="text-white/45">
                 <tr>
                   <th className="px-5 py-3 font-bold">Fecha</th>
-                  <th className="px-5 py-3 font-bold">Numero ganador</th>
+                  <th className="px-5 py-3 font-bold">Número ganador</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,7 +52,7 @@ export function PreviousWinners() {
                 )}
                 {!loading && winners.length === 0 && (
                   <tr className="border-t border-white/8">
-                    <td className="px-5 py-3 text-white/55" colSpan={2}>Aun no hay ganadores registrados en Supabase.</td>
+                    <td className="px-5 py-3 text-white/55" colSpan={2}>Aún no hay ganadores registrados en Supabase.</td>
                   </tr>
                 )}
                 {!loading && winners.slice(0, 1).map((winner) => (

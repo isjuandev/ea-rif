@@ -74,7 +74,7 @@ export default function AdminRifaSettingsPage() {
           setBlessedNumbersInput((data.config.blessedNumbers ?? []).join(","));
           setBlessedPrizeValueInput(String(data.config.blessedPrizes?.[0]?.prizeCop ?? ""));
         }
-        setStatus(data?.configured ? "Configuracion cargada desde Supabase." : "Usando configuración base. Guarda para persistir cambios.");
+        setStatus(data?.configured ? "Configuración cargada desde Supabase." : "Usando configuración base. Guarda para persistir cambios.");
       })
       .catch(() => setStatus("No se pudo leer la configuración. Revisa Supabase."))
       .finally(() => setConfigLoading(false));
@@ -229,7 +229,7 @@ export default function AdminRifaSettingsPage() {
                 onChange={(event) => setConfig({ ...config, activityClosed: event.target.checked })}
                 className="size-5 rounded border border-white/25 bg-black/30 accent-lime-300"
               />
-              <p className="text-sm text-white/70">Si está activo, el público verá “esta actividad finalizo” y no podrá interactuar.</p>
+              <p className="text-sm text-white/70">Si está activo, el público verá “esta actividad finalizó” y no podrá interactuar.</p>
             </div>
           </label>
           <label className="block">
@@ -322,7 +322,7 @@ export default function AdminRifaSettingsPage() {
             </p>
           </label>
           <label className="block lg:col-span-2">
-            <span className="text-sm font-bold text-white/76">Numeros bendecidos (separados por coma)</span>
+            <span className="text-sm font-bold text-white/76">Números bendecidos (separados por coma)</span>
             <input
               value={blessedNumbersInput}
               onChange={(event) => setBlessedNumbersInput(event.target.value)}
@@ -352,6 +352,38 @@ export default function AdminRifaSettingsPage() {
           <label className="block lg:col-span-1">
             <span className="text-sm font-bold text-white/76">Valor condición compra (COP)</span>
             <input type="number" min={0} value={config.bulkPrizeCop} onChange={(event) => setConfig({ ...config, bulkPrizeCop: Number(event.target.value) })} className="mt-2 w-full rounded-md border border-white/12 bg-white/[0.045] px-4 py-3 text-foreground outline-none focus:border-transparent focus:ring-2 focus:ring-primary" />
+          </label>
+          <label className="block rounded-md border border-white/12 bg-white/[0.03] p-4 lg:col-span-3">
+            <span className="text-sm font-bold text-white/90">Tarjetas visibles en la web</span>
+            <div className="mt-3 flex flex-wrap gap-6">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={config.showBlessedCard}
+                  onChange={(event) => setConfig({ ...config, showBlessedCard: event.target.checked })}
+                  className="size-5 rounded border border-white/25 bg-black/30 accent-lime-300"
+                />
+                <span className="text-sm text-white/70">Números bendecidos</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={config.showInvertedCard}
+                  onChange={(event) => setConfig({ ...config, showInvertedCard: event.target.checked })}
+                  className="size-5 rounded border border-white/25 bg-black/30 accent-lime-300"
+                />
+                <span className="text-sm text-white/70">Número invertido</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={config.showBulkCard}
+                  onChange={(event) => setConfig({ ...config, showBulkCard: event.target.checked })}
+                  className="size-5 rounded border border-white/25 bg-black/30 accent-lime-300"
+                />
+                <span className="text-sm text-white/70">Condición compra</span>
+              </label>
+            </div>
           </label>
         </section>
 

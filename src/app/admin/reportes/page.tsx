@@ -236,7 +236,7 @@ export default function AdminReportesPage() {
             </div>
           </article>
           <article className="rounded-md border border-white/12 bg-white/[0.045] p-4">
-            <p className="text-sm font-bold text-white/80">Se han vendido {soldCount} Numeros</p>
+            <p className="text-sm font-bold text-white/80">Se han vendido {soldCount} Números</p>
             <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full bg-yellow-300" style={{ width: `${Math.min(totalTickets > 0 ? Math.round((soldCount / totalTickets) * 100) : 0, 100)}%` }} />
             </div>
@@ -246,13 +246,13 @@ export default function AdminReportesPage() {
         <section className="pb-8">
           <div className="mb-3">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Ventas</p>
-            <h2 className="mt-1 font-heading text-2xl font-bold">Numeros vendidos</h2>
+            <h2 className="mt-1 font-heading text-2xl font-bold">Números vendidos</h2>
           </div>
           <div className="overflow-x-auto rounded-md border border-white/12 bg-white/[0.03]">
             <table className="min-w-full text-sm">
               <thead className="bg-white/5 text-white/70">
                 <tr>
-                  <th className="px-3 py-2 text-left">Numero</th>
+                  <th className="px-3 py-2 text-left">Número</th>
                   <th className="px-3 py-2 text-left">Comprador</th>
                   <th className="px-3 py-2 text-left">Correo</th>
                   <th className="px-3 py-2 text-left">WhatsApp</th>

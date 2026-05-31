@@ -50,7 +50,7 @@ type PsePaymentForm = {
 };
 
 type PaymentMethodMode = "card" | "pse";
-type CardBrand = "visa" | "mástercard" | "amex" | "diners" | "discover" | "unknown";
+type CardBrand = "visa" | "mastercard" | "amex" | "diners" | "discover" | "unknown";
 
 
 const COLOMBIA_API_BASE = "https://api-colombia.com/api/v1";
@@ -58,10 +58,10 @@ const NATURAL_DOC_TYPES = [
   { label: "C.C", value: "CC" },
   { label: "C.E.", value: "CE" },
   { label: "Pasaporte", value: "PAS" },
-  { label: "Tarjeta de Extranjeria", value: "TE" },
+  { label: "Tarjeta de Extranjería", value: "TE" },
   { label: "Tarjeta de Identidad", value: "TI" },
   { label: "Registro Civil", value: "RC" },
-  { label: "Documento de Identificacion", value: "DI" },
+  { label: "Documento de Identificación", value: "DI" },
 ];
 const COMPANY_DOC_TYPES = [{ label: "NIT", value: "NIT" }];
 const CARD_SECURE_FIELD_CLASS = "checkout-secure-field flex h-12 items-center overflow-hidden rounded-md border border-white/12 bg-black/30 text-foreground transition focus-within:border-lime-300/70";
@@ -70,7 +70,7 @@ const CHECKOUT_INPUT_CLASS = "checkout-input mt-2 h-12 w-full rounded-md border 
 
 const CARD_BRAND_LABELS: Record<CardBrand, string> = {
   visa: "Visa",
-  mástercard: "Mastercard",
+  mastercard: "Mastercard",
   amex: "Amex",
   diners: "Diners",
   discover: "Discover",
@@ -93,7 +93,7 @@ function isValidEmail(value: string) {
 function normalizeCardBrand(paymentMethodId?: string): CardBrand {
   const normalized = (paymentMethodId || "").toLowerCase();
   if (normalized.includes("visa")) return "visa";
-  if (normalized.includes("master") || normalized.includes("mástercard")) return "mástercard";
+  if (normalized.includes("master") || normalized.includes("mastercard")) return "mastercard";
   if (normalized.includes("amex") || normalized.includes("american")) return "amex";
   if (normalized.includes("diners")) return "diners";
   if (normalized.includes("discover")) return "discover";
@@ -123,7 +123,7 @@ function CardBrandBadge({ brand }: { brand: CardBrand }) {
     return <span className="text-[18px] font-black italic tracking-[0.08em] text-[#1434CB]">VISA</span>;
   }
 
-  if (brand === "mástercard") {
+  if (brand === "mastercard") {
     return (
       <span className="relative block h-7 w-11" aria-label="Mastercard">
         <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-[#EB001B]" />
@@ -334,7 +334,7 @@ export function CheckoutPaymentPage() {
         const MercadoPago = (window as any).MercadoPago;
 
         if (!publicKey || !MercadoPago) {
-          throw new Error("Mercado Pago no esta configurado para tarjetas.");
+          throw new Error("Mercado Pago no está configurado para tarjetas.");
         }
 
         const mp = new MercadoPago(publicKey, { locale: "es-CO" });
@@ -366,7 +366,7 @@ export function CheckoutPaymentPage() {
             id: "card-checkout-form",
             cardNumber: {
               id: "card-checkout__cardNumber",
-              placeholder: "Numero de tarjeta",
+              placeholder: "Número de tarjeta",
             },
             expirationDate: {
               id: "card-checkout__expirationDate",
@@ -394,7 +394,7 @@ export function CheckoutPaymentPage() {
             },
             identificationNumber: {
               id: "card-checkout__identificationNumber",
-              placeholder: "Numero de documento",
+              placeholder: "Número de documento",
             },
             cardholderEmail: {
               id: "card-checkout__cardholderEmail",
@@ -591,7 +591,7 @@ export function CheckoutPaymentPage() {
       return;
     }
     if (!validBuyer) {
-      setFormError("Revisa tus datos: nombre(s) y apellido, celular colombiano válido con indicativo +57, correo válido y confirmado, departamento, ciudad y direccion.");
+      setFormError("Revisa tus datos: nombre(s) y apellido, celular colombiano válido con indicativo +57, correo válido y confirmado, departamento, ciudad y dirección.");
       return;
     }
 
@@ -921,7 +921,7 @@ export function CheckoutPaymentPage() {
                         </p>
                       )}
                       <label className="block sm:col-span-2">
-                        <span className="text-sm font-bold text-white/80">Numero de tarjeta</span>
+                        <span className="text-sm font-bold text-white/80">Número de tarjeta</span>
                         <div className={`mt-2 ${CARD_SECURE_FIELD_CLASS}`}>
                           <div id="card-checkout__cardNumber" className={CARD_SECURE_FIELD_INNER_CLASS} />
                           <div className="mr-3 grid h-8 min-w-13 place-items-center rounded-[6px] border border-white/10 bg-white px-2" title={CARD_BRAND_LABELS[cardBrand]} aria-label={CARD_BRAND_LABELS[cardBrand]}>
@@ -963,7 +963,7 @@ export function CheckoutPaymentPage() {
                         </select>
                       </label>
                       <label className="block">
-                        <span className="text-sm font-bold text-white/80">Numero de documento</span>
+                        <span className="text-sm font-bold text-white/80">Número de documento</span>
                         <input id="card-checkout__identificationNumber" className={CHECKOUT_INPUT_CLASS} placeholder="123456789" />
                       </label>
                       <input id="card-checkout__cardholderEmail" type="hidden" value={buyer.email} readOnly />
@@ -996,7 +996,7 @@ export function CheckoutPaymentPage() {
                           Natural
                         </option>
                         <option value="association" className="bg-[#111111]">
-                          Juridica
+                          Jurídica
                         </option>
                       </select>
                     </label>

@@ -7,7 +7,7 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
   try {
     const paymentClient = getMercadoPagoPayment();
     if (!paymentClient) {
-      return NextResponse.json({ error: "Mercado Pago no esta configurado en el servidor." }, { status: 503 });
+      return NextResponse.json({ error: "Mercado Pago no está configurado en el servidor." }, { status: 503 });
     }
 
     const { id } = await context.params;

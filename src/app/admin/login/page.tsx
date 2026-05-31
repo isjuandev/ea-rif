@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
     setLoading(false);
 
     if (!response.ok) {
-      setError(data?.error || "No se pudo iniciar sesion.");
+      setError(data?.error || "No se pudo iniciar sesión.");
       return;
     }
 
@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
           <LockKeyhole className="size-6" />
         </div>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Admin</p>
-        <h1 className="mt-2 font-heading text-3xl font-extrabold uppercase">Iniciar sesion</h1>
+        <h1 className="mt-2 font-heading text-3xl font-extrabold uppercase">Iniciar sesión</h1>
 
         <label className="mt-6 block">
           <span className="text-sm font-bold text-white/75">Usuario</span>
@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
         </label>
 
         <label className="mt-4 block">
-          <span className="text-sm font-bold text-white/75">Contrasena</span>
+          <span className="text-sm font-bold text-white/75">Contraseña</span>
           <input
             type="password"
             value={password}

@@ -38,7 +38,7 @@ export function Hero() {
           </div>
           <h1 className="font-heading text-[clamp(2.35rem,12vw,4rem)] font-extrabold uppercase leading-[0.92] tracking-normal text-foreground sm:text-7xl lg:text-8xl">
             {configLoading ? <Skeleton className="h-[0.92em] w-full max-w-[760px]" /> : rifaConfig.eventName}
-            <span className="block text-lime-300">7 De Mayo</span>
+            <span className="block text-lime-300">7 de Mayo</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
           Cada compra que realices viene con las mejores entradas digitales.

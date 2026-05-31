@@ -34,7 +34,7 @@ export function ProgressBar() {
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Avance de rifas</p>
             {loading ? <Skeleton className="mt-3 h-9 w-full max-w-md" /> : <h2 className="mt-2 font-heading text-2xl font-bold text-foreground sm:text-4xl">
-              {roundedSoldPercentage}% de la rifa ya esta reservado
+              {roundedSoldPercentage}% de la rifa ya está reservado
             </h2>}
             {loading ? <Skeleton className="mt-3 h-4 w-56" /> : <p className="mt-2 text-sm text-white/55">{roundedAvailablePercentage}% disponible para nuevas compras</p>}
           </div>

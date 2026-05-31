@@ -38,7 +38,7 @@ export default function PublicActivityOverlay({ children }: { children: ReactNod
           <div className="absolute inset-0 bg-black/85" />
           {config.activityClosed ? (
             <div className="relative z-10 space-y-3 text-center">
-              <p className="text-2xl font-extrabold uppercase tracking-[0.08em] text-white sm:text-4xl">esta actividad finalizo - atento a nuestras redes</p>
+              <p className="text-2xl font-extrabold uppercase tracking-[0.08em] text-white sm:text-4xl">esta actividad finalizó - atento a nuestras redes</p>
               {config.socialLinks?.instagram ? (
                 <a
                   href={config.socialLinks.instagram}

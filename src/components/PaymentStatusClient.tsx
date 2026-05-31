@@ -22,8 +22,8 @@ function statusCopy(status?: string) {
   if (status === "cancelled") return "Pago cancelado";
   if (status === "refunded") return "Pago reembolsado";
   if (status === "charged_back") return "Pago devuelto";
-  if (status === "in_process") return "Pago en revision";
-  if (status === "pending") return "Esperando aprobacion";
+  if (status === "in_process") return "Pago en revisión";
+  if (status === "pending") return "Esperando aprobación";
   return "Consultando pago";
 }
 
@@ -107,7 +107,7 @@ export function PaymentStatusClient({
                   ? "Tus números quedaron asignados. También los envíaremos a tu correo."
                   : declined
                     ? status?.message || "El pago no fue aprobado. No se asignaron números de rifa."
-                    : "Estamos esperando la confirmacion de Mercado Pago. Esta página se actualiza automáticamente."}
+                    : "Estamos esperando la confirmación de Mercado Pago. Esta página se actualiza automáticamente."}
               </p>
 
               <dl className="mt-6 grid gap-3 rounded-md border border-white/10 bg-black/25 p-4 text-sm">

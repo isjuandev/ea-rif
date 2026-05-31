@@ -57,14 +57,14 @@ async function buildPdf(summary: Awaited<ReturnType<typeof getAdminReportSummary
   drawLine(`Ciclo: ${summary.cycleId}`);
   drawLine(`Descargas del ciclo: ${summary.cycleReportDownloads}`);
   if (summary.lastReportDownloadAt) {
-    drawLine(`Ultima descarga: ${new Date(summary.lastReportDownloadAt).toLocaleString("es-CO")}`);
+    drawLine(`Última descarga: ${new Date(summary.lastReportDownloadAt).toLocaleString("es-CO")}`);
   }
   y -= 6;
   drawLine("Resumen", 12, true);
-  drawLine(`Numeros vendidos: ${summary.reportTotals.soldNumbersCount.toLocaleString("es-CO")}`);
+  drawLine(`Números vendidos: ${summary.reportTotals.soldNumbersCount.toLocaleString("es-CO")}`);
   drawLine(`Transacciones: ${summary.reportTotals.transactionsCount.toLocaleString("es-CO")}`);
   drawLine(`Bruto: ${formatCOP(summary.reportTotals.grossCop)}`);
-  drawLine(`Comision: ${formatCOP(summary.reportTotals.feeCop)}`);
+  drawLine(`Comisión: ${formatCOP(summary.reportTotals.feeCop)}`);
   drawLine(`Neto: ${formatCOP(summary.reportTotals.netCop)}`);
   y -= 6;
   drawLine("Detalle diario", 12, true);
@@ -74,7 +74,7 @@ async function buildPdf(summary: Awaited<ReturnType<typeof getAdminReportSummary
   } else {
     for (const row of summary.reportByDay) {
       drawLine(
-        `${row.date} | Vendidos ${row.soldNumbersCount} | Trans ${row.transactionsCount} | Bruto ${formatCOP(row.grossCop)} | Comision ${formatCOP(row.feeCop)} | Neto ${formatCOP(row.netCop)}`,
+        `${row.date} | Vendidos ${row.soldNumbersCount} | Trans ${row.transactionsCount} | Bruto ${formatCOP(row.grossCop)} | Comisión ${formatCOP(row.feeCop)} | Neto ${formatCOP(row.netCop)}`,
         9,
       );
     }

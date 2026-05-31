@@ -26,10 +26,10 @@ export function PackagesSection() {
   const [status, setStatus] = useState<RifaStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const { config: rifaConfig, loading: configLoading } = useRifaConfigState();
-  const [customTickets, setCustomTickets] = useState(5);
+  const [customTickets, setCustomTickets] = useState(20);
   const [customError, setCustomError] = useState("");
 
-  const boundedCustomTickets = useMemo(() => Math.max(5, Math.min(500, customTickets)), [customTickets]);
+  const boundedCustomTickets = useMemo(() => Math.max(20, Math.min(500, customTickets)), [customTickets]);
 
   useEffect(() => {
     fetch("/api/rifa/status")
@@ -45,8 +45,8 @@ export function PackagesSection() {
   }
 
   function handleBuyCustom() {
-    if (!Number.isInteger(customTickets) || customTickets < 5 || customTickets > 500) {
-      setCustomError("La cantidad debe estar entre 5 y 500 entradas.");
+    if (!Number.isInteger(customTickets) || customTickets < 20 || customTickets > 500) {
+      setCustomError("La cantidad debe estar entre 20 y 500 entradas.");
       return;
     }
     setCustomError("");
@@ -165,27 +165,33 @@ export function PackagesSection() {
                     </article>
                   ))}
                 </div>
-              ) : rifaConfig.blessedPrizes && rifaConfig.blessedPrizes.length > 0 && (
-                <div className="mt-5 grid w-full gap-4 md:grid-cols-3">
-                  <article className="card border-amber-300/35 bg-amber-300/10 p-4 text-center">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Numeros bendecidos</p>
-                    <div className="mt-3 flex flex-wrap justify-center gap-2">
-                      {rifaConfig.blessedPrizes.map((item) => (
-                        <span key={item.number} className="rounded-[6px] border border-amber-200/45 bg-black/25 px-3 py-1 text-sm font-bold text-amber-100">
-                          {item.number}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="mt-2 text-sm font-bold text-foreground">Premio por número: <span className="text-amber-200">{formatCOP(rifaConfig.blessedPrizes[0].prizeCop || 0)}</span></p>
-                  </article>
-                  <article className="card border-amber-300/35 bg-amber-300/10 p-4 text-center">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Numero invertido</p>
-                    <p className="mt-2 font-heading text-3xl font-extrabold text-amber-100">{formatCOP(rifaConfig.invertedWinnerPrizeCop || 0)}</p>
-                  </article>
-                  <article className="card border-amber-300/35 bg-amber-300/10 p-4 text-center">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Si compra más de {rifaConfig.bulkPrizeThreshold} entradas</p>
-                    <p className="mt-2 font-heading text-3xl font-extrabold text-amber-100">{formatCOP(rifaConfig.bulkPrizeCop || 0)}</p>
-                  </article>
+              ) : (rifaConfig.showBlessedCard || rifaConfig.showInvertedCard || rifaConfig.showBulkCard) && (
+                <div className="mt-5 grid w-full gap-4 md:grid-cols-[2fr_1fr_1fr]">
+                  {rifaConfig.showBlessedCard && rifaConfig.blessedPrizes.length > 0 && (
+                    <article className="card flex flex-col items-center justify-center gap-2 border-amber-300/35 bg-amber-300/10 p-4 text-center">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Números bendecidos</p>
+                      <div className="flex flex-wrap justify-center gap-1.5">
+                        {rifaConfig.blessedPrizes.map((item) => (
+                          <span key={item.number} className="rounded-[6px] border border-amber-200/45 bg-black/25 px-2 py-1 text-xs font-bold text-amber-100">
+                            {item.number}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-sm font-bold text-foreground">Premio por número: <span className="text-amber-200">{formatCOP(rifaConfig.blessedPrizes[0].prizeCop || 0)}</span></p>
+                    </article>
+                  )}
+                  {rifaConfig.showInvertedCard && (
+                    <article className="card flex flex-col items-center justify-center gap-1 border-amber-300/35 bg-amber-300/10 p-4 text-center">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Número invertido</p>
+                      <p className="font-heading text-2xl font-extrabold text-amber-100">{formatCOP(rifaConfig.invertedWinnerPrizeCop || 0)}</p>
+                    </article>
+                  )}
+                  {rifaConfig.showBulkCard && (
+                    <article className="card flex flex-col items-center justify-center gap-1 border-amber-300/35 bg-amber-300/10 p-4 text-center">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Si compra más de {rifaConfig.bulkPrizeThreshold} entradas</p>
+                      <p className="font-heading text-2xl font-extrabold text-amber-100">{formatCOP(rifaConfig.bulkPrizeCop || 0)}</p>
+                    </article>
+                  )}
                 </div>
               )}
             </div>
@@ -196,14 +202,14 @@ export function PackagesSection() {
               </div>
               {configLoading ? <Skeleton className="h-9 w-36 bg-primary/20" /> : <p className="font-heading text-3xl font-bold text-primary">{formatCOP(boundedCustomTickets * rifaConfig.ticketPrice)}</p>}
               <div className="mt-4 space-y-2 text-sm text-muted">
-                <p>Compra entre 5 y 500 entradas</p>
+                <p>Compra entre 20 y 500 entradas</p>
               </div>
               <div className="mt-auto pt-5">
                 <div className="flex items-center gap-2">
-                <button type="button" onClick={() => { setCustomTickets((v) => Math.max(5, v - 1)); setCustomError(""); }} className="btn-icon h-11 w-11 text-xl">-</button>
+                <button type="button" onClick={() => { setCustomTickets((v) => Math.max(20, v - 1)); setCustomError(""); }} className="btn-icon h-11 w-11 text-xl">-</button>
                 <input
                   type="number"
-                  min={5}
+                  min={20}
                   max={500}
                   value={customTickets}
                   onChange={(event) => {
@@ -215,8 +221,8 @@ export function PackagesSection() {
                 <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 1)); setCustomError(""); }} className="btn-icon h-11 w-11 text-xl">+</button>
                 </div>
                 <div className="mt-2 grid grid-cols-3 gap-2">
-                  <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 5)); setCustomError(""); }} className="btn btn-secondary btn-sm">+5</button>
                   <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 10)); setCustomError(""); }} className="btn btn-secondary btn-sm">+10</button>
+                  <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 20)); setCustomError(""); }} className="btn btn-secondary btn-sm">+20</button>
                   <button type="button" onClick={() => { setCustomTickets((v) => Math.min(500, v + 50)); setCustomError(""); }} className="btn btn-secondary btn-sm">+50</button>
                 </div>
                 {customError && <p className="mt-1 text-xs text-red-300">{customError}</p>}

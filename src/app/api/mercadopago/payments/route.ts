@@ -124,7 +124,7 @@ async function validatePseFinancialInstitution(financialInstitution?: string) {
 
   return {
     valid: false,
-    message: `El banco PSE ${financialInstitution} no esta disponible para estas credenciales de Mercado Pago. Selecciona un banco desde el checkout. Bancos disponibles de ejemplo: ${sampleBanks}.`,
+    message: `El banco PSE ${financialInstitution} no está disponible para estas credenciales de Mercado Pago. Selecciona un banco desde el checkout. Bancos disponibles de ejemplo: ${sampleBanks}.`,
   };
 }
 
@@ -157,7 +157,7 @@ function formatMercadoPagoError(error: any) {
   const lowerCombined = combined.toLowerCase();
 
   if (lowerCombined.includes("ip_address")) {
-    return "No pudimos iniciar el pago por PSE porque Mercado Pago no recibio la IP del comprador. Si estas probando manualmente, envía formData.additional_info.ip_address; en producción revisa que el proxy envie x-forwarded-for, x-real-ip o cf-connecting-ip.";
+    return "No pudimos iniciar el pago por PSE porque Mercado Pago no recibió la IP del comprador. Si estás probando manualmente, envía formData.additional_info.ip_address; en producción revisa que el proxy envíe x-forwarded-for, x-real-ip o cf-connecting-ip.";
   }
 
   if (lowerCombined.includes("financial_institution")) {
@@ -169,15 +169,15 @@ function formatMercadoPagoError(error: any) {
   }
 
   if (lowerCombined.includes("callback_url") || lowerCombined.includes("notification_url")) {
-    return "No pudimos iniciar el pago por PSE porque la URL pública del sitio no esta configurada correctamente. Configura NEXT_PUBLIC_SITE_URL con una URL HTTPS pública.";
+    return "No pudimos iniciar el pago por PSE porque la URL pública del sitio no está configurada correctamente. Configura NEXT_PUBLIC_SITE_URL con una URL HTTPS pública.";
   }
 
   if (lowerCombined.includes("address") || lowerCombined.includes("zip_code") || lowerCombined.includes("street")) {
-    return "No pudimos iniciar el pago por PSE porque Mercado Pago no acepto la direccion. Usa código postal de 5 dígitos, calle de máximo 50 caracteres, número de máximo 5, barrio, ciudad y departamento.";
+    return "No pudimos iniciar el pago por PSE porque Mercado Pago no aceptó la dirección. Usa código postal de 5 dígitos, calle de máximo 50 caracteres, número de máximo 5, barrio, ciudad y departamento.";
   }
 
   if (lowerCombined.includes("internal_error")) {
-    return "Mercado Pago devolvio internal_error al crear el pago. Si estas usando credenciales TEST, verifica que el deploy tenga MERCADO_PAGO_TEST_TOKEN=true o un access token TEST- para envíar X-Test-Token:true; si ya esta activo, revisa que el comprador sea un usuario de prueba válido para esa cuenta.";
+    return "Mercado Pago devolvió internal_error al crear el pago. Si estás usando credenciales TEST, verifica que el deploy tenga MERCADO_PAGO_TEST_TOKEN=true o un access token TEST- para enviar X-Test-Token:true; si ya está activo, revisa que el comprador sea un usuario de prueba válido para esa cuenta.";
   }
 
   return combined
@@ -315,7 +315,7 @@ export async function POST(request: Request) {
     const paymentClient = getMercadoPagoPayment();
 
     if (!paymentClient) {
-      return NextResponse.json({ error: "Mercado Pago no esta configurado en el servidor." }, { status: 503 });
+      return NextResponse.json({ error: "Mercado Pago no está configurado en el servidor." }, { status: 503 });
     }
 
     const payload = (await request.json()) as MercadoPagoPaymentPayload;
@@ -375,7 +375,7 @@ export async function POST(request: Request) {
     if (expectedAmount < MERCADO_PAGO_MIN_CARD_AMOUNT) {
       return NextResponse.json(
         {
-          error: `Mercado Pago solo esta disponible desde ${MERCADO_PAGO_MIN_CARD_AMOUNT} COP.`,
+          error: `Mercado Pago solo está disponible desde ${MERCADO_PAGO_MIN_CARD_AMOUNT} COP.`,
         },
         { status: 400 },
       );
@@ -431,7 +431,7 @@ export async function POST(request: Request) {
       if (!hasAddress) {
         return validationError(
           "Faltan datos para pagar por PSE.",
-          "Completa código postal de 5 dígitos, direccion, barrio, ciudad y departamento.",
+          "Completa código postal de 5 dígitos, dirección, barrio, ciudad y departamento.",
         );
       }
       if (!hasPhone) {
@@ -598,7 +598,7 @@ export async function POST(request: Request) {
         statusDetail: payment.status_detail,
         externalResourceUrl,
         statusUrl: payment.id ? `/pago/estado?id=${encodeURIComponent(String(payment.id))}` : "/pago/estado",
-        message: "El pago fue creado pero aún no esta aprobado.",
+        message: "El pago fue creado pero aún no está aprobado.",
       });
     }
 
