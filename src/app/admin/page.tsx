@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { BarChart3, LogOut, Plus, RotateCcw, Save, Star, Trash2 } from "lucide-react";
+import { BarChart3, LogOut, Mail, Plus, RotateCcw, Save, Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { rifaConfig, type RifaConfig, type RifaPackage } from "@/config/rifa";
 import { getLotteryOption, lotteryOptions } from "@/lib/lottery-results";
@@ -188,6 +188,13 @@ export default function AdminRifaSettingsPage() {
             >
               <BarChart3 className="size-5" />
               Reportes
+            </Link>
+            <Link
+              href="/admin/correos"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-lime-300/45 px-5 py-3 font-extrabold uppercase text-lime-200 transition hover:bg-lime-300 hover:text-primary-foreground"
+            >
+              <Mail className="size-5" />
+              Correos
             </Link>
             <button
               type="button"
