@@ -15,7 +15,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Club Élite | 27 de Junio",
+  title: "Club Élite | 1 de Agosto",
   description: "Compra entradas digitales, recibe números de 5 cifras y participa con la Lotería de Boyacá.",
 };
 
