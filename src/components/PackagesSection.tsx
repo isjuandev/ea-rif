@@ -241,14 +241,14 @@ export function PackagesSection() {
               </div>
               {configLoading ? <Skeleton className="h-9 w-36 bg-primary/20" /> : <p className="font-heading text-3xl font-bold text-primary">{formatCOP(boundedCustomTickets * rifaConfig.ticketPrice)}</p>}
               <div className="mt-4 space-y-2 text-sm text-muted">
-                <p>Compra entre 20 y 500 entradas</p>
+                <p>Compra entre 40 y 500 entradas</p>
               </div>
               <div className="mt-auto pt-5">
                 <div className="flex items-center gap-2">
-                <button type="button" onClick={() => { setCustomTickets((v) => Math.max(20, v - 1)); setCustomError(""); }} className="btn-icon h-11 w-11 text-xl">-</button>
+                <button type="button" onClick={() => { setCustomTickets((v) => Math.max(40, v - 1)); setCustomError(""); }} className="btn-icon h-11 w-11 text-xl">-</button>
                 <input
                   type="number"
-                  min={20}
+                  min={40}
                   max={500}
                   value={customTickets}
                   onChange={(event) => {
