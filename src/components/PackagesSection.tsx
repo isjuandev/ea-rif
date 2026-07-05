@@ -61,7 +61,7 @@ export function PackagesSection() {
 
   function handleBuyCustom() {
     if (!Number.isInteger(customTickets) || customTickets < 40 || customTickets > 500) {
-      setCustomError("La cantidad debe estar entre 40 y 500 entradas.");
+      alert("La cantidad debe estar entre 40 y 500 entradas.");
       return;
     }
     setCustomError("");
@@ -252,11 +252,11 @@ export function PackagesSection() {
                   max={500}
                   value={customTickets}
                   onChange={(event) => {
-                    const val = Number(event.target.value);
-                    if (val < 40) setCustomTickets(40);
-                    else if (val > 500) setCustomTickets(500);
-                    else setCustomTickets(val);
+                    setCustomTickets(Number(event.target.value));
                     setCustomError("");
+                  }}
+                  onBlur={() => {
+                    setCustomTickets((v) => Math.max(40, Math.min(500, v)));
                   }}
                   className="input-field input-field--dark h-11 appearance-none [appearance:textfield] [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
