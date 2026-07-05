@@ -26,12 +26,12 @@ export function PackagesSection() {
   const [status, setStatus] = useState<RifaStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const { config: rifaConfig, loading: configLoading } = useRifaConfigState();
-  const [customTickets, setCustomTickets] = useState(20);
+  const [customTickets, setCustomTickets] = useState(40);
   const [customError, setCustomError] = useState("");
   const [soldBlessedNumbers, setSoldBlessedNumbers] = useState<Set<string>>(new Set());
   const [releasedBlessedNumbers, setReleasedBlessedNumbers] = useState<Set<string> | null>(null);
 
-  const boundedCustomTickets = useMemo(() => Math.max(20, Math.min(500, customTickets)), [customTickets]);
+  const boundedCustomTickets = useMemo(() => Math.max(40, Math.min(500, customTickets)), [customTickets]);
 
   useEffect(() => {
     fetch("/api/rifa/status")
@@ -60,8 +60,8 @@ export function PackagesSection() {
   }
 
   function handleBuyCustom() {
-    if (!Number.isInteger(customTickets) || customTickets < 20 || customTickets > 500) {
-      setCustomError("La cantidad debe estar entre 20 y 500 entradas.");
+    if (!Number.isInteger(customTickets) || customTickets < 40 || customTickets > 500) {
+      setCustomError("La cantidad debe estar entre 40 y 500 entradas.");
       return;
     }
     setCustomError("");
@@ -252,7 +252,10 @@ export function PackagesSection() {
                   max={500}
                   value={customTickets}
                   onChange={(event) => {
-                    setCustomTickets(Number(event.target.value));
+                    const val = Number(event.target.value);
+                    if (val < 40) setCustomTickets(40);
+                    else if (val > 500) setCustomTickets(500);
+                    else setCustomTickets(val);
                     setCustomError("");
                   }}
                   className="input-field input-field--dark h-11 appearance-none [appearance:textfield] [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
